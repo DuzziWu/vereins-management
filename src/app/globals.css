@@ -1,0 +1,266 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Sportlich-dynamisches Farbsystem mit klaren Unterscheidungen */
+    --background: 222.2 47.4% 11.2%; /* Dunkles Navy-Blau */
+    --foreground: 0 0% 98%;
+
+    --card: 222.2 47.4% 14%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 222.2 47.4% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Club primary - Grelle Lime/Volt für Sport-Akzente */
+    --club-primary: 82 85% 67%; /* Grelles Lime #d9f99d */
+
+    --primary: 82 85% 67%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 217.2 32.6% 22%;
+    --muted-foreground: 215 20.2% 55%;
+
+    --accent: 82 85% 67%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
+
+    --border: 217.2 32.6% 20%;
+    --input: 217.2 32.6% 15%;
+    --ring: 82 85% 67%;
+
+    /* Sport-Akzentfarben */
+    --accent-blue: 217 91% 60%;
+    --accent-orange: 25 95% 53%;
+    --accent-cyan: 187 85% 53%;
+
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Sportliche, dynamische Headlines */
+  h1 {
+    @apply font-bold tracking-tight;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    @apply font-bold tracking-tight;
+    letter-spacing: -0.015em;
+  }
+
+  h3 {
+    @apply font-semibold tracking-tight;
+  }
+
+  h4, h5, h6 {
+    @apply font-semibold tracking-normal;
+  }
+}
+
+@layer utilities {
+  /* Diagonaler Lime-Streifen - Sport-Signature */
+  .volt-stripe {
+    position: relative;
+  }
+
+  .volt-stripe::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: hsl(var(--primary));
+    border-radius: 2px;
+  }
+
+  /* Speed lines background effect */
+  .speed-lines {
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 100px,
+      hsl(var(--primary) / 0.03) 100px,
+      hsl(var(--primary) / 0.03) 101px
+    );
+  }
+
+  /* Diagonal cut corner effect */
+  .diagonal-cut {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%);
+  }
+
+  /* Glow effect for primary elements */
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  /* Action glow on hover */
+  .action-glow {
+    transition: box-shadow 0.3s ease;
+  }
+
+  .action-glow:hover {
+    box-shadow: 0 0 20px 2px hsl(var(--primary) / 0.4);
+  }
+
+  /* Energy card with border accent */
+  .energy-card {
+    position: relative;
+    border-left: 3px solid hsl(var(--primary));
+    transition: all 0.3s ease;
+  }
+
+  .energy-card:hover {
+    border-left-width: 5px;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+  }
+
+  /* Hover lift with sport accent */
+  .hover-lift-sport {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-lift-sport:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px -8px hsl(var(--primary));
+  }
+
+  /* Cut corner for hero elements */
+  .cut-corner {
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+  }
+
+  /* Diagonal lines pattern */
+  .diagonal-lines {
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 40px,
+      hsl(var(--primary) / 0.03) 40px,
+      hsl(var(--primary) / 0.03) 41px
+    );
+  }
+
+  /* Sport input styling */
+  .input-sport {
+    border: 2px solid hsl(var(--border));
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .input-sport:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+  }
+
+  /* Touch-friendly buttons */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Tabular nums for numbers */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* Badge variants */
+  .badge-info {
+    background: hsl(var(--accent-blue));
+    color: hsl(var(--background));
+  }
+
+  .badge-warning {
+    background: hsl(var(--accent-orange));
+    color: hsl(var(--background));
+  }
+
+  .badge-success {
+    background: hsl(var(--accent-cyan));
+    color: hsl(var(--background));
+  }
+
+  /* Progress bar sport style */
+  .progress-sport {
+    background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--accent-cyan)) 100%);
+  }
+
+  /* Sport stripe header accent */
+  .sport-stripe {
+    position: relative;
+  }
+
+  .sport-stripe::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, hsl(var(--primary)), transparent 50%);
+  }
+
+  /* Numbered list with sport styling */
+  .numbered-list {
+    counter-reset: list-counter;
+  }
+
+  .numbered-list > div {
+    counter-increment: list-counter;
+    position: relative;
+  }
+
+  .numbered-list > div::before {
+    content: counter(list-counter, decimal-leading-zero);
+    position: absolute;
+    left: -2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: hsl(var(--muted-foreground));
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Focus styles */
+*:focus-visible {
+  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+}
