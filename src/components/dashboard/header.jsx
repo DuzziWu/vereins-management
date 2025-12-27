@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { LogOut, Menu, X } from 'lucide-react'
 import { useState } from 'react'
@@ -33,11 +34,15 @@ export function DashboardHeader({ user, club, onSignOut }) {
           className="flex items-center gap-3"
         >
           {club?.logo_url ? (
-            <img
-              src={club.logo_url}
-              alt={club.name}
-              className="h-8 w-8 rounded-full object-cover"
-            />
+            <div className="relative h-8 w-8 shrink-0">
+              <Image
+                src={club.logo_url}
+                alt={club.name}
+                fill
+                sizes="32px"
+                className="rounded-full object-cover"
+              />
+            </div>
           ) : (
             <div
               className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold"

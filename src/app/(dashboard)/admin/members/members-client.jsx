@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { updateMemberRole, assignToTeam } from '@/actions/members'
+import { useDebounce } from '@/lib/hooks/use-debounce'
 
 const availableRoles = [
   { value: 'admin', label: 'Admin' },
@@ -21,6 +22,7 @@ export function MembersClient({ initialMembers, teams, clubId }) {
   const router = useRouter()
   const [members, setMembers] = useState(initialMembers)
   const [searchQuery, setSearchQuery] = useState('')
+  const debouncedSearch = useDebounce(searchQuery, 300)
   const [teamFilter, setTeamFilter] = useState('all')
   const [roleFilter, setRoleFilter] = useState('all')
   const [editingId, setEditingId] = useState(null)
@@ -30,9 +32,9 @@ export function MembersClient({ initialMembers, teams, clubId }) {
   // Get unique teams from members
   const memberTeams = ['all', ...new Set(members.map((m) => m.team))]
 
-  // Filter logic
+  // Filter logic with debounced search
   const filteredMembers = members.filter((member) => {
-    const matchesSearch = member.name.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch = member.name.toLowerCase().includes(debouncedSearch.toLowerCase())
     const matchesTeam = teamFilter === 'all' || member.team === teamFilter
     const matchesRole = roleFilter === 'all' || member.role === roleFilter
 

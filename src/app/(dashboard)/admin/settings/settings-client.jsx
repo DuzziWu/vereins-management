@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Upload, Palette, Save, User, Shield, Bell, Database, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -213,16 +214,18 @@ export function SettingsClient({ initialClub, initialProfile }) {
                 <Label className="text-foreground font-semibold mb-3 block">Vereins-Logo</Label>
                 <div className="flex items-center gap-4">
                   <div
-                    className="w-24 h-24 rounded-xl border-2 border-dashed border-border bg-secondary/50 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary transition-colors"
+                    className="relative w-24 h-24 rounded-xl border-2 border-dashed border-border bg-secondary/50 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary transition-colors"
                     onClick={() => logoInputRef.current?.click()}
                   >
                     {uploading ? (
                       <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
                     ) : logoUrl ? (
-                      <img
+                      <Image
                         src={logoUrl}
                         alt="Logo Preview"
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="96px"
+                        className="object-cover"
                       />
                     ) : (
                       <Upload className="h-8 w-8 text-muted-foreground" />

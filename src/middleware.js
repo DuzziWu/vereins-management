@@ -38,7 +38,8 @@ export async function middleware(request) {
   const isProtectedRoute =
     request.nextUrl.pathname.startsWith('/admin') ||
     request.nextUrl.pathname.startsWith('/coach') ||
-    request.nextUrl.pathname.startsWith('/player')
+    request.nextUrl.pathname.startsWith('/player') ||
+    request.nextUrl.pathname.startsWith('/dashboard')
 
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone()
@@ -53,9 +54,9 @@ export async function middleware(request) {
     request.nextUrl.pathname === '/register'
 
   if (isAuthRoute && user) {
+    // Redirect to dashboard - the dashboard page will handle role-based routing
     const url = request.nextUrl.clone()
-    // Default redirect to admin, actual role-based redirect happens in dashboard layout
-    url.pathname = '/admin'
+    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 

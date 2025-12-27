@@ -62,38 +62,28 @@ export default async function PlayerDashboardPage() {
   // Count confirmed attendees for next event
   const nextEventConfirmedCount = nextEvent?.attendance?.filter(a => a.status === 'confirmed').length || 0
 
-  // Fetch upcoming events with user's attendance status
+  // Fetch upcoming events with user's attendance - single optimized query
+  // Using inner subquery to get user-specific attendance
   const { data: upcomingEvents } = await supabase
     .from('events')
     .select(`
       *,
-      location:locations(*),
-      attendance(status, reason)
-    `)
-    .eq('club_id', clubId)
-    .eq('attendance.profile_id', user.id)
-    .gte('start_time', new Date().toISOString())
-    .order('start_time')
-    .limit(10)
-
-  // Also get events without attendance record (pending)
-  const { data: eventsWithoutResponse } = await supabase
-    .from('events')
-    .select(`
-      *,
-      location:locations(*)
+      location:locations(name),
+      attendance!left(status, reason, profile_id)
     `)
     .eq('club_id', clubId)
     .gte('start_time', new Date().toISOString())
     .order('start_time')
     .limit(10)
 
-  // Combine and deduplicate
-  const eventIds = new Set(upcomingEvents?.map(e => e.id) || [])
-  const pendingEvents = eventsWithoutResponse?.filter(e => !eventIds.has(e.id)) || []
+  // Filter attendance to only include current user's record
+  const eventsWithUserAttendance = upcomingEvents?.map(event => ({
+    ...event,
+    attendance: event.attendance?.filter(a => a.profile_id === user.id) || []
+  })) || []
 
   // Get next event that needs response
-  const nextPendingEvent = pendingEvents[0] || upcomingEvents?.find(
+  const nextPendingEvent = eventsWithUserAttendance.find(
     e => !e.attendance?.[0]?.status || e.attendance?.[0]?.status === ATTENDANCE_STATUS.PENDING
   )
 
@@ -118,11 +108,11 @@ export default async function PlayerDashboardPage() {
     { title: 'Triff die Latte', progress: 0, reward: '+100 XP', completed: false },
   ]
 
-  // Combine all events for the list
-  const allUpcomingEvents = [...pendingEvents, ...(upcomingEvents || [])].slice(0, 4)
+  // Get first 4 events for the list
+  const allUpcomingEvents = eventsWithUserAttendance.slice(0, 4)
 
   // Count how many confirmed
-  const confirmedCount = (upcomingEvents || [])
+  const confirmedCount = eventsWithUserAttendance
     .filter(e => e.attendance?.[0]?.status === ATTENDANCE_STATUS.CONFIRMED)
     .length
 

@@ -1,4 +1,5 @@
 import { forwardRef } from 'react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { getInitials } from '@/lib/utils'
 
@@ -15,11 +16,13 @@ const Avatar = forwardRef(({ className, ...props }, ref) => (
 Avatar.displayName = 'Avatar'
 
 const AvatarImage = forwardRef(({ className, src, alt, ...props }, ref) => (
-  <img
+  <Image
     ref={ref}
     src={src}
-    alt={alt}
-    className={cn('aspect-square h-full w-full object-cover', className)}
+    alt={alt || ''}
+    fill
+    sizes="(max-width: 768px) 40px, 48px"
+    className={cn('object-cover', className)}
     {...props}
   />
 ))

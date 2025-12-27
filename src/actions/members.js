@@ -21,8 +21,13 @@ export async function createInvite(formData) {
     return { error: 'Keine Berechtigung' }
   }
 
+  const fullName = formData.get('fullName') || null
   const email = formData.get('email') || null
   const role = formData.get('role') || 'player'
+
+  if (!fullName) {
+    return { error: 'Name ist erforderlich' }
+  }
 
   // Generate unique token
   const token = randomBytes(32).toString('hex')
@@ -35,6 +40,7 @@ export async function createInvite(formData) {
     .from('club_invites')
     .insert({
       club_id: profile.club_id,
+      full_name: fullName,
       email,
       role,
       token,
@@ -48,12 +54,59 @@ export async function createInvite(formData) {
     return { error: error.message }
   }
 
-  // Generate invite URL
+  // Generate invite URL - points to the invite acceptance page
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const inviteUrl = `${baseUrl}/register?invite=${token}`
+  const inviteUrl = `${baseUrl}/invite/${token}`
 
   revalidatePath('/admin/members')
   return { success: true, inviteUrl, invite }
+}
+
+/**
+ * Send invite email to the invited person
+ */
+export async function sendInviteEmail({ email, fullName, role, inviteUrl, clubName }) {
+  // For now, this is a placeholder. In production, you would integrate with
+  // an email service like Resend, SendGrid, or Supabase Edge Functions
+
+  // TODO: Implement actual email sending
+  // For development, we'll just log and return success
+  console.log('Sending invite email:', {
+    to: email,
+    fullName,
+    role,
+    inviteUrl,
+    clubName,
+  })
+
+  // Simulate email sending delay
+  await new Promise(resolve => setTimeout(resolve, 500))
+
+  return { success: true }
+}
+
+/**
+ * Get invite details by token (public function for invite acceptance page)
+ */
+export async function getInviteByToken(token) {
+  const supabase = await createClient()
+
+  const { data: invite, error } = await supabase
+    .from('club_invites')
+    .select(`
+      *,
+      club:clubs(id, name, logo_url, primary_color)
+    `)
+    .eq('token', token)
+    .is('used_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .single()
+
+  if (error || !invite) {
+    return { error: 'Ungültiger oder abgelaufener Einladungslink' }
+  }
+
+  return { invite }
 }
 
 /**

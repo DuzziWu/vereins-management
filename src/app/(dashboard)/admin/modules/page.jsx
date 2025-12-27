@@ -1,23 +1,33 @@
-import { Package, Lock, Check, Sparkles } from 'lucide-react'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { ModuleToggle } from './module-toggle'
+import { Button } from '@/components/ui/button'
+import DashboardHeader from '@/components/dashboard-header'
+import { USER_ROLE_LABELS } from '@/lib/constants'
+import { ModulesClient } from './modules-client'
 
 export const metadata = {
-  title: 'Module | Vereins-Master',
+  title: 'Modul-Shop | Vereins-Master',
 }
 
 export default async function ModulesPage() {
   const supabase = await createClient()
 
+  // Get current user and verify admin role
   const { data: { user } } = await supabase.auth.getUser()
   const { data: profile } = await supabase
     .from('profiles')
-    .select('club_id')
+    .select('*, club:clubs(*)')
     .eq('id', user.id)
     .single()
+
+  if (profile?.role !== 'admin') {
+    redirect(`/${profile?.role || 'player'}`)
+  }
+
+  const club = profile.club || {}
 
   // Get all modules
   const { data: modules } = await supabase
@@ -41,65 +51,29 @@ export default async function ModulesPage() {
     }
   }) || []
 
-  const activeCount = modulesWithStatus.filter(m => m.isActive).length
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-display font-bold">Modul-Shop</h1>
-        <p className="text-muted-foreground">
-          {activeCount} von {modulesWithStatus.length} Modulen aktiviert
-        </p>
-      </div>
+    <div className="min-h-screen bg-background diagonal-lines">
+      <DashboardHeader
+        userName={profile.full_name || 'Admin'}
+        userRole={USER_ROLE_LABELS[profile.role] || 'Vereins-Admin'}
+        clubName={club.name || 'FC Digital'}
+        isAdmin={true}
+        avatarUrl={profile.avatar_url}
+        clubLogoUrl={club.logo_url}
+      />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {modulesWithStatus.map((module) => (
-          <Card
-            key={module.id}
-            className={module.isActive ? 'border-primary/50' : ''}
-          >
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`p-2 rounded-lg ${module.isActive ? 'bg-primary/20' : 'bg-secondary'}`}>
-                    <Package className={`h-5 w-5 ${module.isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">{module.name}</CardTitle>
-                    {module.is_premium && (
-                      <Badge variant="secondary" className="mt-1">
-                        <Sparkles className="mr-1 h-3 w-3" />
-                        Premium
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                {module.isActive && (
-                  <Badge variant="success">
-                    <Check className="mr-1 h-3 w-3" />
-                    Aktiv
-                  </Badge>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <CardDescription>{module.description}</CardDescription>
+      <main className="container mx-auto px-6 py-8">
+        <div className="mb-6">
+          <Link href="/admin">
+            <Button variant="outline" size="sm" className="mb-4 bg-transparent border-2 border-border hover:border-primary">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Zurück zum Dashboard
+            </Button>
+          </Link>
+        </div>
 
-              {module.is_premium ? (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary/50 text-sm text-muted-foreground">
-                  <Lock className="h-4 w-4" />
-                  <span>Premium-Modul (demnächst verfügbar)</span>
-                </div>
-              ) : (
-                <ModuleToggle
-                  moduleId={module.id}
-                  isActive={module.isActive}
-                />
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+        <ModulesClient modules={modulesWithStatus} />
+      </main>
     </div>
   )
 }

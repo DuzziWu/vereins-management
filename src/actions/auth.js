@@ -180,3 +180,81 @@ export async function getCurrentUser() {
 
   return profile
 }
+
+/**
+ * Accept an invite and create user account
+ */
+export async function acceptInvite(formData) {
+  const supabase = await createClient()
+
+  // Sign out any existing user first to prevent session conflicts
+  await supabase.auth.signOut()
+
+  const email = formData.get('email')
+  const password = formData.get('password')
+  const fullName = formData.get('fullName')
+  const inviteToken = formData.get('inviteToken')
+
+  if (!inviteToken) {
+    return { error: 'Kein Einladungstoken gefunden' }
+  }
+
+  // Validate the invite
+  const { data: invite, error: inviteError } = await supabase
+    .from('club_invites')
+    .select('*')
+    .eq('token', inviteToken)
+    .is('used_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .single()
+
+  if (inviteError || !invite) {
+    return { error: 'Ungültiger oder abgelaufener Einladungslink' }
+  }
+
+  // Sign up the user
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName,
+      },
+    },
+  })
+
+  if (authError) {
+    return { error: authError.message }
+  }
+
+  // Update profile with club and role from invite
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({
+      club_id: invite.club_id,
+      role: invite.role,
+      full_name: fullName,
+    })
+    .eq('id', authData.user.id)
+
+  if (profileError) {
+    return { error: 'Fehler beim Beitreten des Vereins' }
+  }
+
+  // Mark invite as used
+  await supabase
+    .from('club_invites')
+    .update({ used_at: new Date().toISOString() })
+    .eq('id', invite.id)
+
+  revalidatePath('/', 'layout')
+
+  // Redirect based on role
+  const dashboardRoute = invite.role === 'admin'
+    ? '/admin'
+    : invite.role === 'coach'
+      ? '/coach'
+      : '/player'
+
+  redirect(dashboardRoute)
+}
