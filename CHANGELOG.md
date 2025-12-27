@@ -6,6 +6,23 @@ See `CLAUDE.md` for documentation rules.
 
 ---
 
+## [2025-12-27 07:00] - Vercel Deployment Fix
+
+**Description:** Fixed middleware crash on Vercel due to missing environment variables. Added proper error handling to all Supabase client factories to prevent crashes when env vars are not set.
+
+**Files Added:**
+- None
+
+**Files Changed:**
+- `src/middleware.js` - Added check for missing env vars, graceful fallback
+- `src/lib/supabase/server.js` - Added error handling for missing env vars
+- `src/lib/supabase/client.js` - Added error handling for missing env vars
+
+**Files Deleted:**
+- None
+
+---
+
 ## [2025-12-27 06:15] - Middleware Performance Fix
 
 **Description:** Fixed slow page loads (10+ seconds) caused by database query in middleware. Removed profile query from middleware and created a dedicated /dashboard redirect page that handles role-based routing. Middleware now stays fast by only checking authentication.
