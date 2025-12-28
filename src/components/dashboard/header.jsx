@@ -52,7 +52,7 @@ export function DashboardHeader({ user, club, onSignOut }) {
             </div>
           )}
           <span className="font-display font-bold text-lg hidden sm:inline">
-            {club?.name || 'Vereins-Master'}
+            {club?.name || 'ClubGrid'}
           </span>
         </Link>
 

@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { randomBytes } from 'crypto'
+import nodemailer from 'nodemailer'
+import { generateInviteEmailHTML, generateInviteEmailText } from '@/components/emails/invite-email'
 
 /**
  * Create an invite link for a new member
@@ -63,26 +65,48 @@ export async function createInvite(formData) {
 }
 
 /**
- * Send invite email to the invited person
+ * Send invite email to the invited person using Nodemailer
  */
 export async function sendInviteEmail({ email, fullName, role, inviteUrl, clubName }) {
-  // For now, this is a placeholder. In production, you would integrate with
-  // an email service like Resend, SendGrid, or Supabase Edge Functions
+  // Check if SMTP is configured
+  const smtpHost = process.env.SMTP_HOST
+  const smtpPort = process.env.SMTP_PORT || 587
+  const smtpUser = process.env.SMTP_USER
+  const smtpPass = process.env.SMTP_PASS
+  const smtpFrom = process.env.SMTP_FROM || 'noreply@clubgrid.app'
 
-  // TODO: Implement actual email sending
-  // For development, we'll just log and return success
-  console.log('Sending invite email:', {
-    to: email,
-    fullName,
-    role,
-    inviteUrl,
-    clubName,
+  if (!smtpHost || !smtpUser || !smtpPass) {
+    console.log('SMTP not configured, skipping email send')
+    console.log('Would send invite email to:', { email, fullName, role, inviteUrl, clubName })
+    return { success: true, skipped: true }
+  }
+
+  // Create Nodemailer transporter
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: parseInt(smtpPort),
+    secure: parseInt(smtpPort) === 465,
+    auth: {
+      user: smtpUser,
+      pass: smtpPass,
+    },
   })
 
-  // Simulate email sending delay
-  await new Promise(resolve => setTimeout(resolve, 500))
+  try {
+    const info = await transporter.sendMail({
+      from: `"ClubGrid" <${smtpFrom}>`,
+      to: email,
+      subject: `Einladung zu ${clubName}`,
+      text: generateInviteEmailText({ fullName, clubName, role, inviteUrl }),
+      html: generateInviteEmailHTML({ fullName, clubName, role, inviteUrl }),
+    })
 
-  return { success: true }
+    console.log('Invite email sent successfully:', info.messageId)
+    return { success: true, messageId: info.messageId }
+  } catch (err) {
+    console.error('Error sending invite email:', err)
+    return { error: 'E-Mail konnte nicht gesendet werden' }
+  }
 }
 
 /**
@@ -107,6 +131,97 @@ export async function getInviteByToken(token) {
   }
 
   return { invite }
+}
+
+/**
+ * Get all invites for the club (admin/coach only)
+ */
+export async function getInvites() {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('club_id, role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !['admin', 'coach'].includes(profile.role)) {
+    return { error: 'Keine Berechtigung' }
+  }
+
+  const { data: invites, error } = await supabase
+    .from('club_invites')
+    .select(`
+      *,
+      created_by_profile:profiles!club_invites_created_by_fkey(full_name)
+    `)
+    .eq('club_id', profile.club_id)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { invites }
+}
+
+/**
+ * Resend an expired invite (creates new token with fresh expiry)
+ */
+export async function resendInvite(inviteId) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('club_id, role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !['admin', 'coach'].includes(profile.role)) {
+    return { error: 'Keine Berechtigung' }
+  }
+
+  // Get the existing invite
+  const { data: existingInvite, error: fetchError } = await supabase
+    .from('club_invites')
+    .select('*')
+    .eq('id', inviteId)
+    .eq('club_id', profile.club_id)
+    .single()
+
+  if (fetchError || !existingInvite) {
+    return { error: 'Einladung nicht gefunden' }
+  }
+
+  // Can't resend used invites
+  if (existingInvite.used_at) {
+    return { error: 'Diese Einladung wurde bereits verwendet' }
+  }
+
+  // Generate new token and expiry
+  const newToken = randomBytes(32).toString('hex')
+  const newExpiresAt = new Date()
+  newExpiresAt.setDate(newExpiresAt.getDate() + 7)
+
+  const { error: updateError } = await supabase
+    .from('club_invites')
+    .update({
+      token: newToken,
+      expires_at: newExpiresAt.toISOString(),
+    })
+    .eq('id', inviteId)
+
+  if (updateError) {
+    return { error: updateError.message }
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const inviteUrl = `${baseUrl}/invite/${newToken}`
+
+  revalidatePath('/admin/members')
+  return { success: true, inviteUrl }
 }
 
 /**

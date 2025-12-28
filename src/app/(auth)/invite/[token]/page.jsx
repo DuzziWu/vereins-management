@@ -20,8 +20,8 @@ export async function generateMetadata({ params }) {
 
   return {
     title: invite?.club?.name
-      ? `Einladung zu ${invite.club.name} | Vereins-Master`
-      : 'Einladung | Vereins-Master',
+      ? `Einladung zu ${invite.club.name} | ClubGrid`
+      : 'Einladung | ClubGrid',
   }
 }
 

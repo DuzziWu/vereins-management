@@ -9,7 +9,7 @@ import { USER_ROLE_LABELS } from '@/lib/constants'
 import { InviteForm } from './invite-form'
 
 export const metadata = {
-  title: 'Mitglied einladen | Vereins-Master',
+  title: 'Mitglied einladen | ClubGrid',
 }
 
 export default async function InviteMemberPage() {

@@ -10,7 +10,7 @@ import { UserAvatar } from '@/components/ui/avatar'
 import { EVENT_TYPE_LABELS, ATTENDANCE_STATUS, ATTENDANCE_STATUS_LABELS } from '@/lib/constants'
 
 export const metadata = {
-  title: 'Termin Details | Vereins-Master',
+  title: 'Termin Details | ClubGrid',
 }
 
 export default async function EventDetailPage({ params }) {

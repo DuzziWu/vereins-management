@@ -9,7 +9,7 @@ import { USER_ROLE_LABELS } from '@/lib/constants'
 import { TeamsClient } from './teams-client'
 
 export const metadata = {
-  title: 'Mannschaften | Vereins-Master',
+  title: 'Mannschaften | ClubGrid',
 }
 
 export default async function TeamsPage() {

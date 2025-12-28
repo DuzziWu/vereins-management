@@ -6,10 +6,10 @@ import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import DashboardHeader from '@/components/dashboard-header'
 import { USER_ROLE_LABELS } from '@/lib/constants'
-import { MembersClient } from './members-client'
+import { MembersPageClient } from './members-page-client'
 
 export const metadata = {
-  title: 'Mitglieder | Vereins-Master',
+  title: 'Mitglieder | ClubGrid',
 }
 
 export default async function MembersPage() {
@@ -56,6 +56,16 @@ export default async function MembersPage() {
     .eq('club_id', clubId)
     .order('name')
 
+  // Fetch all invites for the club
+  const { data: invites } = await supabase
+    .from('club_invites')
+    .select(`
+      *,
+      created_by_profile:profiles!club_invites_created_by_fkey(full_name)
+    `)
+    .eq('club_id', clubId)
+    .order('created_at', { ascending: false })
+
   // Transform members data
   const transformedMembers = members?.map(member => ({
     id: member.id,
@@ -66,6 +76,11 @@ export default async function MembersPage() {
     avatarUrl: member.avatar_url,
     createdAt: member.created_at,
   })) || []
+
+  // Count pending invites for badge
+  const pendingInvitesCount = invites?.filter(
+    i => !i.used_at && new Date(i.expires_at) >= new Date()
+  ).length || 0
 
   return (
     <div className="min-h-screen bg-background diagonal-lines">
@@ -89,10 +104,12 @@ export default async function MembersPage() {
           </Button>
         </Link>
 
-        <MembersClient
+        <MembersPageClient
           initialMembers={transformedMembers}
           teams={teams || []}
           clubId={clubId}
+          initialInvites={invites || []}
+          pendingInvitesCount={pendingInvitesCount}
         />
       </main>
     </div>

@@ -9,7 +9,7 @@ import { USER_ROLE_LABELS } from '@/lib/constants'
 import { SettingsClient } from './settings-client'
 
 export const metadata = {
-  title: 'Einstellungen | Vereins-Master',
+  title: 'Einstellungen | ClubGrid',
 }
 
 export default async function SettingsPage() {

@@ -18,7 +18,7 @@ const availableRoles = [
   { value: 'player', label: 'Spieler' },
 ]
 
-export function MembersClient({ initialMembers, teams, clubId }) {
+export function MembersClient({ initialMembers, teams, clubId, hideHeader = false }) {
   const router = useRouter()
   const [members, setMembers] = useState(initialMembers)
   const [searchQuery, setSearchQuery] = useState('')
@@ -122,32 +122,34 @@ export function MembersClient({ initialMembers, teams, clubId }) {
 
   return (
     <>
-      {/* Header Section */}
-      <div className="mb-12">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <div>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground mb-3">Mitglieder</h1>
-            <div className="flex items-center gap-3">
-              <div className="h-1 w-24 bg-primary rounded-full" />
-              <p className="text-muted-foreground font-medium">
-                {filteredMembers.length} {filteredMembers.length === 1 ? 'Mitglied' : 'Mitglieder'}
-              </p>
+      {/* Header Section - only show if not hidden */}
+      {!hideHeader && (
+        <div className="mb-12">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground mb-3">Mitglieder</h1>
+              <div className="flex items-center gap-3">
+                <div className="h-1 w-24 bg-primary rounded-full" />
+                <p className="text-muted-foreground font-medium">
+                  {filteredMembers.length} {filteredMembers.length === 1 ? 'Mitglied' : 'Mitglieder'}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" className="h-11 border-2 border-border hover:border-primary bg-transparent">
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+              <Button asChild className="h-11 bg-primary text-primary-foreground hover:bg-primary/90 action-glow">
+                <Link href="/admin/members/invite">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Mitglied einladen
+                </Link>
+              </Button>
             </div>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" className="h-11 border-2 border-border hover:border-primary bg-transparent">
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-            <Button asChild className="h-11 bg-primary text-primary-foreground hover:bg-primary/90 action-glow">
-              <Link href="/admin/members/invite">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Mitglied einladen
-              </Link>
-            </Button>
-          </div>
         </div>
-      </div>
+      )}
 
       {/* Filter & Search Section */}
       <Card className="mb-8 bg-card border-2 border-border energy-card">

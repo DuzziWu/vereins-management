@@ -1,6 +1,6 @@
 # PACKAGES.md
 
-This file documents all npm packages used in the Vereins-Master codebase. Update this file when adding or removing dependencies.
+This file documents all npm packages used in the ClubGrid codebase. Update this file when adding or removing dependencies.
 
 ## Production Dependencies
 
@@ -17,6 +17,7 @@ This file documents all npm packages used in the Vereins-Master codebase. Update
 | `class-variance-authority` | ^0.7.1 | Variant styling utility (cva) |
 | `clsx` | ^2.1.1 | Conditional class name utility |
 | `tailwind-merge` | ^2.6.0 | Merge Tailwind classes without conflicts |
+| `nodemailer` | ^6.x | SMTP email sending (invite emails) |
 
 ## Development Dependencies
 

@@ -14,7 +14,7 @@ import { USER_ROLE_LABELS, EVENT_TYPE_LABELS, ATTENDANCE_STATUS } from '@/lib/co
 import { getInitials } from '@/lib/utils'
 
 export const metadata = {
-  title: 'Trainer Dashboard | Vereins-Master',
+  title: 'Trainer Dashboard | ClubGrid',
 }
 
 export default async function CoachDashboardPage() {

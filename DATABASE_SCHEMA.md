@@ -1,4 +1,4 @@
-# **Database Schema Specification: Vereins-Master**
+# **Database Schema Specification: ClubGrid**
 
 **Version:** 1.0.0 | **Target:** PostgreSQL (Supabase) | **Author:** Senior Database Architect
 

@@ -9,7 +9,7 @@ import { EVENT_TYPE_LABELS, ATTENDANCE_STATUS, ATTENDANCE_STATUS_LABELS } from '
 import { updateAttendance } from '@/actions/events'
 
 export const metadata = {
-  title: 'Meine Termine | Vereins-Master',
+  title: 'Meine Termine | ClubGrid',
 }
 
 export default async function PlayerEventsPage() {

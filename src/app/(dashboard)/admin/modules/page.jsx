@@ -9,7 +9,7 @@ import { USER_ROLE_LABELS } from '@/lib/constants'
 import { ModulesClient } from './modules-client'
 
 export const metadata = {
-  title: 'Modul-Shop | Vereins-Master',
+  title: 'Modul-Shop | ClubGrid',
 }
 
 export default async function ModulesPage() {

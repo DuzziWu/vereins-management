@@ -13,7 +13,7 @@ import { USER_ROLE_LABELS, EVENT_TYPE_LABELS, ATTENDANCE_STATUS } from '@/lib/co
 import { updateAttendance } from '@/actions/events'
 
 export const metadata = {
-  title: 'Mein Dashboard | Vereins-Master',
+  title: 'Mein Dashboard | ClubGrid',
 }
 
 export default async function PlayerDashboardPage() {

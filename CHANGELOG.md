@@ -6,6 +6,83 @@ See `CLAUDE.md` for documentation rules.
 
 ---
 
+## [2025-12-28 10:00] - ClubGrid Rebranding
+
+**Description:** Rebranded the platform from "Vereins-Master" to "ClubGrid" (clubgrid.app). Updated all references across the codebase including email templates, page titles, documentation, and package configuration. Added ClubGrid footer to email templates.
+
+**Files Changed:**
+- `src/components/emails/invite-email.js` - Updated branding, added "Powered by ClubGrid" footer with clubgrid.app link
+- `src/actions/members.js` - Changed email sender name to "ClubGrid", default from address to noreply@clubgrid.app
+- `src/app/(dashboard)/admin/page.jsx` - Updated page title to ClubGrid
+- `src/app/(dashboard)/coach/page.jsx` - Updated page title to ClubGrid
+- `src/app/(dashboard)/player/page.jsx` - Updated page title to ClubGrid
+- `src/app/(dashboard)/admin/members/page.jsx` - Updated page title to ClubGrid
+- `src/app/(dashboard)/admin/members/invite/page.jsx` - Updated page title to ClubGrid
+- `src/app/(dashboard)/admin/modules/page.jsx` - Updated page title to ClubGrid
+- `src/app/(dashboard)/admin/settings/page.jsx` - Updated page title to ClubGrid
+- `src/app/(dashboard)/admin/teams/page.jsx` - Updated page title to ClubGrid
+- `src/app/(dashboard)/coach/events/page.jsx` - Updated page title to ClubGrid
+- `src/app/(dashboard)/coach/events/[id]/page.jsx` - Updated page title to ClubGrid
+- `src/app/(dashboard)/player/events/page.jsx` - Updated page title to ClubGrid
+- `src/app/(auth)/invite/[token]/page.jsx` - Updated dynamic page title to ClubGrid
+- `src/components/dashboard/header.jsx` - Updated fallback club name to ClubGrid
+- `package.json` - Changed project name from "vereins-master" to "clubgrid"
+- `CLAUDE.md` - Updated project name and description
+- `PACKAGES.md` - Updated codebase reference
+- `DATABASE_SCHEMA.md` - Updated title
+- `PRD.md` - Updated title and description
+
+**Files Added:**
+- None
+
+**Files Deleted:**
+- None
+
+---
+
+## [2025-12-27 08:45] - Nodemailer Email Integration
+
+**Description:** Integrated Nodemailer for sending invite emails via SMTP. Created branded HTML and plain text email templates. Replaced Resend with Nodemailer for more flexible email configuration.
+
+**Files Added:**
+- `src/components/emails/invite-email.js` - HTML/text email template generators
+
+**Files Changed:**
+- `src/actions/members.js` - Updated sendInviteEmail to use Nodemailer SMTP
+- `PACKAGES.md` - Replaced resend with nodemailer
+
+**Files Deleted:**
+- `src/components/emails/invite-email.jsx` - Old React email template (replaced)
+
+**Environment Variables Required:**
+```
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=your-username
+SMTP_PASS=your-password
+SMTP_FROM=noreply@your-domain.com (optional)
+```
+
+---
+
+## [2025-12-27 08:00] - Pending Invites Management
+
+**Description:** Added a comprehensive invite management system to the members page. Admins can now view all invites (pending, expired, used), copy invite links, resend expired invites with new tokens, and delete invites. The members page now has tabs to switch between Members and Invites views.
+
+**Files Added:**
+- `src/app/(dashboard)/admin/members/invites-client.jsx` - Client component displaying invite list with stats, actions (copy, resend, delete)
+- `src/app/(dashboard)/admin/members/members-page-client.jsx` - Tab wrapper component for Members/Invites navigation
+
+**Files Changed:**
+- `src/actions/members.js` - Added getInvites() and resendInvite() server actions
+- `src/app/(dashboard)/admin/members/page.jsx` - Fetches invites, passes to new MembersPageClient
+- `src/app/(dashboard)/admin/members/members-client.jsx` - Added hideHeader prop for tab integration
+
+**Files Deleted:**
+- None
+
+---
+
 ## [2025-12-27 07:00] - Vercel Deployment Fix
 
 **Description:** Fixed middleware crash on Vercel due to missing environment variables. Added proper error handling to all Supabase client factories to prevent crashes when env vars are not set.

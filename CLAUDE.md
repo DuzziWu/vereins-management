@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Vereins-Master** is a multi-tenant SaaS platform for sports club management (football focus, German-speaking market). The platform replaces centralized admin workflows with role-distributed, empowered dashboards.
+**ClubGrid** (clubgrid.app) is a multi-tenant SaaS platform for sports club management (football focus, German-speaking market). The platform replaces centralized admin workflows with role-distributed, empowered dashboards.
 
 ## Commands
 

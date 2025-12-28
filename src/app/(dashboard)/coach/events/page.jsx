@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { EVENT_TYPE_LABELS, ATTENDANCE_STATUS } from '@/lib/constants'
 
 export const metadata = {
-  title: 'Termine | Vereins-Master',
+  title: 'Termine | ClubGrid',
 }
 
 export default async function CoachEventsPage() {

@@ -1,10 +1,10 @@
-# **Product Requirements Document (PRD): Vereins-Master**
+# **Product Requirements Document (PRD): ClubGrid**
 
 **Version:** 1.0.0 | **Status:** Draft | **Author:** Lead Architect
 
 ## **1\. Executive Summary & Vision**
 
-"Vereins-Master" ist eine mandantenfähige SaaS-Lösung, die Sportvereine in das digitale Zeitalter führt. Im Gegensatz zu traditioneller, tabellarischer Verwaltungssoftware setzt Vereins-Master auf eine **User Experience (UX), die an moderne Consumer-Apps erinnert** ("Nike-Vibe").
+"ClubGrid" (clubgrid.app) ist eine mandantenfähige SaaS-Lösung, die Sportvereine in das digitale Zeitalter führt. Im Gegensatz zu traditioneller, tabellarischer Verwaltungssoftware setzt ClubGrid auf eine **User Experience (UX), die an moderne Consumer-Apps erinnert** ("Nike-Vibe").
 
 Das Kernziel ist die **Dezentralisierung der Vereinsarbeit**: Weg von einem überlasteten Admin, hin zu empowered Coaches und engagierten Spielern durch rollenspezifische Dashboards. Die Architektur ist strikt modular ("Pay what you need"), gesteuert über einen internen Modul-Shop.
 

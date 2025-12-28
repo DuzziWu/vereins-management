@@ -13,7 +13,7 @@ import { formatCurrency } from '@/lib/utils'
 import { USER_ROLE_LABELS } from '@/lib/constants'
 
 export const metadata = {
-  title: 'Admin Dashboard | Vereins-Master',
+  title: 'Admin Dashboard | ClubGrid',
 }
 
 export default async function AdminDashboardPage() {
