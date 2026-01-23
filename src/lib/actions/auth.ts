@@ -40,6 +40,16 @@ async function verifyCaptcha(token: string): Promise<boolean> {
 // LOGIN
 // ============================================
 export async function login(formData: { email: string; password: string; captchaToken?: string }) {
+  // Validate required environment variables
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error('Missing Supabase environment variables')
+    return { error: 'Server-Konfigurationsfehler. Bitte kontaktieren Sie den Administrator.' }
+  }
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
+    return { error: 'Server-Konfigurationsfehler. Bitte kontaktieren Sie den Administrator.' }
+  }
+
   const supabase = await createClient()
   const serviceClient = await createServiceClient()
   const headersList = await headers()
@@ -48,10 +58,15 @@ export async function login(formData: { email: string; password: string; captcha
   const { email, password, captchaToken } = formData
 
   // Check if CAPTCHA is required (more than 3 failed attempts)
-  const { data: failedCount } = await serviceClient.rpc('get_failed_login_count', {
+  const { data: failedCount, error: rpcError } = await serviceClient.rpc('get_failed_login_count', {
     check_email: email,
     check_ip: ip,
   })
+
+  if (rpcError) {
+    console.error('Failed to check login attempts:', rpcError)
+    // Continue without CAPTCHA check if RPC fails
+  }
 
   // Validate CAPTCHA if required
   if ((failedCount || 0) >= 3) {

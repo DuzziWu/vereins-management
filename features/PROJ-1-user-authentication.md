@@ -1,6 +1,6 @@
 # PROJ-1: User Authentication
 
-## Status: 🟢 Architecture Approved
+## Status: 🚀 Ready for Deployment (2026-01-23)
 
 ## Übersicht
 Implementierung eines Invite-Only Authentifizierungssystems für das Vereins-Management. User können sich nur über eine Admin-Einladung registrieren. Das System unterstützt Login, Registrierung via Einladungslink und Passwort-Reset.

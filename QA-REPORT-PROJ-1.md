@@ -188,12 +188,22 @@
 Für Production müssen folgende Umgebungsvariablen gesetzt werden:
 
 ```bash
+# App URL
+NEXT_PUBLIC_APP_URL=https://vereins-management.vercel.app
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://pktiznslnkgctbuaugqw.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon_key_from_supabase_dashboard>
+SUPABASE_SERVICE_ROLE_KEY=<service_role_key_from_supabase_dashboard>
+
 # Cloudflare Turnstile
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_site_key
 TURNSTILE_SECRET_KEY=your_secret_key
 ```
 
 **Hinweis:** In Development funktioniert das CAPTCHA mit einem Test-Key, der immer erfolgreich ist.
+
+**WICHTIG:** Der `SUPABASE_SERVICE_ROLE_KEY` ist kritisch für Login-Funktionalität (CAPTCHA-Check, Login-Attempts-Logging).
 
 ---
 
@@ -257,3 +267,219 @@ Alle kritischen Dateien wurden manuell überprüft:
 | Middleware/Config | 4 Dateien | :white_check_mark: |
 
 **Fazit der Re-Validierung:** Die Implementierung entspricht vollständig den Acceptance Criteria. Alle Security-Features sind korrekt implementiert. Das Feature ist production-ready.
+
+---
+
+## Manueller Test 2026-01-23 - BLOCKING ISSUES
+
+**Tester:** QA Engineer (manueller Browser-Test)
+**Umgebung:** Production (https://vereins-management.vercel.app)
+**Status:** :red_circle: **NICHT TESTBAR** - Kritische Blocker
+
+### Gefundene Blocker
+
+#### BUG-1: Kein Admin-User vorhanden (CRITICAL)
+
+| Attribut | Wert |
+|----------|------|
+| **Severity** | :red_circle: CRITICAL |
+| **Priority** | P0 - Blocker |
+| **Komponente** | Database / Seeding |
+| **Betroffen** | Komplettes Testing |
+
+**Beschreibung:**
+Es existiert kein User in der Datenbank mit der Rolle "vorstand" (Admin). Ohne Admin-User kann:
+- Kein Login getestet werden
+- Keine Einladungen versendet werden
+- Keine Admin-Funktionen getestet werden
+
+**Supabase-Analyse:**
+```
+auth.users: 0 Rows
+public.profiles: 0 Rows
+```
+
+Ein Test-User (`dustin.wulf@web.de`) wurde erstellt und wieder gelöscht (siehe Auth-Logs).
+
+**Root Cause:**
+- Kein Database Seeding implementiert
+- Kein initialer Admin-User beim Projekt-Setup erstellt
+- Invite-Only System benötigt mindestens 1 Admin zum Starten
+
+**Steps to Reproduce:**
+1. Gehe zu https://vereins-management.vercel.app/login
+2. Versuche dich einzuloggen
+3. Kein User existiert zum Einloggen
+
+**Lösung erforderlich:**
+- [x] ~~Seed-Script erstellen für initialen Admin-User~~
+- [x] ~~ODER: Manuell Admin-User in Supabase Dashboard erstellen~~
+- [ ] Dokumentation: Wie wird der erste Admin erstellt?
+
+**GELÖST am 2026-01-23:**
+Admin-User wurde direkt in Supabase erstellt:
+- **Email:** dustin.wulf@web.de
+- **Rolle:** vorstand (Admin)
+- **Status:** Aktiv, Email bestätigt
+
+---
+
+#### BUG-2: 500 Internal Server Error beim Login auf Vercel (CRITICAL)
+
+| Attribut | Wert |
+|----------|------|
+| **Severity** | :red_circle: CRITICAL |
+| **Priority** | P0 - Blocker |
+| **Komponente** | Server Action / Deployment |
+| **Betroffen** | Login-Funktionalität auf Production |
+
+**Beschreibung:**
+Beim Versuch sich auf der Production-Umgebung einzuloggen, tritt ein 500 Internal Server Error auf.
+
+**Browser Console Error:**
+```
+POST https://vereins-management.vercel.app/login 500 (Internal Server Error)
+
+Uncaught (in promise) Error: An error occurred in the Server Components render.
+The specific message is omitted in production builds to avoid leaking sensitive details.
+A digest property is included on this error instance which may provide additional details
+about the nature of the error.
+```
+
+**Supabase Logs:**
+- Keine Auth-Requests von der Production-URL sichtbar
+- Letzter Auth-Request kam von `localhost:3000`
+
+**Mögliche Ursachen:**
+1. **Environment Variables fehlen auf Vercel**
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `TURNSTILE_SECRET_KEY`
+2. **Supabase URL Konfiguration falsch**
+3. **Server Action wirft unbehandelten Fehler**
+
+**Steps to Reproduce:**
+1. Gehe zu https://vereins-management.vercel.app/login
+2. Gib beliebige Email/Passwort ein
+3. Klicke "Anmelden"
+4. 500 Error erscheint in der Console
+
+**Lösung erforderlich:**
+- [x] Vercel Environment Variables prüfen
+- [ ] Vercel Function Logs prüfen (Vercel Dashboard → Functions)
+- [x] Supabase Projekt-URL in Vercel Settings verifizieren
+- [x] TURNSTILE_SECRET_KEY auf Vercel setzen (falls nicht vorhanden)
+
+**ROOT CAUSE GEFUNDEN (2026-01-23):**
+Die Environment Variable `SUPABASE_SERVICE_ROLE_KEY` fehlte komplett in `.env.local` und auf Vercel.
+
+Der Service Role Key wird in `src/lib/supabase/server.ts:38` für den `createServiceClient()` benötigt, der wiederum in `auth.ts` für CAPTCHA-Checks und Login-Attempts-Logging verwendet wird.
+
+**Fix durchgeführt:**
+1. [x] `.env.local` wurde aktualisiert mit `SUPABASE_SERVICE_ROLE_KEY`
+2. [x] Error Handling in `src/lib/actions/auth.ts` verbessert (prüft jetzt auf fehlende ENV Vars)
+3. [ ] **AKTION ERFORDERLICH:** `SUPABASE_SERVICE_ROLE_KEY` muss noch auf Vercel gesetzt werden!
+
+**Vercel Environment Variables (vollständige Liste):**
+```bash
+NEXT_PUBLIC_APP_URL=https://vereins-management.vercel.app
+NEXT_PUBLIC_SUPABASE_URL=https://pktiznslnkgctbuaugqw.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon_key>
+SUPABASE_SERVICE_ROLE_KEY=<service_role_key>  # ← DIESER FEHLTE!
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=<site_key>
+TURNSTILE_SECRET_KEY=<secret_key>
+```
+
+---
+
+### Zusammenfassung Blocker
+
+| Bug | Severity | Status | Verantwortlich |
+|-----|----------|--------|----------------|
+| BUG-1: Kein Admin-User | CRITICAL | :white_check_mark: GELÖST | DevOps / Backend |
+| BUG-2: 500 Error auf Vercel | CRITICAL | :yellow_circle: ROOT CAUSE GEFUNDEN | DevOps |
+
+**Fazit:**
+:yellow_circle: **Root Cause identifiziert.** Noch ausstehend: `SUPABASE_SERVICE_ROLE_KEY` auf Vercel setzen und Re-Deploy.
+
+---
+
+### Nächste Schritte
+
+1. **DevOps Engineer:** `SUPABASE_SERVICE_ROLE_KEY` auf Vercel setzen (Settings → Environment Variables)
+2. **DevOps Engineer:** Re-Deploy triggern (oder automatisch bei nächstem Push)
+3. **QA Engineer:** Nach Deploy erneut testen
+
+---
+
+## Follow-Up Fixes (2026-01-23)
+
+### BUG-3: Keine Einladungs-Email wird verschickt
+
+| Attribut | Wert |
+|----------|------|
+| **Severity** | :yellow_circle: MEDIUM |
+| **Priority** | P2 |
+| **Komponente** | Email Service |
+| **Status** | :wrench: WORKAROUND implementiert |
+
+**Root Cause:**
+Kein Email-Service konfiguriert. Der Code in `invitations.ts:95-103` macht nur `console.log()` statt Email zu senden.
+
+**Workaround implementiert:**
+- Einladungslink wird im Frontend angezeigt mit Copy-Button
+- Admin muss den Link manuell an die Person senden (Email, WhatsApp, etc.)
+- Änderungen in `src/components/admin/invite-user-form.tsx`
+
+**Langfristige Lösung (Future Sprint):**
+- Resend oder anderer Email-Service integrieren
+- Oder Supabase Edge Function für Email-Versand
+
+---
+
+### BUG-4: Mehrfache Einladungen für gleiche Email möglich
+
+| Attribut | Wert |
+|----------|------|
+| **Severity** | :yellow_circle: MEDIUM |
+| **Priority** | P2 |
+| **Komponente** | Invitations |
+| **Status** | :white_check_mark: GEFIXT |
+
+**Fix:**
+- Wenn eine gültige (nicht abgelaufene) Einladung existiert → Fehlermeldung
+- Nur abgelaufene Einladungen werden revoked und neu erstellt
+- Änderungen in `src/lib/actions/invitations.ts:51-66`
+
+---
+
+### BUG-5: Registrierungsfehler "Konto konnte nicht erstellt werden"
+
+| Attribut | Wert |
+|----------|------|
+| **Severity** | :red_circle: CRITICAL |
+| **Priority** | P0 |
+| **Komponente** | Registration |
+| **Status** | :mag: Besseres Error Logging hinzugefügt |
+
+**Verbesserungen:**
+- Prüfung auf fehlenden `SUPABASE_SERVICE_ROLE_KEY`
+- Spezifischere Fehlermeldungen (z.B. "Email existiert bereits")
+- Logging des genauen Supabase-Fehlers
+- Änderungen in `src/lib/actions/registration.ts`
+
+**Nächster Schritt:**
+Nach Re-Deploy auf Vercel testen und Vercel Function Logs prüfen für den genauen Fehler.
+
+---
+
+### Zusammenfassung aller Änderungen
+
+| Datei | Änderung |
+|-------|----------|
+| `src/lib/actions/invitations.ts` | Duplicate Invitation Prevention |
+| `src/lib/actions/registration.ts` | Besseres Error Handling + Logging |
+| `src/lib/actions/auth.ts` | ENV Var Validation |
+| `src/components/admin/invite-user-form.tsx` | Copy-Button für Einladungslink |
+| `.env.local` | SUPABASE_SERVICE_ROLE_KEY hinzugefügt |

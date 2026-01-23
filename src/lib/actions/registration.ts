@@ -37,6 +37,12 @@ export async function acceptInvitation(data: {
     return { error: 'Passwort muss mindestens eine Zahl enthalten' }
   }
 
+  // Validate service role key is configured
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('SUPABASE_SERVICE_ROLE_KEY is not configured')
+    return { error: 'Server-Konfigurationsfehler. Bitte kontaktieren Sie den Administrator.' }
+  }
+
   // Create user with Supabase Admin API
   const { data: authData, error: authError } = await serviceClient.auth.admin.createUser({
     email: invitation.email,
@@ -45,7 +51,17 @@ export async function acceptInvitation(data: {
   })
 
   if (authError || !authData.user) {
-    console.error('Create user error:', authError)
+    console.error('Create user error:', authError?.message, authError?.status, authError)
+
+    // Provide more specific error messages
+    if (authError?.message?.includes('already been registered')) {
+      return { error: 'Ein Konto mit dieser Email existiert bereits.' }
+    }
+    if (authError?.message?.includes('Invalid API key')) {
+      console.error('Invalid Supabase Service Role Key')
+      return { error: 'Server-Konfigurationsfehler. Bitte kontaktieren Sie den Administrator.' }
+    }
+
     return { error: 'Konto konnte nicht erstellt werden. Bitte versuchen Sie es erneut.' }
   }
 

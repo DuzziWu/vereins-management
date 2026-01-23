@@ -4,7 +4,7 @@ import * as React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Loader2, CheckCircle2 } from "lucide-react"
+import { Loader2, CheckCircle2, Copy, Check } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -50,6 +50,15 @@ export function InviteUserForm() {
   const [isSuccess, setIsSuccess] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [inviteUrl, setInviteUrl] = React.useState<string | null>(null)
+  const [copied, setCopied] = React.useState(false)
+
+  const copyToClipboard = async () => {
+    if (inviteUrl) {
+      await navigator.clipboard.writeText(inviteUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
 
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema),
@@ -65,6 +74,8 @@ export function InviteUserForm() {
     setIsLoading(true)
     setError(null)
     setInviteUrl(null)
+    setIsSuccess(false)
+    setCopied(false)
 
     const result = await createInvitation({
       email: values.email,
@@ -79,11 +90,7 @@ export function InviteUserForm() {
       setIsSuccess(true)
       setInviteUrl(result.inviteUrl || null)
       form.reset()
-      // Reset success state after 5 seconds
-      setTimeout(() => {
-        setIsSuccess(false)
-        setInviteUrl(null)
-      }, 5000)
+      // Don't auto-reset - user needs time to copy the link
     }
 
     setIsLoading(false)
@@ -105,10 +112,25 @@ export function InviteUserForm() {
               <p>Einladung wurde erfolgreich erstellt!</p>
               {inviteUrl && (
                 <div className="mt-2">
-                  <p className="text-xs font-medium">Einladungslink (für Dev):</p>
-                  <code className="text-xs break-all bg-green-100 p-1 rounded block mt-1">
-                    {inviteUrl}
-                  </code>
+                  <p className="text-xs font-medium">Einladungslink (bitte kopieren und an die Person senden):</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <code className="text-xs break-all bg-green-100 p-2 rounded flex-1">
+                      {inviteUrl}
+                    </code>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={copyToClipboard}
+                      className="shrink-0"
+                    >
+                      {copied ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               )}
             </AlertDescription>
@@ -130,7 +152,7 @@ export function InviteUserForm() {
                 />
               </FormControl>
               <FormDescription>
-                An diese Adresse wird die Einladung versendet.
+                Der Einladungslink wird für diese Email-Adresse erstellt.
               </FormDescription>
               <FormMessage />
             </FormItem>

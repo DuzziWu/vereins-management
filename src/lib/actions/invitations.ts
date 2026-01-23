@@ -48,17 +48,21 @@ export async function createInvitation(data: {
     return { error: 'Ein Konto mit dieser Email existiert bereits.' }
   }
 
-  // Check for existing pending invitation and revoke it
+  // Check for existing pending invitation - block duplicate
   const { data: existingInvitation } = await supabase
     .from('invitations')
-    .select('id')
+    .select('id, expires_at')
     .eq('email', data.email.toLowerCase())
     .is('used_at', null)
     .is('revoked_at', null)
     .single()
 
   if (existingInvitation) {
-    // Revoke existing invitation
+    // Check if the existing invitation is still valid (not expired)
+    if (new Date(existingInvitation.expires_at) > new Date()) {
+      return { error: 'Für diese Email existiert bereits eine gültige Einladung.' }
+    }
+    // If expired, revoke it so we can create a new one
     await supabase
       .from('invitations')
       .update({ revoked_at: new Date().toISOString() })
