@@ -1,6 +1,7 @@
 # PROJ-1: User Authentication
 
-## Status: 🚀 Ready for Deployment (2026-01-23)
+## Status: ✅ Deployed (2026-01-23)
+**Production URL:** https://vereins-management.vercel.app
 
 ## Übersicht
 Implementierung eines Invite-Only Authentifizierungssystems für das Vereins-Management. User können sich nur über eine Admin-Einladung registrieren. Das System unterstützt Login, Registrierung via Einladungslink und Passwort-Reset.
