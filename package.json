@@ -1,7 +1,7 @@
 {
-  "name": "ai-coding-starter-kit",
+  "name": "vereins-management",
   "version": "1.0.0",
-  "description": "AI Coding Starter Kit with AI Agent Team System for Claude Code",
+  "description": "Club/Association Management System built with Next.js and Supabase",
   "private": true,
   "scripts": {
     "dev": "next dev",
