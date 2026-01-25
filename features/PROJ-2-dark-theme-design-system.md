@@ -1,6 +1,8 @@
 # PROJ-2: Dark Theme & Design System
 
-## Status: ✅ QA Passed - Ready for Production
+## Status: ✅ Deployed (2026-01-25)
+
+**Production URL:** https://vereins-management.vercel.app
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - bereits implementiert
