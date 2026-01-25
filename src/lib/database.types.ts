@@ -9,6 +9,38 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      families: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          primary_member_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          primary_member_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          primary_member_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "families_primary_member_id_fkey"
+            columns: ["primary_member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
           created_at: string | null
@@ -169,42 +201,71 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address_city: string | null
+          address_street: string | null
+          address_zip: string | null
           created_at: string
           date_of_birth: string
+          family_id: string | null
           first_name: string
+          functional_tags: string[] | null
           id: string
           is_active: boolean
           last_name: string
+          notes: string | null
           phone: string | null
           role: string
+          status: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          address_city?: string | null
+          address_street?: string | null
+          address_zip?: string | null
           created_at?: string
           date_of_birth: string
+          family_id?: string | null
           first_name: string
+          functional_tags?: string[] | null
           id?: string
           is_active?: boolean
           last_name: string
+          notes?: string | null
           phone?: string | null
           role?: string
+          status?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          address_city?: string | null
+          address_street?: string | null
+          address_zip?: string | null
           created_at?: string
           date_of_birth?: string
+          family_id?: string | null
           first_name?: string
+          functional_tags?: string[] | null
           id?: string
           is_active?: boolean
           last_name?: string
+          notes?: string | null
           phone?: string | null
           role?: string
+          status?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trainer_notes: {
         Row: {
@@ -287,14 +348,21 @@ export type Database = {
       get_my_profile: {
         Args: Record<PropertyKey, never>
         Returns: {
+          address_city: string | null
+          address_street: string | null
+          address_zip: string | null
           created_at: string
           date_of_birth: string
+          family_id: string | null
           first_name: string
+          functional_tags: string[] | null
           id: string
           is_active: boolean
           last_name: string
+          notes: string | null
           phone: string | null
           role: string
+          status: string | null
           updated_at: string
           user_id: string
         }
@@ -359,6 +427,19 @@ export type PasswordResetAttempt = Tables<'password_reset_attempts'>
 export type Group = Tables<'groups'>
 export type TrainerNote = Tables<'trainer_notes'>
 export type Notification = Tables<'notifications'>
+export type Family = Tables<'families'>
 
 export type UserRole = 'vorstand' | 'trainer' | 'mitglied'
+export type MemberStatus = 'active' | 'inactive' | 'pending'
 export type NotificationType = 'invitation' | 'document' | 'event' | 'group_change' | 'system'
+
+// Extended types with relations
+export type ProfileWithFamily = Profile & {
+  families: Family | null
+}
+
+export type FamilyWithMembers = Family & {
+  primary_member: Pick<Profile, 'id' | 'first_name' | 'last_name'> | null
+  members: Pick<Profile, 'id' | 'first_name' | 'last_name' | 'role' | 'status'>[]
+  member_count?: number
+}
