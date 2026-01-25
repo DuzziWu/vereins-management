@@ -3,75 +3,118 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Dark Theme Design System (PROJ-2)
+   * Farben basierend auf: GitHub Dark, Linear App, Vercel Dashboard
+   * Nur Dark Mode - kein Light Mode Toggle
+   */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    /* Hintergrund: Dunkle Grautöne */
+    --background: 240 20% 4%;           /* #0a0a0f - Seiten-Hintergrund */
+    --foreground: 0 0% 98%;             /* #fafafa - Haupttext */
+
+    /* Cards & Panels */
+    --card: 240 14% 8%;                 /* #121218 - Karten, Panels */
+    --card-foreground: 0 0% 98%;        /* #fafafa */
+
+    /* Popovers & Dropdowns */
+    --popover: 240 14% 8%;              /* #121218 */
+    --popover-foreground: 0 0% 98%;     /* #fafafa */
+
+    /* Primär: Blau Akzent */
+    --primary: 217 91% 60%;             /* #3b82f6 - Buttons, Links */
+    --primary-foreground: 0 0% 100%;    /* Weiß auf Blau */
+
+    /* Sekundär: Gedämpfter Hintergrund */
+    --secondary: 240 14% 12%;           /* #1a1a24 */
+    --secondary-foreground: 0 0% 98%;   /* #fafafa */
+
+    /* Muted: Für deaktivierte/sekundäre Elemente */
+    --muted: 240 14% 12%;               /* #1a1a24 */
+    --muted-foreground: 240 5% 65%;     /* #a1a1aa - Sekundärtext */
+
+    /* Akzent: Hover-States */
+    --accent: 217 91% 60%;              /* #3b82f6 - gleich wie primary */
+    --accent-foreground: 0 0% 100%;     /* Weiß */
+
+    /* Status-Farben (dezent) */
+    --destructive: 0 84% 60%;           /* #ef4444 - Fehler */
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+
+    /* Borders & Inputs */
+    --border: 240 4% 16%;               /* #27272a - Trennlinien */
+    --input: 240 4% 16%;                /* #27272a */
+    --ring: 217 91% 60%;                /* #3b82f6 - Focus Ring = Primary */
+
+    /* Border Radius */
     --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Chart Farben (für zukünftige Statistiken) */
+    --chart-1: 217 91% 60%;             /* Blau */
+    --chart-2: 142 71% 45%;             /* Grün */
+    --chart-3: 38 92% 50%;              /* Orange */
+    --chart-4: 280 65% 60%;             /* Lila */
+    --chart-5: 340 75% 55%;             /* Pink */
+
+    /* Sidebar */
+    --sidebar-background: 240 14% 8%;   /* #121218 - leicht heller als main für Trennung */
+    --sidebar-foreground: 0 0% 98%;     /* #fafafa */
+    --sidebar-primary: 217 91% 60%;     /* #3b82f6 - Blau Akzent */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 14% 12%;      /* #1a1a24 - Hover background */
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 4% 16%;       /* #27272a */
+    --sidebar-ring: 217 91% 60%;        /* #3b82f6 */
+
+    /* Status-Farben (neu hinzugefügt) */
+    --success: 142 71% 45%;             /* #22c55e - Erfolg */
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;              /* #f59e0b - Warnung */
+    --warning-foreground: 0 0% 0%;
+    --info: 217 91% 60%;                /* #3b82f6 - Info (gleich wie primary) */
+    --info-foreground: 0 0% 100%;
   }
 
+  /* .dark Klasse für Konsistenz mit shadcn/ui (identische Werte) */
   .dark {
-    --background: 240 10% 3.9%;
+    --background: 240 20% 4%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 240 14% 8%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 240 14% 8%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 14% 12%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --muted: 240 14% 12%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 217 91% 60%;
+    --chart-1: 217 91% 60%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 38 92% 50%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 240 14% 8%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 240 14% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 217 91% 60%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
   }
 }
 
