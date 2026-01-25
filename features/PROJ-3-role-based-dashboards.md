@@ -1,6 +1,6 @@
 # PROJ-3: Role-Based Dashboards
 
-## Status: Production-Ready
+## Status: Deployed (2026-01-25)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - bereits implementiert
