@@ -9,6 +9,44 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      groups: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          trainer_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          trainer_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          trainer_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "groups_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           created_at: string
@@ -75,6 +113,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          link: string | null
+          message: string
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message: string
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message?: string
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       password_reset_attempts: {
         Row: {
           attempted_at: string | null
@@ -135,6 +206,48 @@ export type Database = {
         }
         Relationships: []
       }
+      trainer_notes: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          group_id: string
+          id: string
+          trainer_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          group_id: string
+          id?: string
+          trainer_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          group_id?: string
+          id?: string
+          trainer_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_notes_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trainer_notes_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -147,6 +260,25 @@ export type Database = {
       cleanup_old_reset_attempts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      create_notification: {
+        Args: {
+          p_user_id: string
+          p_type: string
+          p_title: string
+          p_message: string
+          p_link?: string
+        }
+        Returns: {
+          created_at: string | null
+          id: string
+          link: string | null
+          message: string
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
       }
       get_failed_login_count: {
         Args: { check_email: string; check_ip: string }
@@ -167,7 +299,30 @@ export type Database = {
           user_id: string
         }
       }
+      get_unread_notification_count: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       is_vorstand: { Args: Record<PropertyKey, never>; Returns: boolean }
+      mark_all_notifications_read: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      mark_notification_read: {
+        Args: { p_notification_id: string }
+        Returns: undefined
+      }
+      upsert_trainer_note: {
+        Args: { p_group_id: string; p_content: string }
+        Returns: {
+          content: string | null
+          created_at: string | null
+          group_id: string
+          id: string
+          trainer_id: string
+          updated_at: string | null
+        }
+      }
       user_has_role: { Args: { required_role: string }; Returns: boolean }
       validate_invitation_token: {
         Args: { invite_token: string }
@@ -201,5 +356,9 @@ export type Profile = Tables<'profiles'>
 export type Invitation = Tables<'invitations'>
 export type LoginAttempt = Tables<'login_attempts'>
 export type PasswordResetAttempt = Tables<'password_reset_attempts'>
+export type Group = Tables<'groups'>
+export type TrainerNote = Tables<'trainer_notes'>
+export type Notification = Tables<'notifications'>
 
 export type UserRole = 'vorstand' | 'trainer' | 'mitglied'
+export type NotificationType = 'invitation' | 'document' | 'event' | 'group_change' | 'system'
