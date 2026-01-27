@@ -131,7 +131,7 @@ export default function FeesPage() {
           families (
             id,
             name,
-            profiles (
+            profiles!profiles_family_id_fkey (
               id,
               first_name,
               last_name,
@@ -294,7 +294,7 @@ export default function FeesPage() {
         .select(`
           id,
           name,
-          profiles (
+          profiles!profiles_family_id_fkey (
             id,
             first_name,
             last_name,
@@ -405,7 +405,7 @@ export default function FeesPage() {
         .from("families")
         .select(`
           id,
-          profiles (
+          profiles!profiles_family_id_fkey (
             id,
             membership_type_id,
             membership_types (
@@ -621,7 +621,7 @@ export default function FeesPage() {
         .select(`
           id,
           name,
-          profiles (
+          profiles!profiles_family_id_fkey (
             id,
             membership_type_id,
             membership_types (
