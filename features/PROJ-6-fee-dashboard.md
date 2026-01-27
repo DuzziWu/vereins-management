@@ -1,6 +1,7 @@
 # PROJ-6: Beitrags-Dashboard (Fee Overview)
 
-## Status: ✅ Production-Ready (2026-01-27)
+## Status: ✅ Deployed (2026-01-27)
+**Production URL:** https://vereins-management.vercel.app/admin/finances/fees
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für eingeloggte User-Checks
