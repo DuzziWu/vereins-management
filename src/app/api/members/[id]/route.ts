@@ -122,6 +122,7 @@ export async function PATCH(
   if (data.address_city !== undefined) updateData.address_city = data.address_city || null
   if (data.functional_tags !== undefined) updateData.functional_tags = data.functional_tags || []
   if (data.family_id !== undefined) updateData.family_id = data.family_id || null
+  if (data.membership_type_id !== undefined) updateData.membership_type_id = data.membership_type_id || null
   if (data.notes !== undefined) updateData.notes = data.notes || null
 
   // Update timestamp

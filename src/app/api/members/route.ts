@@ -41,6 +41,11 @@ export async function GET(request: NextRequest) {
         id,
         name,
         primary_member_id
+      ),
+      membership_types!profiles_membership_type_id_fkey (
+        id,
+        name,
+        annual_fee
       )
     `, { count: 'exact' })
 
@@ -157,6 +162,7 @@ export async function POST(request: NextRequest) {
       address_city: data.address_city || null,
       functional_tags: data.functional_tags || [],
       family_id: data.family_id || null,
+      membership_type_id: data.membership_type_id || null,
       notes: data.notes || null,
       status: 'active',
       is_active: true
@@ -167,6 +173,11 @@ export async function POST(request: NextRequest) {
         id,
         name,
         primary_member_id
+      ),
+      membership_types!profiles_membership_type_id_fkey (
+        id,
+        name,
+        annual_fee
       )
     `)
     .single()

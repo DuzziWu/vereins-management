@@ -15,6 +15,9 @@ import {
   FileText,
   ClipboardList,
   Bell,
+  Wallet,
+  CreditCard,
+  ChevronRight,
 } from "lucide-react"
 
 import {
@@ -28,8 +31,16 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { logout } from "@/lib/actions"
 import { useDashboardView } from "@/contexts/dashboard-view-context"
 import { UserRole } from "@/lib/database.types"
@@ -42,8 +53,14 @@ interface NavItem {
   icon: typeof LayoutDashboard
 }
 
+interface NavItemWithSub {
+  title: string
+  icon: typeof LayoutDashboard
+  items: NavItem[]
+}
+
 // Navigation Items pro Rolle
-const ROLE_NAV_ITEMS: Record<UserRole, { main: NavItem[]; admin?: NavItem[] }> = {
+const ROLE_NAV_ITEMS: Record<UserRole, { main: NavItem[]; admin?: NavItem[]; finance?: NavItemWithSub }> = {
   vorstand: {
     main: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -55,6 +72,13 @@ const ROLE_NAV_ITEMS: Record<UserRole, { main: NavItem[]; admin?: NavItem[] }> =
       { title: "Gruppen", url: "/admin/groups", icon: UsersRound },
       { title: "Dokumente", url: "/admin/documents", icon: FileText },
     ],
+    finance: {
+      title: "Finanzen",
+      icon: Wallet,
+      items: [
+        { title: "Beitragsarten", url: "/admin/finances/membership-types", icon: CreditCard },
+      ],
+    },
   },
   trainer: {
     main: [
@@ -94,6 +118,44 @@ function NavItemsList({ items }: { items: NavItem[] }) {
         </SidebarMenuItem>
       ))}
     </SidebarMenu>
+  )
+}
+
+function FinanceNavItem({ finance }: { finance: NavItemWithSub }) {
+  const pathname = usePathname()
+  const isActive = finance.items.some(
+    (item) => pathname === item.url || pathname.startsWith(item.url + "/")
+  )
+
+  return (
+    <Collapsible defaultOpen={isActive} className="group/collapsible">
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton>
+            <finance.icon className="h-4 w-4" />
+            <span>{finance.title}</span>
+            <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            {finance.items.map((item) => (
+              <SidebarMenuSubItem key={item.url}>
+                <SidebarMenuSubButton
+                  asChild
+                  isActive={pathname === item.url || pathname.startsWith(item.url + "/")}
+                >
+                  <Link href={item.url}>
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
   )
 }
 
@@ -179,6 +241,20 @@ export function AppSidebar() {
               <SidebarGroupLabel>Administration</SidebarGroupLabel>
               <SidebarGroupContent>
                 <NavItemsList items={navConfig.admin} />
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
+
+        {navConfig.finance && (
+          <>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupLabel>Finanzverwaltung</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <FinanceNavItem finance={navConfig.finance} />
+                </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
           </>

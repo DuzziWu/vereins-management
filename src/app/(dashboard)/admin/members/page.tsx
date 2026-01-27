@@ -39,6 +39,12 @@ interface Family {
   members?: FamilyMember[]
 }
 
+interface MembershipType {
+  id: string
+  name: string
+  annual_fee: number
+}
+
 function TableSkeleton() {
   return (
     <div className="space-y-3">
@@ -57,6 +63,7 @@ function TableSkeleton() {
 export default function MembersPage() {
   const [members, setMembers] = React.useState<Member[]>([])
   const [families, setFamilies] = React.useState<Family[]>([])
+  const [membershipTypes, setMembershipTypes] = React.useState<MembershipType[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [selectedIds, setSelectedIds] = React.useState<string[]>([])
   const [currentPage, setCurrentPage] = React.useState(1)
@@ -128,7 +135,7 @@ export default function MembersPage() {
       const data = await response.json()
 
       // Map API response to Member type
-      const mappedMembers: Member[] = (data.members || []).map((profile: Member & { families?: { id: string; name: string; primary_member_id: string | null } | null }) => ({
+      const mappedMembers: Member[] = (data.members || []).map((profile: Member & { families?: { id: string; name: string; primary_member_id: string | null } | null; membership_types?: { id: string; name: string; annual_fee: number } | null }) => ({
         id: profile.id,
         first_name: profile.first_name,
         last_name: profile.last_name,
@@ -137,6 +144,8 @@ export default function MembersPage() {
         status: profile.status || "active",
         family_id: profile.family_id || null,
         family_name: profile.families?.name || null,
+        membership_type_id: profile.membership_type_id || null,
+        membership_type_name: profile.membership_types?.name || null,
         date_of_birth: profile.date_of_birth,
         phone: profile.phone,
         address_street: profile.address_street,
@@ -147,6 +156,7 @@ export default function MembersPage() {
         created_at: profile.created_at,
         updated_at: profile.updated_at,
         families: profile.families,
+        membership_types: profile.membership_types,
       }))
 
       setMembers(mappedMembers)
@@ -178,6 +188,23 @@ export default function MembersPage() {
     }
   }, [])
 
+  // Fetch membership types from API
+  const fetchMembershipTypes = React.useCallback(async () => {
+    try {
+      const response = await fetch("/api/membership-types")
+
+      if (!response.ok) {
+        console.error("Error fetching membership types")
+        return
+      }
+
+      const data = await response.json()
+      setMembershipTypes(data.membershipTypes || [])
+    } catch (error) {
+      console.error("Error fetching membership types:", error)
+    }
+  }, [])
+
   React.useEffect(() => {
     fetchMembers()
   }, [fetchMembers])
@@ -185,6 +212,10 @@ export default function MembersPage() {
   React.useEffect(() => {
     fetchFamilies()
   }, [fetchFamilies])
+
+  React.useEffect(() => {
+    fetchMembershipTypes()
+  }, [fetchMembershipTypes])
 
   // Handlers
   function handleEditMember(member: Member) {
@@ -199,10 +230,11 @@ export default function MembersPage() {
 
   async function handleMemberSubmit(data: MemberFormData) {
     try {
-      // Clean up family_id if it's "none" or empty
+      // Clean up family_id and membership_type_id if they're "none" or empty
       const cleanedData = {
         ...data,
         family_id: data.family_id && data.family_id !== "none" ? data.family_id : undefined,
+        membership_type_id: data.membership_type_id && data.membership_type_id !== "none" ? data.membership_type_id : undefined,
       }
 
       if (editingMember) {
@@ -495,6 +527,7 @@ export default function MembersPage() {
         onOpenChange={setMemberFormOpen}
         member={editingMember}
         families={families.map((f) => ({ id: f.id, name: f.name }))}
+        membershipTypes={membershipTypes}
         onSubmit={handleMemberSubmit}
       />
 

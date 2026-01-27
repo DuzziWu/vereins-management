@@ -51,6 +51,8 @@ export interface Member {
   status: MemberStatus
   family_id?: string | null
   family_name?: string | null
+  membership_type_id?: string | null
+  membership_type_name?: string | null
   date_of_birth?: string | null
   phone?: string | null
   address_street?: string | null
@@ -64,6 +66,11 @@ export interface Member {
     id: string
     name: string
     primary_member_id: string | null
+  } | null
+  membership_types?: {
+    id: string
+    name: string
+    annual_fee: number
   } | null
 }
 
@@ -256,6 +263,7 @@ export function MembersTable({
                 </Button>
               </TableHead>
               <TableHead className="hidden lg:table-cell">Familie</TableHead>
+              <TableHead className="hidden xl:table-cell">Beitragsart</TableHead>
               <TableHead>
                 <Button
                   variant="ghost"
@@ -301,6 +309,9 @@ export function MembersTable({
                   </TableCell>
                   <TableCell className="hidden lg:table-cell text-muted-foreground">
                     {member.family_name || "–"}
+                  </TableCell>
+                  <TableCell className="hidden xl:table-cell text-muted-foreground">
+                    {member.membership_type_name || "–"}
                   </TableCell>
                   <TableCell>
                     <MemberStatusBadge status={member.status} />

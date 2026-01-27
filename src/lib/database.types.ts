@@ -145,6 +145,33 @@ export type Database = {
         }
         Relationships: []
       }
+      membership_types: {
+        Row: {
+          annual_fee: number
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          annual_fee?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          annual_fee?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -212,6 +239,7 @@ export type Database = {
           id: string
           is_active: boolean
           last_name: string
+          membership_type_id: string | null
           notes: string | null
           phone: string | null
           role: string
@@ -231,6 +259,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_name: string
+          membership_type_id?: string | null
           notes?: string | null
           phone?: string | null
           role?: string
@@ -250,6 +279,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_name?: string
+          membership_type_id?: string | null
           notes?: string | null
           phone?: string | null
           role?: string
@@ -263,6 +293,13 @@ export type Database = {
             columns: ["family_id"]
             isOneToOne: false
             referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_membership_type_id_fkey"
+            columns: ["membership_type_id"]
+            isOneToOne: false
+            referencedRelation: "membership_types"
             referencedColumns: ["id"]
           },
         ]
@@ -371,6 +408,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      get_membership_type_member_count: {
+        Args: { type_id: string }
+        Returns: number
+      }
       is_vorstand: { Args: Record<PropertyKey, never>; Returns: boolean }
       mark_all_notifications_read: {
         Args: Record<PropertyKey, never>
@@ -428,6 +469,7 @@ export type Group = Tables<'groups'>
 export type TrainerNote = Tables<'trainer_notes'>
 export type Notification = Tables<'notifications'>
 export type Family = Tables<'families'>
+export type MembershipType = Tables<'membership_types'>
 
 export type UserRole = 'vorstand' | 'trainer' | 'mitglied'
 export type MemberStatus = 'active' | 'inactive' | 'pending'

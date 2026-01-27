@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { memberSchema, MemberFormData, FUNCTIONAL_TAGS } from "@/lib/validations/member"
+import { formatCurrency } from "@/lib/validations/membership-type"
 import { Member } from "./members-table"
 
 interface Family {
@@ -41,11 +42,18 @@ interface Family {
   name: string
 }
 
+interface MembershipType {
+  id: string
+  name: string
+  annual_fee: number
+}
+
 interface MemberFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   member?: Member | null
   families: Family[]
+  membershipTypes?: MembershipType[]
   onSubmit: (data: MemberFormData) => Promise<void>
 }
 
@@ -54,6 +62,7 @@ export function MemberForm({
   onOpenChange,
   member,
   families,
+  membershipTypes = [],
   onSubmit,
 }: MemberFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -73,6 +82,7 @@ export function MemberForm({
       address_city: "",
       functional_tags: [],
       family_id: "",
+      membership_type_id: "",
       notes: "",
     },
   })
@@ -100,6 +110,7 @@ export function MemberForm({
           address_city: member.address_city || "",
           functional_tags: member.functional_tags || [],
           family_id: member.family_id || "",
+          membership_type_id: member.membership_type_id || "",
           notes: member.notes || "",
         })
       } else {
@@ -115,6 +126,7 @@ export function MemberForm({
           address_city: "",
           functional_tags: [],
           family_id: "",
+          membership_type_id: "",
           notes: "",
         })
       }
@@ -365,6 +377,36 @@ export function MemberForm({
                       {families.map((family) => (
                         <SelectItem key={family.id} value={family.id}>
                           {family.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Membership Type */}
+            <FormField
+              control={form.control}
+              name="membership_type_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Beitragsart</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || "none"}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Keine (beitragsfrei)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Keine (beitragsfrei)</SelectItem>
+                      {membershipTypes.map((type) => (
+                        <SelectItem key={type.id} value={type.id}>
+                          {type.name} ({formatCurrency(type.annual_fee)})
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -15,6 +15,7 @@ export const memberSchema = z.object({
   address_city: z.string().optional().or(z.literal("")),
   functional_tags: z.array(z.string()).optional(),
   family_id: z.string().uuid().optional().or(z.literal("")),
+  membership_type_id: z.string().uuid().optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
 })
 
