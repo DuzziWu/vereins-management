@@ -14,20 +14,22 @@ import {
   GenerateFeesDialog,
   FeeAdjustmentModal,
   AddSingleFeeDialog,
+  PaymentForm,
+  PaymentHistory,
+  PaymentCancelDialog,
+  PaymentEditDialog,
+  paymentMethodLabels,
   type FeeStats,
   type FeesFilters,
   type FeeEntry,
   type GenerateFeesPreview,
-  type PaymentStatus,
   type MemberWithoutFee,
+  type Payment,
+  type PaymentFormSubmitData,
+  type PaymentEditData,
 } from "@/components/finances"
+import { getPaymentStatus, type PaymentStatus } from "@/lib/validations/payment"
 import { createClient } from "@/lib/supabase/client"
-
-function getPaymentStatus(amountDue: number, amountPaid: number): PaymentStatus {
-  if (amountPaid >= amountDue && amountDue > 0) return "paid"
-  if (amountPaid > 0) return "partial"
-  return "open"
-}
 
 export default function FeesPage() {
   const currentYear = new Date().getFullYear()
@@ -59,6 +61,15 @@ export default function FeesPage() {
   const [showAddSingleFeeDialog, setShowAddSingleFeeDialog] = React.useState(false)
   const [membersWithoutFee, setMembersWithoutFee] = React.useState<MemberWithoutFee[]>([])
   const [isLoadingMembersWithoutFee, setIsLoadingMembersWithoutFee] = React.useState(false)
+
+  // PROJ-7: Payment Recording
+  const [paymentEntry, setPaymentEntry] = React.useState<FeeEntry | null>(null)
+  const [showPaymentForm, setShowPaymentForm] = React.useState(false)
+  const [showPaymentHistory, setShowPaymentHistory] = React.useState(false)
+  const [payments, setPayments] = React.useState<Payment[]>([])
+  const [isLoadingPayments, setIsLoadingPayments] = React.useState(false)
+  const [cancellingPayment, setCancellingPayment] = React.useState<Payment | null>(null)
+  const [editingPayment, setEditingPayment] = React.useState<Payment | null>(null)
 
   const supabase = createClient()
 
@@ -758,6 +769,172 @@ export default function FeesPage() {
     setShowAddSingleFeeDialog(true)
   }
 
+  // PROJ-7: Fetch payments for a fee
+  const fetchPayments = React.useCallback(async (feeId: string) => {
+    setIsLoadingPayments(true)
+    try {
+      const { data, error } = await supabase
+        .from("payments")
+        .select(`
+          id,
+          fee_id,
+          amount,
+          payment_date,
+          payment_method,
+          note,
+          is_cancelled,
+          cancellation_reason,
+          cancelled_at,
+          created_by,
+          created_at,
+          profiles!payments_created_by_fkey (
+            first_name,
+            last_name
+          )
+        `)
+        .eq("fee_id", feeId)
+        .order("payment_date", { ascending: false })
+
+      if (error) throw error
+
+      const mappedPayments: Payment[] = (data ?? []).map((p) => {
+        const profile = p.profiles as { first_name: string; last_name: string } | null
+        return {
+          id: p.id,
+          feeId: p.fee_id,
+          amount: Number(p.amount),
+          paymentDate: p.payment_date,
+          paymentMethod: p.payment_method as Payment["paymentMethod"],
+          paymentMethodLabel: paymentMethodLabels[p.payment_method as keyof typeof paymentMethodLabels] || p.payment_method,
+          note: p.note,
+          isCancelled: p.is_cancelled,
+          cancellationReason: p.cancellation_reason,
+          cancelledAt: p.cancelled_at,
+          createdBy: p.created_by,
+          createdByName: profile ? `${profile.first_name} ${profile.last_name}` : null,
+          createdAt: p.created_at,
+        }
+      })
+
+      setPayments(mappedPayments)
+    } catch (error) {
+      console.error("Error fetching payments:", error)
+      toast.error("Fehler beim Laden der Zahlungen")
+    } finally {
+      setIsLoadingPayments(false)
+    }
+  }, [supabase])
+
+  // PROJ-7: Record a payment
+  async function handleRecordPayment(feeId: string, data: PaymentFormSubmitData) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error("Not authenticated")
+
+      const { error } = await supabase.from("payments").insert({
+        fee_id: feeId,
+        amount: data.amount,
+        payment_date: data.paymentDate,
+        payment_method: data.paymentMethod,
+        note: data.note || null,
+        created_by: user.id,
+      })
+
+      if (error) throw error
+
+      toast.success("Zahlung erfasst")
+      setShowPaymentForm(false)
+
+      // Refresh payments if history is open
+      if (showPaymentHistory && paymentEntry) {
+        await fetchPayments(paymentEntry.id)
+      }
+
+      // Refresh the main data
+      await fetchData()
+    } catch (error) {
+      console.error("Error recording payment:", error)
+      toast.error("Fehler beim Erfassen der Zahlung")
+      throw error
+    }
+  }
+
+  // PROJ-7: Cancel a payment
+  async function handleCancelPayment(paymentId: string, reason: string) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error("Not authenticated")
+
+      const { error } = await supabase
+        .from("payments")
+        .update({
+          is_cancelled: true,
+          cancellation_reason: reason,
+          cancelled_at: new Date().toISOString(),
+          cancelled_by: user.id,
+        })
+        .eq("id", paymentId)
+
+      if (error) throw error
+
+      toast.success("Zahlung storniert")
+      setCancellingPayment(null)
+
+      // Refresh payments
+      if (paymentEntry) {
+        await fetchPayments(paymentEntry.id)
+      }
+
+      // Refresh the main data
+      await fetchData()
+    } catch (error) {
+      console.error("Error cancelling payment:", error)
+      toast.error("Fehler beim Stornieren der Zahlung")
+      throw error
+    }
+  }
+
+  // PROJ-7: Edit a payment (only note and method)
+  async function handleEditPayment(paymentId: string, data: PaymentEditData) {
+    try {
+      const { error } = await supabase
+        .from("payments")
+        .update({
+          payment_method: data.paymentMethod,
+          note: data.note || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", paymentId)
+
+      if (error) throw error
+
+      toast.success("Zahlung aktualisiert")
+      setEditingPayment(null)
+
+      // Refresh payments
+      if (paymentEntry) {
+        await fetchPayments(paymentEntry.id)
+      }
+    } catch (error) {
+      console.error("Error editing payment:", error)
+      toast.error("Fehler beim Bearbeiten der Zahlung")
+      throw error
+    }
+  }
+
+  // PROJ-7: Open payment form
+  function handleOpenPaymentForm(entry: FeeEntry) {
+    setPaymentEntry(entry)
+    setShowPaymentForm(true)
+  }
+
+  // PROJ-7: Open payment history
+  function handleOpenPaymentHistory(entry: FeeEntry) {
+    setPaymentEntry(entry)
+    setShowPaymentHistory(true)
+    fetchPayments(entry.id)
+  }
+
   // Initial load
   React.useEffect(() => {
     fetchAvailableYears()
@@ -844,6 +1021,8 @@ export default function FeesPage() {
         <FeesTable
           entries={entries}
           onAdjust={setAdjustingEntry}
+          onRecordPayment={handleOpenPaymentForm}
+          onViewHistory={handleOpenPaymentHistory}
           isLoading={isLoading}
           isReadonly={isReadonly}
         />
@@ -875,6 +1054,45 @@ export default function FeesPage() {
         membersWithoutFee={membersWithoutFee}
         isLoading={isLoadingMembersWithoutFee}
         onAdd={handleAddSingleFees}
+      />
+
+      {/* PROJ-7: Payment Form Modal */}
+      <PaymentForm
+        open={showPaymentForm}
+        onOpenChange={setShowPaymentForm}
+        entry={paymentEntry}
+        year={filters.year}
+        onSubmit={handleRecordPayment}
+      />
+
+      {/* PROJ-7: Payment History Sheet */}
+      <PaymentHistory
+        open={showPaymentHistory}
+        onOpenChange={setShowPaymentHistory}
+        entry={paymentEntry}
+        year={filters.year}
+        payments={payments}
+        isLoading={isLoadingPayments}
+        isReadonly={isReadonly}
+        onRecordPayment={() => setShowPaymentForm(true)}
+        onEditPayment={setEditingPayment}
+        onCancelPayment={setCancellingPayment}
+      />
+
+      {/* PROJ-7: Payment Cancel Dialog */}
+      <PaymentCancelDialog
+        open={!!cancellingPayment}
+        onOpenChange={(open) => !open && setCancellingPayment(null)}
+        payment={cancellingPayment}
+        onConfirm={handleCancelPayment}
+      />
+
+      {/* PROJ-7: Payment Edit Dialog */}
+      <PaymentEditDialog
+        open={!!editingPayment}
+        onOpenChange={(open) => !open && setEditingPayment(null)}
+        payment={editingPayment}
+        onSubmit={handleEditPayment}
       />
     </div>
   )

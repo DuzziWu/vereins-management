@@ -19,3 +19,15 @@ export { FeeAdjustmentModal } from "./fee-adjustment-modal"
 
 export { AddSingleFeeDialog } from "./add-single-fee-dialog"
 export type { MemberWithoutFee } from "./add-single-fee-dialog"
+
+// PROJ-7: Payment Recording Components
+export { PaymentForm } from "./payment-form"
+export type { PaymentMethod, PaymentFormSubmitData } from "./payment-form"
+
+export { PaymentHistory, paymentMethodLabels } from "./payment-history"
+export type { Payment } from "./payment-history"
+
+export { PaymentCancelDialog } from "./payment-cancel-dialog"
+
+export { PaymentEditDialog } from "./payment-edit-dialog"
+export type { PaymentEditData } from "./payment-edit-dialog"

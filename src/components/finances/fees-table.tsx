@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronRight, ChevronDown, MoreHorizontal, Pencil, CreditCard, Users } from "lucide-react"
+import { ChevronRight, ChevronDown, MoreHorizontal, Pencil, CreditCard, Users, Receipt, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/collapsible"
 import { formatCurrency } from "@/lib/validations/membership-type"
 
-export type PaymentStatus = "paid" | "partial" | "open"
+export type PaymentStatus = "paid" | "partial" | "open" | "overpaid"
 
 export interface FeeEntry {
   id: string
@@ -56,6 +56,8 @@ export interface FamilyMember {
 interface FeesTableProps {
   entries: FeeEntry[]
   onAdjust: (entry: FeeEntry) => void
+  onRecordPayment: (entry: FeeEntry) => void
+  onViewHistory: (entry: FeeEntry) => void
   isLoading?: boolean
   isReadonly?: boolean
 }
@@ -65,12 +67,19 @@ function StatusBadge({ status }: { status: PaymentStatus }) {
     paid: { label: "Bezahlt", variant: "default" },
     partial: { label: "Teilweise", variant: "secondary" },
     open: { label: "Offen", variant: "destructive" },
+    overpaid: { label: "Überzahlt", variant: "outline" },
   }
 
   const { label, variant } = variants[status]
 
   return (
-    <Badge variant={variant} className={status === "paid" ? "bg-green-600 hover:bg-green-700" : ""}>
+    <Badge
+      variant={variant}
+      className={
+        status === "paid" ? "bg-green-600 hover:bg-green-700" :
+        status === "overpaid" ? "bg-blue-600 hover:bg-blue-700 text-white" : ""
+      }
+    >
       {label}
     </Badge>
   )
@@ -89,11 +98,13 @@ function PaymentProgress({ amountPaid, amountDue }: { amountPaid: number; amount
 interface FamilyRowProps {
   entry: FeeEntry
   onAdjust: (entry: FeeEntry) => void
+  onRecordPayment: (entry: FeeEntry) => void
+  onViewHistory: (entry: FeeEntry) => void
   isLoading?: boolean
   isReadonly?: boolean
 }
 
-function FamilyRow({ entry, onAdjust, isLoading, isReadonly }: FamilyRowProps) {
+function FamilyRow({ entry, onAdjust, onRecordPayment, onViewHistory, isLoading, isReadonly }: FamilyRowProps) {
   const [isOpen, setIsOpen] = React.useState(false)
 
   return (
@@ -131,7 +142,14 @@ function FamilyRow({ entry, onAdjust, isLoading, isReadonly }: FamilyRowProps) {
           {formatCurrency(entry.amountDue)}
         </TableCell>
         <TableCell className="text-right tabular-nums">
-          {formatCurrency(entry.amountPaid)}
+          <button
+            type="button"
+            onClick={() => onViewHistory(entry)}
+            className="hover:underline cursor-pointer tabular-nums"
+            disabled={isLoading}
+          >
+            {formatCurrency(entry.amountPaid)}
+          </button>
         </TableCell>
         <TableCell className="text-right tabular-nums">
           <div className="flex items-center justify-end gap-2">
@@ -143,22 +161,32 @@ function FamilyRow({ entry, onAdjust, isLoading, isReadonly }: FamilyRowProps) {
           <StatusBadge status={entry.status} />
         </TableCell>
         <TableCell>
-          {!isReadonly && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" disabled={isLoading}>
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Aktionen</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" disabled={isLoading}>
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Aktionen</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {!isReadonly && (
+                <DropdownMenuItem onClick={() => onRecordPayment(entry)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Zahlung erfassen
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => onViewHistory(entry)}>
+                <Receipt className="mr-2 h-4 w-4" />
+                Zahlungshistorie
+              </DropdownMenuItem>
+              {!isReadonly && (
                 <DropdownMenuItem onClick={() => onAdjust(entry)}>
                   <Pencil className="mr-2 h-4 w-4" />
                   Beitrag anpassen
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </TableCell>
       </TableRow>
       <CollapsibleContent asChild>
@@ -206,11 +234,13 @@ function FamilyRow({ entry, onAdjust, isLoading, isReadonly }: FamilyRowProps) {
 interface IndividualRowProps {
   entry: FeeEntry
   onAdjust: (entry: FeeEntry) => void
+  onRecordPayment: (entry: FeeEntry) => void
+  onViewHistory: (entry: FeeEntry) => void
   isLoading?: boolean
   isReadonly?: boolean
 }
 
-function IndividualRow({ entry, onAdjust, isLoading, isReadonly }: IndividualRowProps) {
+function IndividualRow({ entry, onAdjust, onRecordPayment, onViewHistory, isLoading, isReadonly }: IndividualRowProps) {
   return (
     <TableRow>
       <TableCell></TableCell>
@@ -222,7 +252,14 @@ function IndividualRow({ entry, onAdjust, isLoading, isReadonly }: IndividualRow
         {formatCurrency(entry.amountDue)}
       </TableCell>
       <TableCell className="text-right tabular-nums">
-        {formatCurrency(entry.amountPaid)}
+        <button
+          type="button"
+          onClick={() => onViewHistory(entry)}
+          className="hover:underline cursor-pointer tabular-nums"
+          disabled={isLoading}
+        >
+          {formatCurrency(entry.amountPaid)}
+        </button>
       </TableCell>
       <TableCell className="text-right tabular-nums">
         <div className="flex items-center justify-end gap-2">
@@ -234,28 +271,38 @@ function IndividualRow({ entry, onAdjust, isLoading, isReadonly }: IndividualRow
         <StatusBadge status={entry.status} />
       </TableCell>
       <TableCell>
-        {!isReadonly && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={isLoading}>
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Aktionen</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" disabled={isLoading}>
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Aktionen</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {!isReadonly && (
+              <DropdownMenuItem onClick={() => onRecordPayment(entry)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Zahlung erfassen
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={() => onViewHistory(entry)}>
+              <Receipt className="mr-2 h-4 w-4" />
+              Zahlungshistorie
+            </DropdownMenuItem>
+            {!isReadonly && (
               <DropdownMenuItem onClick={() => onAdjust(entry)}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Beitrag anpassen
               </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </TableRow>
   )
 }
 
-export function FeesTable({ entries, onAdjust, isLoading, isReadonly }: FeesTableProps) {
+export function FeesTable({ entries, onAdjust, onRecordPayment, onViewHistory, isLoading, isReadonly }: FeesTableProps) {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -290,6 +337,8 @@ export function FeesTable({ entries, onAdjust, isLoading, isReadonly }: FeesTabl
                 key={entry.id}
                 entry={entry}
                 onAdjust={onAdjust}
+                onRecordPayment={onRecordPayment}
+                onViewHistory={onViewHistory}
                 isLoading={isLoading}
                 isReadonly={isReadonly}
               />
@@ -298,6 +347,8 @@ export function FeesTable({ entries, onAdjust, isLoading, isReadonly }: FeesTabl
                 key={entry.id}
                 entry={entry}
                 onAdjust={onAdjust}
+                onRecordPayment={onRecordPayment}
+                onViewHistory={onViewHistory}
                 isLoading={isLoading}
                 isReadonly={isReadonly}
               />

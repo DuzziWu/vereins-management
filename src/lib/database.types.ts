@@ -335,6 +335,76 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          id: string
+          fee_id: string
+          amount: number
+          payment_date: string
+          payment_method: string
+          note: string | null
+          is_cancelled: boolean
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_by: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          fee_id: string
+          amount: number
+          payment_date: string
+          payment_method: string
+          note?: string | null
+          is_cancelled?: boolean
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_by: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          fee_id?: string
+          amount?: number
+          payment_date?: string
+          payment_method?: string
+          note?: string | null
+          is_cancelled?: boolean
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_by?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_fee_id_fkey"
+            columns: ["fee_id"]
+            isOneToOne: false
+            referencedRelation: "membership_fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address_city: string | null
@@ -581,6 +651,7 @@ export type Family = Tables<'families'>
 export type MembershipType = Tables<'membership_types'>
 export type MembershipFee = Tables<'membership_fees'>
 export type FeeAdjustment = Tables<'fee_adjustments'>
+export type Payment = Tables<'payments'>
 
 export type UserRole = 'vorstand' | 'trainer' | 'mitglied'
 export type MemberStatus = 'active' | 'inactive' | 'pending'

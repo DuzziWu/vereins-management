@@ -54,6 +54,7 @@ git log --name-only -10 --format=""
 4. **Test-Ergebnisse dokumentieren:**
    - Update Feature Spec in `/features/PROJ-X.md` mit Test-Ergebnissen
    - Füge QA-Section ans Ende des Feature-Dokuments hinzu
+   - Erstelle eine Report File in `/test-reports/PROJ-X-qa-report.md`
 
 5. **User Review:**
    - Zeige Test-Ergebnisse
@@ -63,8 +64,6 @@ git log --name-only -10 --format=""
 
 ### Test Results Location
 **Dokumentiere Test-Ergebnisse in:** `/features/PROJ-X.md` (am Ende des Feature-Dokuments)
-
-**Kein separater test-reports/ Ordner mehr!** Alles bleibt im Feature-Dokument für bessere Übersicht.
 
 ### Test Report Template
 Füge diese Section ans Ende von `/features/PROJ-X.md`:
