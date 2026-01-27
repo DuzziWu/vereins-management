@@ -559,8 +559,9 @@ export default function FeesPage() {
 
   // Open generate dialog
   function handleOpenGenerateDialog() {
-    fetchGeneratePreview()
+    setGeneratePreview(null) // Reset preview to show loading state
     setShowGenerateDialog(true)
+    fetchGeneratePreview()
   }
 
   // BUG-4: Fetch members without fee for the selected year
@@ -855,6 +856,7 @@ export default function FeesPage() {
         preview={generatePreview}
         isGenerating={isGenerating}
         onGenerate={handleGenerate}
+        year={filters.year}
       />
 
       {/* Adjustment Modal */}
