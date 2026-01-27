@@ -17,6 +17,7 @@ import {
   Bell,
   Wallet,
   CreditCard,
+  Receipt,
   ChevronRight,
 } from "lucide-react"
 
@@ -76,6 +77,7 @@ const ROLE_NAV_ITEMS: Record<UserRole, { main: NavItem[]; admin?: NavItem[]; fin
       title: "Finanzen",
       icon: Wallet,
       items: [
+        { title: "Beiträge", url: "/admin/finances/fees", icon: Receipt },
         { title: "Beitragsarten", url: "/admin/finances/membership-types", icon: CreditCard },
       ],
     },

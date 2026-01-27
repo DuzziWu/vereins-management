@@ -41,6 +41,51 @@ export type Database = {
           },
         ]
       }
+      fee_adjustments: {
+        Row: {
+          id: string
+          fee_id: string
+          old_amount: number
+          new_amount: number
+          reason: string
+          adjusted_by: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          fee_id: string
+          old_amount: number
+          new_amount: number
+          reason: string
+          adjusted_by: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          fee_id?: string
+          old_amount?: number
+          new_amount?: number
+          reason?: string
+          adjusted_by?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_adjustments_fee_id_fkey"
+            columns: ["fee_id"]
+            isOneToOne: false
+            referencedRelation: "membership_fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_adjustments_adjusted_by_fkey"
+            columns: ["adjusted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
           created_at: string | null
@@ -145,12 +190,74 @@ export type Database = {
         }
         Relationships: []
       }
+      membership_fees: {
+        Row: {
+          adjustment_reason: string | null
+          amount_due: number
+          amount_paid: number
+          created_at: string | null
+          family_id: string | null
+          id: string
+          membership_type_id: string | null
+          profile_id: string | null
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          adjustment_reason?: string | null
+          amount_due?: number
+          amount_paid?: number
+          created_at?: string | null
+          family_id?: string | null
+          id?: string
+          membership_type_id?: string | null
+          profile_id?: string | null
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          adjustment_reason?: string | null
+          amount_due?: number
+          amount_paid?: number
+          created_at?: string | null
+          family_id?: string | null
+          id?: string
+          membership_type_id?: string | null
+          profile_id?: string | null
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_fees_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membership_fees_membership_type_id_fkey"
+            columns: ["membership_type_id"]
+            isOneToOne: false
+            referencedRelation: "membership_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membership_fees_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership_types: {
         Row: {
           annual_fee: number
           created_at: string | null
           description: string | null
           id: string
+          is_family_flat: boolean
           name: string
           updated_at: string | null
         }
@@ -159,6 +266,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          is_family_flat?: boolean
           name: string
           updated_at?: string | null
         }
@@ -167,6 +275,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          is_family_flat?: boolean
           name?: string
           updated_at?: string | null
         }
@@ -470,6 +579,8 @@ export type TrainerNote = Tables<'trainer_notes'>
 export type Notification = Tables<'notifications'>
 export type Family = Tables<'families'>
 export type MembershipType = Tables<'membership_types'>
+export type MembershipFee = Tables<'membership_fees'>
+export type FeeAdjustment = Tables<'fee_adjustments'>
 
 export type UserRole = 'vorstand' | 'trainer' | 'mitglied'
 export type MemberStatus = 'active' | 'inactive' | 'pending'
