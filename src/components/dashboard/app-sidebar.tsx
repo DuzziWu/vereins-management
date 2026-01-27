@@ -49,7 +49,7 @@ const ROLE_NAV_ITEMS: Record<UserRole, { main: NavItem[]; admin?: NavItem[] }> =
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
     ],
     admin: [
-      { title: "Mitglieder", url: "/admin/users", icon: Users },
+      { title: "Mitglieder", url: "/admin/members", icon: Users },
       { title: "User einladen", url: "/admin/users/invite", icon: UserPlus },
       { title: "Einladungen", url: "/admin/users/invitations", icon: Mail },
       { title: "Gruppen", url: "/admin/groups", icon: UsersRound },
