@@ -831,13 +831,22 @@ export default function FeesPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("Not authenticated")
 
+      // Get user's profile ID (payments.created_by references profiles.id, not auth.users.id)
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single()
+
+      if (profileError || !profile) throw new Error("Profile not found")
+
       const { error } = await supabase.from("payments").insert({
         fee_id: feeId,
         amount: data.amount,
         payment_date: data.paymentDate,
         payment_method: data.paymentMethod,
         note: data.note || null,
-        created_by: user.id,
+        created_by: profile.id,
       })
 
       if (error) throw error
@@ -865,13 +874,22 @@ export default function FeesPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("Not authenticated")
 
+      // Get user's profile ID (payments.cancelled_by references profiles.id, not auth.users.id)
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single()
+
+      if (profileError || !profile) throw new Error("Profile not found")
+
       const { error } = await supabase
         .from("payments")
         .update({
           is_cancelled: true,
           cancellation_reason: reason,
           cancelled_at: new Date().toISOString(),
-          cancelled_by: user.id,
+          cancelled_by: profile.id,
         })
         .eq("id", paymentId)
 
