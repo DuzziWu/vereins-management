@@ -1,6 +1,6 @@
 # PROJ-7: Zahlungs-Erfassung (Payment Recording)
 
-## Status: Planned
+## Status: ✅ Deployed (2026-01-27)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für eingeloggte User-Checks
