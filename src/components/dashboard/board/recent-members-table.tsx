@@ -93,7 +93,7 @@ export function RecentMembersTable() {
           <CardDescription>Neueste Mitglieder im Verein</CardDescription>
         </div>
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/admin/users" className="gap-1">
+          <Link href="/admin/members" className="gap-1">
             Alle anzeigen
             <ArrowRight className="h-4 w-4" />
           </Link>

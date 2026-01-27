@@ -12,7 +12,7 @@ export function QuickActions() {
         </Link>
       </Button>
       <Button variant="outline" asChild>
-        <Link href="/admin/users" className="gap-2">
+        <Link href="/admin/members" className="gap-2">
           <Users className="h-4 w-4" />
           Mitgliederverwaltung
         </Link>
