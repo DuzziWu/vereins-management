@@ -675,16 +675,15 @@ export default function FeesPage() {
           }
         }
 
-        if (totalFee > 0) {
-          membersWithout.push({
-            id: `family-${family.id}`,
-            type: "family",
-            name: `Familie ${family.name}`,
-            membershipTypeName: typeName,
-            annualFee: totalFee,
-            familyId: family.id,
-          })
-        }
+        // Familien immer anzeigen, auch ohne Beitragsart (Beitrag kann später angepasst werden)
+        membersWithout.push({
+          id: `family-${family.id}`,
+          type: "family",
+          name: `Familie ${family.name}`,
+          membershipTypeName: typeName || "Keine Beitragsart",
+          annualFee: totalFee,
+          familyId: family.id,
+        })
       }
 
       setMembersWithoutFee(membersWithout)
