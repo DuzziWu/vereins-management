@@ -1,17 +1,46 @@
 import { z } from "zod"
 
+// Regex patterns for validation
+const NAME_REGEX = /^[a-zA-ZäöüÄÖÜßéèêëàáâãåæçíìîïñóòôõøúùûýÿ\s-]+$/
+const PHONE_REGEX = /^[\d\s+\-()]+$/
+const ZIP_REGEX = /^\d{5}$/
+
 export const memberSchema = z.object({
-  first_name: z.string().min(2, "Mindestens 2 Zeichen"),
-  last_name: z.string().min(2, "Mindestens 2 Zeichen"),
+  first_name: z
+    .string()
+    .min(2, "Mindestens 2 Zeichen")
+    .max(100, "Maximal 100 Zeichen")
+    .regex(NAME_REGEX, "Nur Buchstaben und Bindestriche erlaubt"),
+  last_name: z
+    .string()
+    .min(2, "Mindestens 2 Zeichen")
+    .max(100, "Maximal 100 Zeichen")
+    .regex(NAME_REGEX, "Nur Buchstaben und Bindestriche erlaubt"),
   date_of_birth: z.string().refine((date) => {
     const parsed = new Date(date)
-    return parsed <= new Date()
-  }, "Datum kann nicht in der Zukunft liegen"),
+    const minDate = new Date('1900-01-01')
+    const today = new Date()
+    return parsed >= minDate && parsed <= today
+  }, "Geburtsdatum muss zwischen 1900 und heute liegen"),
   email: z.string().email("Ungültige E-Mail-Adresse").optional().or(z.literal("")),
-  phone: z.string().optional().or(z.literal("")),
+  phone: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (val) => !val || PHONE_REGEX.test(val),
+      "Nur Zahlen, Leerzeichen, +, -, () erlaubt"
+    ),
   role: z.enum(["vorstand", "trainer", "mitglied"]),
   address_street: z.string().optional().or(z.literal("")),
-  address_zip: z.string().optional().or(z.literal("")),
+  address_zip: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (val) => !val || ZIP_REGEX.test(val),
+      "PLZ muss 5 Ziffern haben"
+    ),
   address_city: z.string().optional().or(z.literal("")),
   functional_tags: z.array(z.string()).optional(),
   family_id: z.string().uuid().optional().or(z.literal("")),

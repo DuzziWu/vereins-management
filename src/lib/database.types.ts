@@ -424,7 +424,7 @@ export type Database = {
           role: string
           status: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           address_city?: string | null
@@ -444,7 +444,7 @@ export type Database = {
           role?: string
           status?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           address_city?: string | null
@@ -464,7 +464,7 @@ export type Database = {
           role?: string
           status?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -580,7 +580,7 @@ export type Database = {
           role: string
           status: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
       }
       get_unread_notification_count: {

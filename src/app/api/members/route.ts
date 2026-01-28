@@ -147,11 +147,11 @@ export async function POST(request: NextRequest) {
 
   // Create member profile without user_id (manual member without login)
   // Note: This creates a profile without an associated auth user
-  // For members with login, use the invitation system
+  // For members with login, use the invitation system (PROJ-9)
   const { data: member, error } = await supabase
     .from('profiles')
     .insert({
-      user_id: crypto.randomUUID(), // Generate a placeholder UUID for manual members
+      user_id: null, // No account - member without login (children, elderly, etc.)
       first_name: data.first_name,
       last_name: data.last_name,
       date_of_birth: data.date_of_birth,

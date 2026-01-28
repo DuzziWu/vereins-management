@@ -15,6 +15,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Form,
   FormControl,
   FormDescription,
@@ -55,6 +65,7 @@ interface MemberFormProps {
   families: Family[]
   membershipTypes?: MembershipType[]
   onSubmit: (data: MemberFormData) => Promise<void>
+  onRefreshFamilies?: () => Promise<void>
 }
 
 export function MemberForm({
@@ -64,8 +75,10 @@ export function MemberForm({
   families,
   membershipTypes = [],
   onSubmit,
+  onRefreshFamilies,
 }: MemberFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [showDiscardDialog, setShowDiscardDialog] = React.useState(false)
   const isEditing = !!member
 
   const form = useForm<MemberFormData>({
@@ -87,9 +100,14 @@ export function MemberForm({
     },
   })
 
-  // Reset form when member changes
+  // Reset form when member changes and refresh families on open
   React.useEffect(() => {
     if (open) {
+      // Refresh families list when dialog opens to ensure up-to-date data
+      if (onRefreshFamilies) {
+        onRefreshFamilies()
+      }
+
       if (member) {
         // Format date_of_birth for the date input (YYYY-MM-DD)
         let formattedDate = ""
@@ -143,8 +161,25 @@ export function MemberForm({
     }
   }
 
+  // Handle dialog close with unsaved changes check
+  function handleOpenChange(newOpen: boolean) {
+    if (!newOpen && form.formState.isDirty) {
+      setShowDiscardDialog(true)
+    } else {
+      onOpenChange(newOpen)
+    }
+  }
+
+  // Confirm discard changes
+  function handleDiscardConfirm() {
+    setShowDiscardDialog(false)
+    form.reset()
+    onOpenChange(false)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -230,26 +265,26 @@ export function MemberForm({
 
             {/* Contact Info */}
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>E-Mail</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="max@beispiel.de"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Optional für Kinder ohne eigene E-Mail
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* E-Mail nur beim Bearbeiten anzeigen - neue Mitglieder ohne Account haben keine E-Mail */}
+              {isEditing && (
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>E-Mail</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="max@beispiel.de"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="phone"
@@ -440,7 +475,7 @@ export function MemberForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => handleOpenChange(false)}
                 disabled={isSubmitting}
               >
                 Abbrechen
@@ -454,5 +489,24 @@ export function MemberForm({
         </Form>
       </DialogContent>
     </Dialog>
+
+    {/* Unsaved Changes Confirmation Dialog */}
+    <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Änderungen verwerfen?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Sie haben ungespeicherte Änderungen. Möchten Sie diese wirklich verwerfen?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Zurück zum Formular</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDiscardConfirm}>
+            Änderungen verwerfen
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   )
 }

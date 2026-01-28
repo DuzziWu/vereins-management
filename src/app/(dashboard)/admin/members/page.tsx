@@ -264,7 +264,7 @@ export default function MembersPage() {
           throw new Error(errorData.error || "Fehler beim Erstellen")
         }
 
-        toast.success("Mitglied erfolgreich angelegt")
+        toast.success(`Mitglied ${data.first_name} ${data.last_name} wurde angelegt`)
       }
 
       await fetchMembers()
@@ -529,6 +529,7 @@ export default function MembersPage() {
         families={families.map((f) => ({ id: f.id, name: f.name }))}
         membershipTypes={membershipTypes}
         onSubmit={handleMemberSubmit}
+        onRefreshFamilies={fetchFamilies}
       />
 
       {/* Family Form Modal */}
