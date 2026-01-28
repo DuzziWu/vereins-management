@@ -22,6 +22,7 @@ export interface MembersFilters {
   role: string | null
   status: string | null
   hasFamily: string | null
+  incomplete?: boolean
 }
 
 interface MembersToolbarProps {

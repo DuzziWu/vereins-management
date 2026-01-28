@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
   const roles = searchParams.get('roles')?.split(',').filter(Boolean) || []
   const statuses = searchParams.get('statuses')?.split(',').filter(Boolean) || []
   const hasFamily = searchParams.get('hasFamily') // 'true', 'false', or null
+  const incomplete = searchParams.get('incomplete') === 'true' // Filter for incomplete profiles
   const sortBy = searchParams.get('sortBy') || 'last_name'
   const sortOrder = searchParams.get('sortOrder') === 'desc' ? false : true
 
@@ -71,6 +72,11 @@ export async function GET(request: NextRequest) {
     query = query.not('family_id', 'is', null)
   } else if (hasFamily === 'false') {
     query = query.is('family_id', null)
+  }
+
+  // Apply incomplete filter (missing required fields)
+  if (incomplete) {
+    query = query.or('date_of_birth.is.null,address_street.is.null,address_zip.is.null,address_city.is.null')
   }
 
   // Apply sorting

@@ -7,8 +7,40 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
+      board_todos: {
+        Row: {
+          completed_at: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_completed: boolean | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       families: {
         Row: {
           created_at: string | null
@@ -43,45 +75,45 @@ export type Database = {
       }
       fee_adjustments: {
         Row: {
-          id: string
-          fee_id: string
-          old_amount: number
-          new_amount: number
-          reason: string
           adjusted_by: string
           created_at: string | null
+          fee_id: string
+          id: string
+          new_amount: number
+          old_amount: number
+          reason: string
         }
         Insert: {
-          id?: string
-          fee_id: string
-          old_amount: number
-          new_amount: number
-          reason: string
           adjusted_by: string
           created_at?: string | null
+          fee_id: string
+          id?: string
+          new_amount: number
+          old_amount: number
+          reason: string
         }
         Update: {
-          id?: string
-          fee_id?: string
-          old_amount?: number
-          new_amount?: number
-          reason?: string
           adjusted_by?: string
           created_at?: string | null
+          fee_id?: string
+          id?: string
+          new_amount?: number
+          old_amount?: number
+          reason?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "fee_adjustments_fee_id_fkey"
-            columns: ["fee_id"]
-            isOneToOne: false
-            referencedRelation: "membership_fees"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "fee_adjustments_adjusted_by_fkey"
             columns: ["adjusted_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_adjustments_fee_id_fkey"
+            columns: ["fee_id"]
+            isOneToOne: false
+            referencedRelation: "membership_fees"
             referencedColumns: ["id"]
           },
         ]
@@ -337,56 +369,56 @@ export type Database = {
       }
       payments: {
         Row: {
-          id: string
-          fee_id: string
           amount: number
-          payment_date: string
-          payment_method: string
-          note: string | null
-          is_cancelled: boolean
           cancellation_reason: string | null
           cancelled_at: string | null
           cancelled_by: string | null
-          created_by: string
           created_at: string | null
+          created_by: string
+          fee_id: string
+          id: string
+          is_cancelled: boolean | null
+          note: string | null
+          payment_date: string
+          payment_method: string
           updated_at: string | null
         }
         Insert: {
-          id?: string
-          fee_id: string
           amount: number
-          payment_date: string
-          payment_method: string
-          note?: string | null
-          is_cancelled?: boolean
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
-          created_by: string
           created_at?: string | null
+          created_by: string
+          fee_id: string
+          id?: string
+          is_cancelled?: boolean | null
+          note?: string | null
+          payment_date: string
+          payment_method: string
           updated_at?: string | null
         }
         Update: {
-          id?: string
-          fee_id?: string
           amount?: number
-          payment_date?: string
-          payment_method?: string
-          note?: string | null
-          is_cancelled?: boolean
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
-          created_by?: string
           created_at?: string | null
+          created_by?: string
+          fee_id?: string
+          id?: string
+          is_cancelled?: boolean | null
+          note?: string | null
+          payment_date?: string
+          payment_method?: string
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "payments_fee_id_fkey"
-            columns: ["fee_id"]
+            foreignKeyName: "payments_cancelled_by_fkey"
+            columns: ["cancelled_by"]
             isOneToOne: false
-            referencedRelation: "membership_fees"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -397,10 +429,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payments_cancelled_by_fkey"
-            columns: ["cancelled_by"]
+            foreignKeyName: "payments_fee_id_fkey"
+            columns: ["fee_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "membership_fees"
             referencedColumns: ["id"]
           },
         ]
@@ -534,17 +566,14 @@ export type Database = {
         Args: { check_email: string; check_ip: string }
         Returns: boolean
       }
-      cleanup_old_reset_attempts: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_old_reset_attempts: { Args: never; Returns: undefined }
       create_notification: {
         Args: {
-          p_user_id: string
-          p_type: string
-          p_title: string
-          p_message: string
           p_link?: string
+          p_message: string
+          p_title: string
+          p_type: string
+          p_user_id: string
         }
         Returns: {
           created_at: string | null
@@ -556,13 +585,23 @@ export type Database = {
           type: string
           user_id: string
         }
+        SetofOptions: {
+          from: "*"
+          to: "notifications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_failed_login_count: {
         Args: { check_email: string; check_ip: string }
         Returns: number
       }
+      get_membership_type_member_count: {
+        Args: { type_id: string }
+        Returns: number
+      }
       get_my_profile: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           address_city: string | null
           address_street: string | null
@@ -575,6 +614,7 @@ export type Database = {
           id: string
           is_active: boolean
           last_name: string
+          membership_type_id: string | null
           notes: string | null
           phone: string | null
           role: string
@@ -582,26 +622,22 @@ export type Database = {
           updated_at: string
           user_id: string | null
         }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
-      get_unread_notification_count: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      get_membership_type_member_count: {
-        Args: { type_id: string }
-        Returns: number
-      }
-      is_vorstand: { Args: Record<PropertyKey, never>; Returns: boolean }
-      mark_all_notifications_read: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      get_unread_notification_count: { Args: never; Returns: number }
+      is_vorstand: { Args: never; Returns: boolean }
+      mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
         Args: { p_notification_id: string }
         Returns: undefined
       }
       upsert_trainer_note: {
-        Args: { p_group_id: string; p_content: string }
+        Args: { p_content: string; p_group_id: string }
         Returns: {
           content: string | null
           created_at: string | null
@@ -609,6 +645,12 @@ export type Database = {
           id: string
           trainer_id: string
           updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "trainer_notes"
+          isOneToOne: true
+          isSetofReturn: false
         }
       }
       user_has_role: { Args: { required_role: string }; Returns: boolean }
@@ -634,36 +676,130 @@ export type Database = {
   }
 }
 
-// Helper types
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
-export type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert']
-export type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update']
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-// Convenience types
-export type Profile = Tables<'profiles'>
-export type Invitation = Tables<'invitations'>
-export type LoginAttempt = Tables<'login_attempts'>
-export type PasswordResetAttempt = Tables<'password_reset_attempts'>
-export type Group = Tables<'groups'>
-export type TrainerNote = Tables<'trainer_notes'>
-export type Notification = Tables<'notifications'>
-export type Family = Tables<'families'>
-export type MembershipType = Tables<'membership_types'>
-export type MembershipFee = Tables<'membership_fees'>
-export type FeeAdjustment = Tables<'fee_adjustments'>
-export type Payment = Tables<'payments'>
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
-export type UserRole = 'vorstand' | 'trainer' | 'mitglied'
-export type MemberStatus = 'active' | 'inactive' | 'pending'
-export type NotificationType = 'invitation' | 'document' | 'event' | 'group_change' | 'system'
-
-// Extended types with relations
-export type ProfileWithFamily = Profile & {
-  families: Family | null
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
 }
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
-export type FamilyWithMembers = Family & {
-  primary_member: Pick<Profile, 'id' | 'first_name' | 'last_name'> | null
-  members: Pick<Profile, 'id' | 'first_name' | 'last_name' | 'role' | 'status'>[]
-  member_count?: number
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
 }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
+
+// Custom types for the application
+export type UserRole = "vorstand" | "trainer" | "mitglied"
+
+export type Profile = Tables<"profiles">
