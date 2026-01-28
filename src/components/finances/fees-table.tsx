@@ -20,11 +20,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 import { formatCurrency } from "@/lib/validations/membership-type"
 
 export type PaymentStatus = "paid" | "partial" | "open" | "overpaid"
@@ -108,19 +103,22 @@ function FamilyRow({ entry, onAdjust, onRecordPayment, onViewHistory, isLoading,
   const [isOpen, setIsOpen] = React.useState(false)
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <>
       <TableRow className="bg-muted/30">
         <TableCell>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-              {isOpen ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-              <span className="sr-only">Familie aufklappen</span>
-            </Button>
-          </CollapsibleTrigger>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+            <span className="sr-only">Familie aufklappen</span>
+          </Button>
         </TableCell>
         <TableCell className="font-medium">
           <div className="flex items-center gap-2">
@@ -189,45 +187,41 @@ function FamilyRow({ entry, onAdjust, onRecordPayment, onViewHistory, isLoading,
           </DropdownMenu>
         </TableCell>
       </TableRow>
-      <CollapsibleContent asChild>
-        <>
-          {entry.members?.map((member, index) => (
-            <TableRow
-              key={member.id}
-              className="bg-muted/10 border-l-2 border-l-muted"
-            >
-              <TableCell></TableCell>
-              <TableCell className="pl-8">
-                <span className="text-muted-foreground mr-2">
-                  {index === (entry.members?.length ?? 0) - 1 ? "└─" : "├─"}
-                </span>
-                {member.name}
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {entry.isFamilyFlat ? (
-                  <span className="italic">(Flat)</span>
-                ) : (
-                  member.membershipTypeName || "–"
-                )}
-              </TableCell>
-              <TableCell className="text-right tabular-nums text-muted-foreground">
-                {entry.isFamilyFlat ? "–" : formatCurrency(member.amountDue)}
-              </TableCell>
-              <TableCell className="text-right tabular-nums text-muted-foreground">
-                {entry.isFamilyFlat ? "–" : formatCurrency(member.amountPaid)}
-              </TableCell>
-              <TableCell className="text-right tabular-nums text-muted-foreground">
-                {entry.isFamilyFlat ? "–" : formatCurrency(member.amountDue - member.amountPaid)}
-              </TableCell>
-              <TableCell>
-                {!entry.isFamilyFlat && <StatusBadge status={member.status} />}
-              </TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          ))}
-        </>
-      </CollapsibleContent>
-    </Collapsible>
+      {isOpen && entry.members?.map((member, index) => (
+        <TableRow
+          key={member.id}
+          className="bg-muted/10 border-l-2 border-l-muted"
+        >
+          <TableCell></TableCell>
+          <TableCell className="pl-8">
+            <span className="text-muted-foreground mr-2">
+              {index === (entry.members?.length ?? 0) - 1 ? "└─" : "├─"}
+            </span>
+            {member.name}
+          </TableCell>
+          <TableCell className="text-muted-foreground">
+            {entry.isFamilyFlat ? (
+              <span className="italic">(Flat)</span>
+            ) : (
+              member.membershipTypeName || "–"
+            )}
+          </TableCell>
+          <TableCell className="text-right tabular-nums text-muted-foreground">
+            {entry.isFamilyFlat ? "–" : formatCurrency(member.amountDue)}
+          </TableCell>
+          <TableCell className="text-right tabular-nums text-muted-foreground">
+            {entry.isFamilyFlat ? "–" : formatCurrency(member.amountPaid)}
+          </TableCell>
+          <TableCell className="text-right tabular-nums text-muted-foreground">
+            {entry.isFamilyFlat ? "–" : formatCurrency(member.amountDue - member.amountPaid)}
+          </TableCell>
+          <TableCell>
+            {!entry.isFamilyFlat && <StatusBadge status={member.status} />}
+          </TableCell>
+          <TableCell></TableCell>
+        </TableRow>
+      ))}
+    </>
   )
 }
 
