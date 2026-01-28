@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useSearchParams } from "next/navigation"
 import { Plus, Users, UsersRound } from "lucide-react"
 import { toast } from "sonner"
 
@@ -68,11 +69,16 @@ export default function MembersPage() {
   const [selectedIds, setSelectedIds] = React.useState<string[]>([])
   const [currentPage, setCurrentPage] = React.useState(1)
   const [totalCount, setTotalCount] = React.useState(0)
+  // Read URL parameters for initial filter state
+  const searchParams = useSearchParams()
+  const urlFilter = searchParams.get('filter')
+
   const [filters, setFilters] = React.useState<MembersFilters>({
     search: "",
     role: null,
     status: null,
     hasFamily: null,
+    incomplete: urlFilter === 'incomplete',
   })
   const [sortConfig, setSortConfig] = React.useState<SortConfig>({
     column: "last_name",
@@ -117,6 +123,9 @@ export default function MembersPage() {
       }
       if (filters.hasFamily !== null) {
         params.set("hasFamily", filters.hasFamily.toString())
+      }
+      if (filters.incomplete) {
+        params.set("incomplete", "true")
       }
 
       // Add sorting parameters
@@ -167,7 +176,7 @@ export default function MembersPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [currentPage, debouncedSearch, filters.role, filters.status, filters.hasFamily, sortConfig])
+  }, [currentPage, debouncedSearch, filters.role, filters.status, filters.hasFamily, filters.incomplete, sortConfig])
 
   // Fetch families from API
   const fetchFamilies = React.useCallback(async () => {

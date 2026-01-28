@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useSearchParams } from "next/navigation"
 import { Plus, Info, Lock, UserPlus } from "lucide-react"
 import { toast } from "sonner"
 
@@ -34,18 +35,22 @@ import { createClient } from "@/lib/supabase/client"
 export default function FeesPage() {
   const currentYear = new Date().getFullYear()
 
+  // Read URL parameters for initial filter state
+  const searchParams = useSearchParams()
+  const urlFilter = searchParams.get('filter')
+
   const [entries, setEntries] = React.useState<FeeEntry[]>([])
   const [stats, setStats] = React.useState<FeeStats | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [availableYears, setAvailableYears] = React.useState<number[]>([currentYear])
   const [hasFeesForYear, setHasFeesForYear] = React.useState(false)
 
-  // Filters
+  // Filters - read URL parameter for initial onlyOpen state
   const [filters, setFilters] = React.useState<FeesFilters>({
     search: "",
     status: "all",
     year: currentYear,
-    onlyOpen: false,
+    onlyOpen: urlFilter === 'open',
     viewMode: "all",
   })
 
@@ -809,7 +814,7 @@ export default function FeesPage() {
           paymentMethod: p.payment_method as Payment["paymentMethod"],
           paymentMethodLabel: paymentMethodLabels[p.payment_method as keyof typeof paymentMethodLabels] || p.payment_method,
           note: p.note,
-          isCancelled: p.is_cancelled,
+          isCancelled: p.is_cancelled ?? false,
           cancellationReason: p.cancellation_reason,
           cancelledAt: p.cancelled_at,
           createdBy: p.created_by,
