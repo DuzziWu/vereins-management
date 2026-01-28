@@ -278,7 +278,7 @@ export function FamilyForm({
             {/* Selected Members with Primary Selection */}
             {selectedMembers.length > 0 && (
               <div className="space-y-2">
-                <FormLabel>Ausgewählte Mitglieder</FormLabel>
+                <span className="text-sm font-medium">Ausgewählte Mitglieder</span>
                 <div className="flex flex-wrap gap-2">
                   {selectedMembers.map((member) => {
                     const isPrimary = member.id === primaryMemberId
