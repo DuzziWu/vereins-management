@@ -1,6 +1,8 @@
 # PROJ-9: Mitglied-Formular (ohne Account)
 
-## Status: Implemented (QA Pending)
+## Status: ✅ Deployed (2026-01-28)
+
+**Production URL:** https://vereins-management.vercel.app/admin/members
 
 ## Abhängigkeiten
 - Benötigt: PROJ-4 (Mitgliederverwaltung) - bereits implementiert
