@@ -1,6 +1,6 @@
 # PROJ-10: Board Dashboard Redesign
 
-## Status: ✅ Production Ready
+## Status: ✅ Deployed (2026-01-28)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-3 (Role-Based Dashboards) - bereits implementiert
