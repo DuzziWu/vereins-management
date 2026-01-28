@@ -113,6 +113,7 @@ export default function FeesPage() {
             id,
             first_name,
             last_name,
+            family_id,
             membership_types (
               id,
               name
@@ -164,8 +165,10 @@ export default function FeesPage() {
 
       // Process individual fees
       for (const fee of individualFees ?? []) {
-        const profile = fee.profiles as { id: string; first_name: string; last_name: string; membership_types: { id: string; name: string } | null } | null
+        const profile = fee.profiles as { id: string; first_name: string; last_name: string; family_id: string | null; membership_types: { id: string; name: string } | null } | null
         if (!profile) continue
+        // BUG-2 FIX: Skip profiles that belong to a family (they're handled in family fees)
+        if (profile.family_id) continue
 
         const amountOpen = fee.amount_due - fee.amount_paid
 
@@ -204,7 +207,7 @@ export default function FeesPage() {
         allEntries.push({
           id: fee.id,
           type: "family",
-          name: `Familie ${family.name}`,
+          name: family.name,
           membershipTypeName: membershipType?.name ?? null,
           amountDue: Number(fee.amount_due),
           amountPaid: Number(fee.amount_paid),
@@ -679,7 +682,7 @@ export default function FeesPage() {
         membersWithout.push({
           id: `family-${family.id}`,
           type: "family",
-          name: `Familie ${family.name}`,
+          name: family.name,
           membershipTypeName: typeName || "Keine Beitragsart",
           annualFee: totalFee,
           familyId: family.id,
