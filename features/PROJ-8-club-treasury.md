@@ -1,6 +1,6 @@
 # PROJ-8: Vereinskasse (Club Treasury)
 
-## Status: Planned
+## Status: Deployed (2026-01-29)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für eingeloggte User-Checks
