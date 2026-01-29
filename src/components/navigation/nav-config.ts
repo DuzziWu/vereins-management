@@ -11,6 +11,8 @@ import {
   Wallet,
   CreditCard,
   Receipt,
+  BookOpen,
+  Tag,
   type LucideIcon,
 } from "lucide-react"
 import { UserRole } from "@/lib/database.types"
@@ -50,8 +52,10 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
       title: "Finanzen",
       icon: Wallet,
       items: [
-        { title: "Beitr\u00e4ge", url: "/admin/finances/fees", icon: Receipt },
+        { title: "Beiträge", url: "/admin/finances/fees", icon: Receipt },
         { title: "Beitragsarten", url: "/admin/finances/membership-types", icon: CreditCard },
+        { title: "Vereinskasse", url: "/admin/finances/treasury", icon: BookOpen },
+        { title: "Kategorien", url: "/admin/finances/treasury/categories", icon: Tag },
       ],
     },
   },

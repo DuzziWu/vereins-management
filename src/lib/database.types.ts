@@ -557,6 +557,170 @@ export type Database = {
           },
         ]
       }
+      transaction_audit_log: {
+        Row: {
+          change_type: string
+          changed_at: string
+          changed_by: string
+          changed_fields: string[]
+          changes: Json
+          id: string
+          transaction_id: string
+        }
+        Insert: {
+          change_type: string
+          changed_at?: string
+          changed_by: string
+          changed_fields?: string[]
+          changes?: Json
+          id?: string
+          transaction_id: string
+        }
+        Update: {
+          change_type?: string
+          changed_at?: string
+          changed_by?: string
+          changed_fields?: string[]
+          changes?: Json
+          id?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_audit_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_audit_log_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transaction_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          is_system: boolean | null
+          name: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_system?: boolean | null
+          name: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_system?: boolean | null
+          name?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string | null
+          created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
+          deletion_reason: string | null
+          description: string
+          id: string
+          is_deleted: boolean | null
+          note: string | null
+          payment_id: string | null
+          receipt_reference: string | null
+          transaction_date: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          created_at?: string | null
+          created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
+          description: string
+          id?: string
+          is_deleted?: boolean | null
+          note?: string | null
+          payment_id?: string | null
+          receipt_reference?: string | null
+          transaction_date: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
+          description?: string
+          id?: string
+          is_deleted?: boolean | null
+          note?: string | null
+          payment_id?: string | null
+          receipt_reference?: string | null
+          transaction_date?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -629,6 +793,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_treasury_balance: { Args: never; Returns: number }
       get_unread_notification_count: { Args: never; Returns: number }
       is_vorstand: { Args: never; Returns: boolean }
       mark_all_notifications_read: { Args: never; Returns: undefined }

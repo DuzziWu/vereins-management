@@ -31,3 +31,28 @@ export { PaymentCancelDialog } from "./payment-cancel-dialog"
 
 export { PaymentEditDialog } from "./payment-edit-dialog"
 export type { PaymentEditData } from "./payment-edit-dialog"
+
+// PROJ-8: Treasury (Vereinskasse) Components
+export { TreasuryStatsCards } from "./treasury-stats"
+export type { TreasuryStats } from "./treasury-stats"
+
+export { TreasuryToolbar } from "./treasury-toolbar"
+export type { TreasuryFilters, TransactionTypeFilter, TreasuryPeriod, TransactionCategory } from "./treasury-toolbar"
+
+export { TreasuryTable } from "./treasury-table"
+export type { TransactionEntry, SortOrder } from "./treasury-table"
+
+export { TransactionForm } from "./transaction-form"
+export type { TransactionFormSubmitData } from "./transaction-form"
+
+export { TransactionDeleteDialog } from "./transaction-delete-dialog"
+
+export { TransactionHistoryDialog } from "./transaction-history-dialog"
+
+export { TreasuryCharts } from "./treasury-charts"
+export type { MonthlyData, CategoryBreakdownEntry } from "./treasury-charts"
+
+export { CategoryList } from "./category-list"
+
+export { CategoryForm } from "./category-form"
+export type { CategoryFormSubmitData } from "./category-form"
