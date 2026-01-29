@@ -4,20 +4,9 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   Users,
-  UserPlus,
-  Mail,
-  LayoutDashboard,
   LogOut,
   Settings,
-  User,
-  UsersRound,
-  Calendar,
-  FileText,
-  ClipboardList,
   Bell,
-  Wallet,
-  CreditCard,
-  Receipt,
   ChevronRight,
 } from "lucide-react"
 
@@ -44,62 +33,9 @@ import {
 } from "@/components/ui/collapsible"
 import { logout } from "@/lib/actions"
 import { useDashboardView } from "@/contexts/dashboard-view-context"
-import { UserRole } from "@/lib/database.types"
 import { Skeleton } from "@/components/ui/skeleton"
 import { NotificationBadge } from "./notification-badge"
-
-interface NavItem {
-  title: string
-  url: string
-  icon: typeof LayoutDashboard
-}
-
-interface NavItemWithSub {
-  title: string
-  icon: typeof LayoutDashboard
-  items: NavItem[]
-}
-
-// Navigation Items pro Rolle
-const ROLE_NAV_ITEMS: Record<UserRole, { main: NavItem[]; admin?: NavItem[]; finance?: NavItemWithSub }> = {
-  vorstand: {
-    main: [
-      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-    ],
-    admin: [
-      { title: "Mitglieder", url: "/admin/members", icon: Users },
-      { title: "User einladen", url: "/admin/users/invite", icon: UserPlus },
-      { title: "Einladungen", url: "/admin/users/invitations", icon: Mail },
-      { title: "Gruppen", url: "/admin/groups", icon: UsersRound },
-      { title: "Dokumente", url: "/admin/documents", icon: FileText },
-    ],
-    finance: {
-      title: "Finanzen",
-      icon: Wallet,
-      items: [
-        { title: "Beiträge", url: "/admin/finances/fees", icon: Receipt },
-        { title: "Beitragsarten", url: "/admin/finances/membership-types", icon: CreditCard },
-      ],
-    },
-  },
-  trainer: {
-    main: [
-      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Meine Gruppen", url: "/trainer/groups", icon: UsersRound },
-      { title: "Trainingsplan", url: "/trainer/schedule", icon: Calendar },
-      { title: "Anwesenheit", url: "/trainer/attendance", icon: ClipboardList },
-    ],
-  },
-  mitglied: {
-    main: [
-      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Mein Profil", url: "/profile", icon: User },
-      { title: "Meine Gruppen", url: "/member/groups", icon: UsersRound },
-      { title: "Termine", url: "/member/schedule", icon: Calendar },
-      { title: "Dokumente", url: "/member/documents", icon: FileText },
-    ],
-  },
-}
+import { ROLE_NAV_ITEMS, type NavItem, type NavItemWithSub } from "@/components/navigation/nav-config"
 
 function NavItemsList({ items }: { items: NavItem[] }) {
   const pathname = usePathname()
