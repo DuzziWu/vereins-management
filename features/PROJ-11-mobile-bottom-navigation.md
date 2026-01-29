@@ -1,6 +1,6 @@
 # PROJ-11: Mobile Bottom Navigation & Responsive
 
-## Status: Planned
+## Status: Deployed (2026-01-29)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-3 (Role-Based Dashboards) - für rollenbasierte Navigation
