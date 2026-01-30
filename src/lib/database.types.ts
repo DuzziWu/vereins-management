@@ -118,32 +118,125 @@ export type Database = {
           },
         ]
       }
+      group_members: {
+        Row: {
+          created_at: string | null
+          group_id: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          group_id: string
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_trainers: {
+        Row: {
+          created_at: string | null
+          group_id: string
+          id: string
+          profile_id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string | null
+          group_id: string
+          id?: string
+          profile_id: string
+          role?: string
+        }
+        Update: {
+          created_at?: string | null
+          group_id?: string
+          id?: string
+          profile_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_trainers_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_trainers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
+          chat_enabled: boolean
           created_at: string | null
           description: string | null
           id: string
           is_active: boolean | null
+          max_members: number | null
           name: string
           trainer_id: string | null
+          training_day: string | null
+          training_end_time: string | null
+          training_location: string | null
+          training_start_time: string | null
           updated_at: string | null
         }
         Insert: {
+          chat_enabled?: boolean
           created_at?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
+          max_members?: number | null
           name: string
           trainer_id?: string | null
+          training_day?: string | null
+          training_end_time?: string | null
+          training_location?: string | null
+          training_start_time?: string | null
           updated_at?: string | null
         }
         Update: {
+          chat_enabled?: boolean
           created_at?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
+          max_members?: number | null
           name?: string
           trainer_id?: string | null
+          training_day?: string | null
+          training_end_time?: string | null
+          training_location?: string | null
+          training_start_time?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -760,6 +853,8 @@ export type Database = {
         Args: { check_email: string; check_ip: string }
         Returns: number
       }
+      get_group_age_range: { Args: { p_group_id: string }; Returns: string }
+      get_group_member_count: { Args: { p_group_id: string }; Returns: number }
       get_membership_type_member_count: {
         Args: { type_id: string }
         Returns: number
