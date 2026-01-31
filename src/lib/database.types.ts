@@ -14,6 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          actual_status: string | null
+          created_at: string
+          id: string
+          profile_id: string
+          recorded_at: string | null
+          recorded_by: string | null
+          rsvp_at: string | null
+          rsvp_reason: string | null
+          rsvp_status: string
+          training_session_id: string
+          updated_at: string
+        }
+        Insert: {
+          actual_status?: string | null
+          created_at?: string
+          id?: string
+          profile_id: string
+          recorded_at?: string | null
+          recorded_by?: string | null
+          rsvp_at?: string | null
+          rsvp_reason?: string | null
+          rsvp_status?: string
+          training_session_id: string
+          updated_at?: string
+        }
+        Update: {
+          actual_status?: string | null
+          created_at?: string
+          id?: string
+          profile_id?: string
+          recorded_at?: string | null
+          recorded_by?: string | null
+          rsvp_at?: string | null
+          rsvp_reason?: string | null
+          rsvp_status?: string
+          training_session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_audit_log: {
+        Row: {
+          attendance_id: string
+          change_type: string
+          changed_by: string
+          created_at: string
+          id: string
+          new_actual_status: string | null
+          new_rsvp_status: string | null
+          old_actual_status: string | null
+          old_rsvp_status: string | null
+          profile_id: string
+          training_session_id: string
+        }
+        Insert: {
+          attendance_id: string
+          change_type: string
+          changed_by: string
+          created_at?: string
+          id?: string
+          new_actual_status?: string | null
+          new_rsvp_status?: string | null
+          old_actual_status?: string | null
+          old_rsvp_status?: string | null
+          profile_id: string
+          training_session_id: string
+        }
+        Update: {
+          attendance_id?: string
+          change_type?: string
+          changed_by?: string
+          created_at?: string
+          id?: string
+          new_actual_status?: string | null
+          new_rsvp_status?: string | null
+          old_actual_status?: string | null
+          old_rsvp_status?: string | null
+          profile_id?: string
+          training_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_audit_log_attendance_id_fkey"
+            columns: ["attendance_id"]
+            isOneToOne: false
+            referencedRelation: "attendance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_audit_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_audit_log_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_audit_log_training_session_id_fkey"
+            columns: ["training_session_id"]
+            isOneToOne: false
+            referencedRelation: "training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       board_todos: {
         Row: {
           completed_at: string | null
@@ -650,6 +785,133 @@ export type Database = {
           },
         ]
       }
+      training_series: {
+        Row: {
+          created_at: string
+          created_by: string
+          day_of_week: number
+          end_date: string | null
+          end_time: string
+          group_id: string
+          id: string
+          is_active: boolean
+          location: string | null
+          start_date: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          day_of_week: number
+          end_date?: string | null
+          end_time: string
+          group_id: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          start_date: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          day_of_week?: number
+          end_date?: string | null
+          end_time?: string
+          group_id?: string
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          start_date?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_series_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_series_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_sessions: {
+        Row: {
+          cancellation_reason: string | null
+          created_at: string
+          created_by: string
+          date: string
+          description: string | null
+          end_time: string
+          group_id: string
+          id: string
+          is_cancelled: boolean
+          location: string | null
+          series_id: string | null
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          cancellation_reason?: string | null
+          created_at?: string
+          created_by: string
+          date: string
+          description?: string | null
+          end_time: string
+          group_id: string
+          id?: string
+          is_cancelled?: boolean
+          location?: string | null
+          series_id?: string | null
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          cancellation_reason?: string | null
+          created_at?: string
+          created_by?: string
+          date?: string
+          description?: string | null
+          end_time?: string
+          group_id?: string
+          id?: string
+          is_cancelled?: boolean
+          location?: string | null
+          series_id?: string | null
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_sessions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_sessions_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "training_series"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transaction_audit_log: {
         Row: {
           change_type: string
@@ -890,6 +1152,8 @@ export type Database = {
       }
       get_treasury_balance: { Args: never; Returns: number }
       get_unread_notification_count: { Args: never; Returns: number }
+      is_member_of_group: { Args: { p_group_id: string }; Returns: boolean }
+      is_trainer_of_group: { Args: { p_group_id: string }; Returns: boolean }
       is_vorstand: { Args: never; Returns: boolean }
       mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
