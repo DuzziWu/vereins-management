@@ -1,6 +1,6 @@
 # PROJ-13: Training & Anwesenheit (Training Sessions & Attendance)
 
-## Status: Complete
+## Status: ✅ Deployed (2026-01-31)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für eingeloggte User-Checks
