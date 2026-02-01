@@ -15,6 +15,7 @@ import {
 // Load messages with cursor-based pagination (50 per batch)
 // Query params:
 //   - before: ISO timestamp for cursor (load messages before this time)
+//   - after: ISO timestamp for polling (load messages after this time)
 // ============================================================
 export async function GET(
   request: NextRequest,
@@ -46,11 +47,16 @@ export async function GET(
     )
   }
 
-  // Parse and validate cursor parameter
+  // Parse and validate cursor parameters
   const searchParams = request.nextUrl.searchParams
   const before = searchParams.get("before")
+  const after = searchParams.get("after")
+  const ISO_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/
 
-  if (before && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(before)) {
+  if (before && !ISO_REGEX.test(before)) {
+    return NextResponse.json({ error: "Invalid cursor format" }, { status: 400 })
+  }
+  if (after && !ISO_REGEX.test(after)) {
     return NextResponse.json({ error: "Invalid cursor format" }, { status: 400 })
   }
 
@@ -62,17 +68,27 @@ export async function GET(
     .eq("profile_id", profile.id)
     .maybeSingle()
 
-  // Build query: load 50 messages, ordered by created_at DESC (newest first)
+  // Build query: load messages
+  // When `after` is provided: fetch new messages (ascending order, no limit for polling)
+  // When `before` is provided: load 50 older messages (descending order for pagination)
+  // Default: load newest 50 messages (descending order)
+  const isPolling = !!after
   let query = supabase
     .from("group_messages")
     .select("id, group_id, sender_id, sender_display_name, content, created_at")
     .eq("group_id", groupId)
-    .order("created_at", { ascending: false })
-    .limit(50)
+    .order("created_at", { ascending: isPolling })
+
+  if (!isPolling) {
+    query = query.limit(50)
+  }
 
   // Apply cursor if provided
   if (before) {
     query = query.lt("created_at", before)
+  }
+  if (after) {
+    query = query.gt("created_at", after)
   }
 
   // BUG-3: Only show messages created after the member joined the group
@@ -92,11 +108,11 @@ export async function GET(
   }
 
   // Return messages in chronological order (oldest first) for display
-  const sortedMessages = (messages || []).reverse()
+  const sortedMessages = isPolling ? (messages || []) : (messages || []).reverse()
 
   return NextResponse.json({
     messages: sortedMessages,
-    has_more: (messages || []).length === 50,
+    has_more: !isPolling && (messages || []).length === 50,
   })
 }
 

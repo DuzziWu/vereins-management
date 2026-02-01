@@ -11,6 +11,7 @@ const ISO_8601_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}
 // - Initial load: 50 messages
 // - Infinite scroll: load 50 more (cursor-based pagination)
 // - Send message via POST
+// - Poll for new messages as Realtime fallback
 // ============================================================
 
 interface UseChatMessagesOptions {
@@ -27,6 +28,7 @@ interface UseChatMessagesReturn {
   loadMoreMessages: () => Promise<void>
   sendMessage: (content: string) => Promise<ChatMessage | null>
   addRealtimeMessage: (message: ChatMessage) => void
+  pollNewMessages: () => Promise<void>
 }
 
 export function useChatMessages({
@@ -40,6 +42,8 @@ export function useChatMessages({
 
   // Track if initial load has been done
   const hasLoadedRef = useRef(false)
+  // Track the newest message timestamp for polling
+  const newestTimestampRef = useRef<string | null>(null)
 
   /**
    * Load initial messages (newest 50).
@@ -62,6 +66,10 @@ export function useChatMessages({
       const data: MessagesResponse = await response.json()
       setMessages(data.messages)
       setHasMore(data.has_more)
+      // Track newest message timestamp for polling
+      if (data.messages.length > 0) {
+        newestTimestampRef.current = data.messages[data.messages.length - 1].created_at
+      }
     } catch (err) {
       console.error("Error loading messages:", err)
       setError(
@@ -160,9 +168,48 @@ export function useChatMessages({
       if (prev.some((m) => m.id === message.id)) {
         return prev
       }
+      // Update newest timestamp ref
+      newestTimestampRef.current = message.created_at
       return [...prev, message]
     })
   }, [])
+
+  /**
+   * Poll for new messages (Realtime fallback).
+   * Fetches messages newer than the most recent loaded message.
+   */
+  const pollNewMessages = useCallback(async () => {
+    // Only poll if initial load is done
+    if (!hasLoadedRef.current) return
+
+    const afterCursor = newestTimestampRef.current
+    if (!afterCursor) return
+
+    try {
+      const response = await fetch(
+        `/api/groups/${groupId}/messages?after=${encodeURIComponent(afterCursor)}`
+      )
+
+      if (!response.ok) return // Silently fail for polling
+
+      const data: MessagesResponse = await response.json()
+
+      if (data.messages.length > 0) {
+        setMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id))
+          const newMessages = data.messages.filter(
+            (m) => !existingIds.has(m.id)
+          )
+          if (newMessages.length === 0) return prev
+          // Update newest timestamp
+          newestTimestampRef.current = newMessages[newMessages.length - 1].created_at
+          return [...prev, ...newMessages]
+        })
+      }
+    } catch {
+      // Silently fail for polling - don't set error state
+    }
+  }, [groupId])
 
   return {
     messages,
@@ -174,5 +221,6 @@ export function useChatMessages({
     loadMoreMessages,
     sendMessage,
     addRealtimeMessage,
+    pollNewMessages,
   }
 }

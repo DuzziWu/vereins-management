@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { toast } from "sonner"
 import { ChatHeader } from "./chat-header"
 import { ChatMessages } from "./chat-messages"
@@ -46,6 +46,7 @@ export function ChatPage({
     loadMoreMessages,
     sendMessage,
     addRealtimeMessage,
+    pollNewMessages,
   } = useChatMessages({ groupId })
 
   // Realtime subscription
@@ -58,6 +59,18 @@ export function ChatPage({
   useEffect(() => {
     loadMessages()
   }, [loadMessages])
+
+  // Poll for new messages as Realtime fallback (every 3 seconds)
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  useEffect(() => {
+    pollIntervalRef.current = setInterval(pollNewMessages, 3000)
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current)
+        pollIntervalRef.current = null
+      }
+    }
+  }, [pollNewMessages])
 
   // PERF-2: Mark as read only on mount and on unmount (not every 10s)
   useEffect(() => {
