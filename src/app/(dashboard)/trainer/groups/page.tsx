@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { Clock, MapPin, Pencil, Users, UsersRound } from "lucide-react"
+import Link from "next/link"
+import { Clock, MapPin, MessageCircle, Pencil, Users, UsersRound } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -11,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { GroupForm } from "@/components/groups/group-form"
 import { GroupListItem } from "@/components/groups/groups-table"
 import { GroupFormData } from "@/lib/validations/group"
+import { useUnreadMessages } from "@/hooks/use-unread-messages"
 
 interface MemberOption {
   id: string
@@ -41,6 +43,8 @@ export default function TrainerGroupsPage() {
   const [groups, setGroups] = React.useState<GroupListItem[]>([])
   const [allMembers, setAllMembers] = React.useState<MemberOption[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
+
+  const { getUnreadForGroup } = useUnreadMessages()
 
   // Form states
   const [formOpen, setFormOpen] = React.useState(false)
@@ -243,6 +247,30 @@ export default function TrainerGroupsPage() {
                     <Badge variant="outline" className="text-xs">
                       {group.age_range}
                     </Badge>
+                  )}
+
+                  {group.chat_enabled && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-1 relative"
+                      asChild
+                    >
+                      <Link href={`/trainer/groups/${group.id}/chat`}>
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        Gruppen-Chat
+                        {getUnreadForGroup(group.id) > 0 && (
+                          <Badge
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 h-5 min-w-5 px-1 text-[10px] flex items-center justify-center rounded-full"
+                          >
+                            {getUnreadForGroup(group.id) > 99
+                              ? "99+"
+                              : getUnreadForGroup(group.id)}
+                          </Badge>
+                        )}
+                      </Link>
+                    </Button>
                   )}
                 </CardContent>
               </Card>

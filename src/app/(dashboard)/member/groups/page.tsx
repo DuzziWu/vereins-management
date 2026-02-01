@@ -1,18 +1,15 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { Clock, MapPin, MessageCircle, User, UsersRound } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { useUnreadMessages } from "@/hooks/use-unread-messages"
 
 interface MemberGroup {
   id: string
@@ -46,6 +43,7 @@ function CardsSkeleton() {
 export default function MemberGroupsPage() {
   const [groups, setGroups] = React.useState<MemberGroup[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
+  const { getUnreadForGroup } = useUnreadMessages()
 
   const fetchGroups = React.useCallback(async () => {
     setIsLoading(true)
@@ -147,24 +145,27 @@ export default function MemberGroupsPage() {
                   )}
 
                   {group.chat_enabled && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-1"
-                            disabled
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-1 relative"
+                      asChild
+                    >
+                      <Link href={`/member/groups/${group.id}/chat`}>
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        Gruppen-Chat
+                        {getUnreadForGroup(group.id) > 0 && (
+                          <Badge
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 h-5 min-w-5 px-1 text-[10px] flex items-center justify-center rounded-full"
                           >
-                            <MessageCircle className="mr-2 h-4 w-4" />
-                            Gruppen-Chat
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Bald verfuegbar</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                            {getUnreadForGroup(group.id) > 99
+                              ? "99+"
+                              : getUnreadForGroup(group.id)}
+                          </Badge>
+                        )}
+                      </Link>
+                    </Button>
                   )}
                 </CardContent>
               </Card>

@@ -176,6 +176,32 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_rate_limits: {
+        Row: {
+          message_count: number
+          profile_id: string
+          window_start: string
+        }
+        Insert: {
+          message_count?: number
+          profile_id: string
+          window_start?: string
+        }
+        Update: {
+          message_count?: number
+          profile_id?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_rate_limits_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       families: {
         Row: {
           created_at: string | null
@@ -253,6 +279,42 @@ export type Database = {
           },
         ]
       }
+      group_chat_reads: {
+        Row: {
+          group_id: string
+          id: string
+          last_read_at: string
+          profile_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          last_read_at?: string
+          profile_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          last_read_at?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_chat_reads_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_chat_reads_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           created_at: string | null
@@ -283,6 +345,48 @@ export type Database = {
           {
             foreignKeyName: "group_members_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_messages: {
+        Row: {
+          content: string
+          created_at: string
+          group_id: string
+          id: string
+          sender_display_name: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          group_id: string
+          id?: string
+          sender_display_name: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          sender_display_name?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_messages_sender_id_fkey"
+            columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1081,6 +1185,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_chat_rate_limit: {
+        Args: {
+          p_max_count?: number
+          p_profile_id: string
+          p_window_seconds?: number
+        }
+        Returns: boolean
+      }
+      check_is_group_co_trainer: {
+        Args: { p_group_id: string; p_profile_id: string }
+        Returns: boolean
+      }
+      check_is_group_member: {
+        Args: { p_group_id: string; p_profile_id: string }
+        Returns: boolean
+      }
+      check_is_group_trainer: {
+        Args: { p_group_id: string; p_profile_id: string }
+        Returns: boolean
+      }
       check_reset_rate_limit: {
         Args: { check_email: string; check_ip: string }
         Returns: boolean
@@ -1150,8 +1274,19 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_my_profile_id: { Args: never; Returns: string }
+      get_my_role: { Args: never; Returns: string }
       get_treasury_balance: { Args: never; Returns: number }
+      get_unread_message_counts: {
+        Args: { p_profile_id: string }
+        Returns: {
+          group_id: string
+          group_name: string
+          unread_count: number
+        }[]
+      }
       get_unread_notification_count: { Args: never; Returns: number }
+      is_group_participant: { Args: { p_group_id: string }; Returns: boolean }
       is_member_of_group: { Args: { p_group_id: string }; Returns: boolean }
       is_trainer_of_group: { Args: { p_group_id: string }; Returns: boolean }
       is_vorstand: { Args: never; Returns: boolean }
