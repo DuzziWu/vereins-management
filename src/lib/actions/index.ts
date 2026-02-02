@@ -43,3 +43,17 @@ export {
   createBulkNotifications,
 } from './notifications'
 export type { Notification, NotificationType } from './notifications'
+
+// Member dashboard actions (PROJ-16)
+export {
+  getMyMemberGroups,
+  getMyUpcomingTrainings,
+} from './member-dashboard'
+export type { MemberGroup, MemberUpcomingTraining } from './member-dashboard'
+
+// Trainer dashboard actions (PROJ-17)
+export {
+  getMyTrainerGroups,
+  getMyUpcomingTrainerSessions,
+} from './trainer-dashboard'
+export type { TrainerGroup, TrainerUpcomingSession } from './trainer-dashboard'

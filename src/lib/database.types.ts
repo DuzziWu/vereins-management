@@ -1241,6 +1241,13 @@ export type Database = {
       }
       get_group_age_range: { Args: { p_group_id: string }; Returns: string }
       get_group_member_count: { Args: { p_group_id: string }; Returns: number }
+      get_group_member_counts: {
+        Args: { group_ids: string[] }
+        Returns: {
+          group_id: string
+          member_count: number
+        }[]
+      }
       get_membership_type_member_count: {
         Args: { type_id: string }
         Returns: number
