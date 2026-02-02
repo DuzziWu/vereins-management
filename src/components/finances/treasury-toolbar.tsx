@@ -113,9 +113,9 @@ export function TreasuryToolbar({ filters, onFiltersChange, categories }: Treasu
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
           <Select value={filters.period} onValueChange={handlePeriodChange}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full sm:w-[160px]">
               <SelectValue placeholder="Zeitraum" />
             </SelectTrigger>
             <SelectContent>
@@ -128,7 +128,7 @@ export function TreasuryToolbar({ filters, onFiltersChange, categories }: Treasu
           </Select>
 
           <Select value={filters.type} onValueChange={handleTypeChange}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-full sm:w-[140px]">
               <SelectValue placeholder="Typ" />
             </SelectTrigger>
             <SelectContent>
@@ -145,7 +145,7 @@ export function TreasuryToolbar({ filters, onFiltersChange, categories }: Treasu
                 variant="outline"
                 role="combobox"
                 aria-expanded={categoryPopoverOpen}
-                className="w-[200px] justify-between font-normal"
+                className="col-span-2 w-full justify-between font-normal sm:col-span-1 sm:w-[200px]"
               >
                 {selectedCategoryCount === 0
                   ? "Alle Kategorien"
@@ -193,7 +193,7 @@ export function TreasuryToolbar({ filters, onFiltersChange, categories }: Treasu
           </Popover>
 
           {/* Beiträge anzeigen Toggle */}
-          <div className="flex items-center gap-2">
+          <div className="col-span-2 flex items-center gap-2 sm:col-span-1">
             <Switch
               id="show-payments"
               checked={filters.showPayments}
@@ -208,21 +208,21 @@ export function TreasuryToolbar({ filters, onFiltersChange, categories }: Treasu
 
       {/* Custom date range inputs */}
       {filters.period === "custom" && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-muted-foreground">Von:</span>
+        <div className="grid grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap">
+          <span className="col-span-2 text-sm text-muted-foreground sm:col-span-1">Von:</span>
           <Input
             type="date"
             value={filters.customDateFrom || ""}
             onChange={(e) => onFiltersChange({ ...filters, customDateFrom: e.target.value })}
-            className="w-[160px]"
+            className="w-full sm:w-[160px]"
           />
-          <span className="text-sm text-muted-foreground">Bis:</span>
+          <span className="col-span-2 text-sm text-muted-foreground sm:col-span-1">Bis:</span>
           <Input
             type="date"
             value={filters.customDateTo || ""}
             max={new Date().toISOString().split("T")[0]}
             onChange={(e) => onFiltersChange({ ...filters, customDateTo: e.target.value })}
-            className="w-[160px]"
+            className="w-full sm:w-[160px]"
           />
         </div>
       )}

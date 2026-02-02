@@ -437,14 +437,14 @@ export default function MembersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Mitgliederverwaltung</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">Mitgliederverwaltung</h1>
           <p className="text-muted-foreground">
             Verwalten Sie alle Vereinsmitglieder und Familien.
           </p>
         </div>
-        <Button onClick={handleNewMember}>
+        <Button onClick={handleNewMember} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Mitglied anlegen
         </Button>

@@ -292,14 +292,14 @@ export default function AdminGroupsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Gruppenverwaltung</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">Gruppenverwaltung</h1>
           <p className="text-muted-foreground">
             Verwalten Sie alle Vereinsgruppen.
           </p>
         </div>
-        <Button onClick={handleNewGroup}>
+        <Button onClick={handleNewGroup} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Neue Gruppe
         </Button>

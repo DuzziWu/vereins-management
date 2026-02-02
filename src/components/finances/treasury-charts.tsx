@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 // --- Types ---
 
@@ -134,10 +135,10 @@ function MonthlyBarChart({ data }: { data: MonthlyData[] }) {
           </Tabs>
         )}
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px]">
+      <CardContent className="-mx-2 sm:mx-0">
+        <div className="h-[250px] sm:h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+            <BarChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="name" className="text-xs" tick={{ fontSize: 12 }} />
               <YAxis
@@ -165,14 +166,14 @@ function MonthlyBarChart({ data }: { data: MonthlyData[] }) {
 
 // --- Pie Chart: Category Breakdown ---
 
-function CategoryPieChart({ data, type }: { data: CategoryBreakdownEntry[]; type: "expense" | "income" }) {
+function CategoryPieChart({ data, type, isMobile }: { data: CategoryBreakdownEntry[]; type: "expense" | "income"; isMobile: boolean }) {
   const filtered = data
     .filter((d) => d.type === type)
     .sort((a, b) => b.total - a.total)
 
   if (filtered.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
+      <div className="flex items-center justify-center h-[250px] sm:h-[300px] text-muted-foreground text-sm">
         Keine {type === "expense" ? "Ausgaben" : "Einnahmen"} im Zeitraum
       </div>
     )
@@ -186,28 +187,29 @@ function CategoryPieChart({ data, type }: { data: CategoryBreakdownEntry[]; type
   }))
 
   return (
-    <div className="h-[300px]">
+    <div className="h-[250px] sm:h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={pieData}
             cx="50%"
             cy="50%"
-            innerRadius={60}
-            outerRadius={100}
+            innerRadius={isMobile ? 40 : 60}
+            outerRadius={isMobile ? 70 : 100}
             paddingAngle={2}
             dataKey="value"
             nameKey="name"
-            label={({ name, percent }: { name?: string; percent?: number }) =>
+            label={isMobile ? false : ({ name, percent }: { name?: string; percent?: number }) =>
               `${name ?? ""} (${((percent ?? 0) * 100).toFixed(0)}%)`
             }
-            labelLine={{ strokeWidth: 1 }}
+            labelLine={isMobile ? false : { strokeWidth: 1 }}
           >
             {pieData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
           </Pie>
           <Tooltip content={<CustomPieTooltip />} />
+          {isMobile && <Legend wrapperStyle={{ fontSize: 11 }} />}
         </PieChart>
       </ResponsiveContainer>
     </div>
@@ -218,6 +220,7 @@ function CategoryPieChart({ data, type }: { data: CategoryBreakdownEntry[]; type
 
 export function TreasuryCharts({ monthlyBreakdown, categoryBreakdown, isLoading }: TreasuryChartsProps) {
   const [pieType, setPieType] = React.useState<"expense" | "income">("expense")
+  const isMobile = useIsMobile()
 
   if (isLoading) {
     return (
@@ -263,7 +266,7 @@ export function TreasuryCharts({ monthlyBreakdown, categoryBreakdown, isLoading 
           </Tabs>
         </CardHeader>
         <CardContent>
-          <CategoryPieChart data={categoryBreakdown} type={pieType} />
+          <CategoryPieChart data={categoryBreakdown} type={pieType} isMobile={isMobile} />
         </CardContent>
       </Card>
     </div>

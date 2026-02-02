@@ -483,7 +483,7 @@ export function GroupForm({
                               : "Keine weiteren Trainer verfügbar."}
                           </p>
                         ) : (
-                          <ScrollArea className="h-[200px] rounded-md border p-4">
+                          <ScrollArea className="h-[150px] rounded-md border p-4 sm:h-[200px]">
                             <div className="space-y-3">
                               {availableCoTrainers.map((trainer) => (
                                 <div
@@ -555,7 +555,7 @@ export function GroupForm({
                     )}
                   </div>
 
-                  <ScrollArea className="h-[300px] rounded-md border">
+                  <ScrollArea className="h-[200px] rounded-md border sm:h-[300px]">
                     <div className="p-4 space-y-2">
                       {filteredMembers.length === 0 ? (
                         <p className="text-sm text-muted-foreground py-8 text-center">

@@ -157,7 +157,7 @@ export function ChatPage({
   const memberCount = members.length
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-3.5rem)] md:h-[calc(100dvh-3.5rem)]">
+    <div className="flex flex-col h-[calc(100dvh-9.5rem)] md:h-[calc(100dvh-6.5rem)]">
       {/* Header */}
       <ChatHeader
         groupName={groupName}

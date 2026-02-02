@@ -195,31 +195,36 @@ export function MembersTable({
     <>
       {/* Bulk Actions Bar */}
       {selectedIds.length > 0 && onBulkStatusChange && (
-        <div className="flex items-center gap-2 p-2 bg-muted rounded-md mb-4">
+        <div className="flex flex-col gap-2 p-2 bg-muted rounded-md mb-4 sm:flex-row sm:items-center">
           <span className="text-sm text-muted-foreground">
             {selectedIds.length} Mitglied{selectedIds.length > 1 ? "er" : ""} ausgewählt
           </span>
-          <div className="flex-1" />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              setBulkStatusChangeTarget({
-                ids: selectedIds,
-                newStatus: "inactive",
-              })
-            }
-          >
-            <UserX className="mr-2 h-4 w-4" />
-            Ausgewählte deaktivieren
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onSelectionChange([])}
-          >
-            Auswahl aufheben
-          </Button>
+          <div className="hidden sm:block sm:flex-1" />
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="min-h-[44px] sm:min-h-0"
+              onClick={() =>
+                setBulkStatusChangeTarget({
+                  ids: selectedIds,
+                  newStatus: "inactive",
+                })
+              }
+            >
+              <UserX className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Ausgewählte deaktivieren</span>
+              <span className="sm:hidden">Deaktivieren</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="min-h-[44px] sm:min-h-0"
+              onClick={() => onSelectionChange([])}
+            >
+              Abbrechen
+            </Button>
+          </div>
         </div>
       )}
 

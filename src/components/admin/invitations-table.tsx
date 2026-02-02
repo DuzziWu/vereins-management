@@ -110,76 +110,78 @@ export function InvitationsTable({ invitations }: InvitationsTableProps) {
 
   return (
     <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Rolle</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Erstellt</TableHead>
-            <TableHead>Gültig bis</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {invitations.map((invitation) => {
-            const status = statusConfig[invitation.status]
-            const StatusIcon = status.icon
-            const isPending = invitation.status === "pending"
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead className="hidden md:table-cell">Email</TableHead>
+              <TableHead>Rolle</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="hidden lg:table-cell">Erstellt</TableHead>
+              <TableHead className="hidden lg:table-cell">Gültig bis</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {invitations.map((invitation) => {
+              const status = statusConfig[invitation.status]
+              const StatusIcon = status.icon
+              const isPending = invitation.status === "pending"
 
-            return (
-              <TableRow key={invitation.id}>
-                <TableCell className="font-medium">
-                  {invitation.firstName} {invitation.lastName}
-                </TableCell>
-                <TableCell>{invitation.email}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{roleLabels[invitation.role]}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={status.variant} className="gap-1">
-                    <StatusIcon className="h-3 w-3" />
-                    {status.label}
-                  </Badge>
-                </TableCell>
-                <TableCell>{formatDate(invitation.createdAt)}</TableCell>
-                <TableCell>{formatDate(invitation.expiresAt)}</TableCell>
-                <TableCell>
-                  {isPending && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={isLoading === invitation.id}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Aktionen</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleResend(invitation.id)}>
-                          <Mail className="mr-2 h-4 w-4" />
-                          Erneut senden
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => setRevokeId(invitation.id)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Widerrufen
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
+              return (
+                <TableRow key={invitation.id}>
+                  <TableCell className="font-medium">
+                    {invitation.firstName} {invitation.lastName}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">{invitation.email}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{roleLabels[invitation.role]}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={status.variant} className="gap-1">
+                      <StatusIcon className="h-3 w-3" />
+                      {status.label}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">{formatDate(invitation.createdAt)}</TableCell>
+                  <TableCell className="hidden lg:table-cell">{formatDate(invitation.expiresAt)}</TableCell>
+                  <TableCell>
+                    {isPending && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={isLoading === invitation.id}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Aktionen</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleResend(invitation.id)}>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Erneut senden
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => setRevokeId(invitation.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Widerrufen
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
 
       <AlertDialog open={!!revokeId} onOpenChange={() => setRevokeId(null)}>
         <AlertDialogContent>

@@ -978,25 +978,25 @@ export default function FeesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
             Beiträge {filters.year}
           </h1>
           <p className="text-muted-foreground">
             Übersicht aller Mitgliedsbeiträge
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           {canGenerateFees && (
-            <Button onClick={handleOpenGenerateDialog}>
+            <Button onClick={handleOpenGenerateDialog} className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Beiträge generieren
             </Button>
           )}
           {/* BUG-4: Button zum Hinzufügen einzelner Beiträge */}
           {hasFeesForYear && !isReadonly && (
-            <Button variant="outline" onClick={handleOpenAddSingleFeeDialog}>
+            <Button variant="outline" onClick={handleOpenAddSingleFeeDialog} className="w-full sm:w-auto">
               <UserPlus className="mr-2 h-4 w-4" />
               Beitrag hinzufügen
             </Button>

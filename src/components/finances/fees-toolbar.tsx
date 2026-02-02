@@ -63,9 +63,9 @@ export function FeesToolbar({ filters, onFiltersChange, availableYears }: FeesTo
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
         <Select value={filters.status} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-full sm:w-[140px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -77,7 +77,7 @@ export function FeesToolbar({ filters, onFiltersChange, availableYears }: FeesTo
         </Select>
 
         <Select value={filters.year.toString()} onValueChange={handleYearChange}>
-          <SelectTrigger className="w-[100px]">
+          <SelectTrigger className="w-full sm:w-[100px]">
             <SelectValue placeholder="Jahr" />
           </SelectTrigger>
           <SelectContent>
@@ -89,7 +89,7 @@ export function FeesToolbar({ filters, onFiltersChange, availableYears }: FeesTo
           </SelectContent>
         </Select>
 
-        <div className="flex items-center gap-2">
+        <div className="col-span-2 flex items-center gap-2 sm:col-span-1">
           <Switch
             id="only-open"
             checked={filters.onlyOpen}
@@ -101,7 +101,7 @@ export function FeesToolbar({ filters, onFiltersChange, availableYears }: FeesTo
         </div>
 
         {/* BUG-1: Ansichtsmodi Toggle */}
-        <div className="flex items-center rounded-lg border p-1">
+        <div className="col-span-2 flex items-center rounded-lg border p-1 sm:col-span-1">
           <Button
             variant={filters.viewMode === "all" ? "secondary" : "ghost"}
             size="sm"

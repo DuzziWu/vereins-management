@@ -63,7 +63,7 @@ export function ChatMembersSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[300px] sm:w-[360px]">
+      <SheetContent side="right" className="w-[300px] max-w-[90vw] sm:w-[360px]">
         <SheetHeader>
           <SheetTitle>Gruppenmitglieder</SheetTitle>
           <SheetDescription>

@@ -31,12 +31,12 @@ export function ProfileCard() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarFallback className="text-lg">{initials}</AvatarFallback>
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <Avatar className="h-12 w-12 shrink-0 sm:h-16 sm:w-16">
+            <AvatarFallback className="text-base sm:text-lg">{initials}</AvatarFallback>
           </Avatar>
-          <div>
-            <CardTitle className="text-xl">
+          <div className="min-w-0">
+            <CardTitle className="text-lg truncate sm:text-xl">
               {profile.first_name} {profile.last_name}
             </CardTitle>
             <CardDescription className="flex items-center gap-2 mt-1">
@@ -51,7 +51,7 @@ export function ProfileCard() {
             </CardDescription>
           </div>
         </div>
-        <Button variant="ghost" size="icon" asChild>
+        <Button variant="ghost" size="icon" className="shrink-0" asChild>
           <Link href="/profile">
             <Pencil className="h-4 w-4" />
             <span className="sr-only">Profil bearbeiten</span>
