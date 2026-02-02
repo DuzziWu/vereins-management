@@ -1,6 +1,6 @@
 # PROJ-16: Member Dashboard Widgets (Meine Gruppen & Nächste Termine)
 
-## Status: 🟢 QA Approved (Production-Ready)
+## Status: ✅ Deployed (2026-02-02)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-3 (Role-Based Dashboards) - für Mitglieder-Dashboard-View

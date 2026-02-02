@@ -1,6 +1,6 @@
 # PROJ-17: Trainer Dashboard Widgets (Meine Gruppen & Kommende Trainings)
 
-## Status: 🟢 Implemented
+## Status: ✅ Deployed (2026-02-02)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-3 (Role-Based Dashboards) - für Trainer-Dashboard-View
