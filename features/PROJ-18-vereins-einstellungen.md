@@ -1,6 +1,6 @@
 # PROJ-18: Vereins-Einstellungen (Club Settings)
 
-## Status: 🔵 Planned
+## Status: ✅ Deployed (2026-02-03)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für Auth-Prüfung
