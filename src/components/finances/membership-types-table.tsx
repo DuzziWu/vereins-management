@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { MoreHorizontal, Pencil, Trash2, CreditCard } from "lucide-react"
+import { MoreHorizontal, Pencil, Trash2, CreditCard, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -29,6 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
 import { formatCurrency } from "@/lib/validations/membership-type"
 
 export interface MembershipTypeWithCount {
@@ -36,6 +37,7 @@ export interface MembershipTypeWithCount {
   name: string
   annual_fee: number
   description: string | null
+  is_family_flat: boolean
   member_count: number
   created_at: string | null
   updated_at: string | null
@@ -91,7 +93,17 @@ export function MembershipTypesTable({
           <TableBody>
             {membershipTypes.map((type) => (
               <TableRow key={type.id}>
-                <TableCell className="font-medium">{type.name}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    {type.name}
+                    {type.is_family_flat && (
+                      <Badge variant="outline" className="text-xs font-normal">
+                        <Users className="mr-1 h-3 w-3" />
+                        Familien-Flatrate
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {formatCurrency(type.annual_fee)}
                 </TableCell>

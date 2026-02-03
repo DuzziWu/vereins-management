@@ -10,6 +10,7 @@ export const membershipTypeSchema = z.object({
     .min(0, "Betrag darf nicht negativ sein")
     .multipleOf(0.01, "Betrag muss auf 2 Dezimalstellen gerundet sein"),
   description: z.string().optional(),
+  is_family_flat: z.boolean(),
 })
 
 export type MembershipTypeFormData = z.infer<typeof membershipTypeSchema>

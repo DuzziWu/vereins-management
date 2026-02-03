@@ -57,3 +57,19 @@ export {
   getMyUpcomingTrainerSessions,
 } from './trainer-dashboard'
 export type { TrainerGroup, TrainerUpcomingSession } from './trainer-dashboard'
+
+// Club settings actions (PROJ-18)
+export {
+  getClubSettings,
+  updateClubSettings,
+  uploadLogo,
+  deleteLogo,
+  getLogoUrl,
+} from './club-settings'
+
+// Role management actions (PROJ-18)
+export {
+  getAllMembersWithRoles,
+  updateMemberRole,
+} from './role-management'
+export type { MemberWithRole } from './role-management'

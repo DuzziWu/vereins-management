@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -36,6 +37,50 @@ import { useDashboardView } from "@/contexts/dashboard-view-context"
 import { Skeleton } from "@/components/ui/skeleton"
 import { NotificationBadge } from "./notification-badge"
 import { ROLE_NAV_ITEMS, type NavItem, type NavItemWithSub } from "@/components/navigation/nav-config"
+import { createClient } from "@/lib/supabase/client"
+
+function useSidebarLogo() {
+  const [logoUrl, setLogoUrl] = React.useState<string | null>(null)
+  const supabase = createClient()
+
+  React.useEffect(() => {
+    async function loadLogo() {
+      try {
+        const { data } = await supabase
+          .from("club_settings")
+          .select("logo_path")
+          .limit(1)
+          .single()
+
+        if (data?.logo_path) {
+          const { data: urlData } = supabase.storage
+            .from("club-assets")
+            .getPublicUrl(data.logo_path)
+          if (urlData?.publicUrl) {
+            setLogoUrl(urlData.publicUrl + "?t=" + Date.now())
+          }
+        } else {
+          setLogoUrl(null)
+        }
+      } catch {
+        // Silently fail - just show default icon
+      }
+    }
+    loadLogo()
+
+    function handleLogoUpdated() {
+      loadLogo()
+    }
+
+    window.addEventListener("logo-updated", handleLogoUpdated)
+    return () => {
+      window.removeEventListener("logo-updated", handleLogoUpdated)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return logoUrl
+}
 
 function NavItemsList({ items }: { items: NavItem[] }) {
   const pathname = usePathname()
@@ -128,6 +173,7 @@ function SidebarSkeleton() {
 
 export function AppSidebar() {
   const { activeView, isLoading, profile } = useDashboardView()
+  const logoUrl = useSidebarLogo()
 
   if (isLoading || !profile) {
     return <SidebarSkeleton />
@@ -139,9 +185,20 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Users className="h-4 w-4" />
-          </div>
+          {logoUrl ? (
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logoUrl}
+                alt="Vereinslogo"
+                className="h-full w-full object-contain"
+              />
+            </div>
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Users className="h-4 w-4" />
+            </div>
+          )}
           <div className="flex flex-col">
             <span className="text-sm font-semibold">Vereins-Management</span>
           </div>
@@ -201,14 +258,16 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/settings">
-                <Settings className="h-4 w-4" />
-                <span>Einstellungen</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {profile.role === "vorstand" && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/settings">
+                  <Settings className="h-4 w-4" />
+                  <span>Einstellungen</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <form action={logout}>
               <SidebarMenuButton asChild>

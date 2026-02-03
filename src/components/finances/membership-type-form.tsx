@@ -24,6 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Alert,
@@ -59,6 +60,7 @@ export function MembershipTypeForm({
       name: "",
       annual_fee: 0,
       description: "",
+      is_family_flat: false,
     },
   })
 
@@ -70,12 +72,14 @@ export function MembershipTypeForm({
           name: membershipType.name,
           annual_fee: membershipType.annual_fee,
           description: membershipType.description || "",
+          is_family_flat: membershipType.is_family_flat ?? false,
         })
       } else {
         form.reset({
           name: "",
           annual_fee: 0,
           description: "",
+          is_family_flat: false,
         })
       }
       setShowHighAmountWarning(false)
@@ -175,6 +179,27 @@ export function MembershipTypeForm({
                 </AlertDescription>
               </Alert>
             )}
+
+            <FormField
+              control={form.control}
+              name="is_family_flat"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel>Familien-Flatrate</FormLabel>
+                    <FormDescription>
+                      Beitrag gilt fuer die gesamte Familie (ein Beitrag pro Familie).
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

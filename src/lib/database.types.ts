@@ -202,6 +202,48 @@ export type Database = {
           },
         ]
       }
+      club_settings: {
+        Row: {
+          address_city: string | null
+          address_street: string | null
+          address_zip: string | null
+          club_name: string
+          created_at: string | null
+          email: string | null
+          id: string
+          logo_path: string | null
+          phone: string | null
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          address_city?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          club_name?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          logo_path?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          address_city?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          club_name?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          logo_path?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       families: {
         Row: {
           created_at: string | null
@@ -1248,6 +1290,13 @@ export type Database = {
           member_count: number
         }[]
       }
+      get_member_emails: {
+        Args: { user_ids: string[] }
+        Returns: {
+          user_id: string
+          email: string
+        }[]
+      }
       get_membership_type_member_count: {
         Args: { type_id: string }
         Returns: number
@@ -1469,3 +1518,5 @@ export const Constants = {
 export type UserRole = "vorstand" | "trainer" | "mitglied"
 
 export type Profile = Tables<"profiles">
+
+export type ClubSettings = Tables<"club_settings">

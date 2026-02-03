@@ -14,7 +14,7 @@ import {
 import { MembershipTypeFormData } from "@/lib/validations/membership-type"
 import { createClient } from "@/lib/supabase/client"
 
-export default function MembershipTypesPage() {
+export function MembershipTypesTab() {
   const [membershipTypes, setMembershipTypes] = React.useState<MembershipTypeWithCount[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [isFormOpen, setIsFormOpen] = React.useState(false)
@@ -22,11 +22,9 @@ export default function MembershipTypesPage() {
 
   const supabase = createClient()
 
-  // Fetch membership types with member counts
   const fetchMembershipTypes = React.useCallback(async () => {
     setIsLoading(true)
     try {
-      // Fetch membership types
       const { data: types, error: typesError } = await supabase
         .from("membership_types")
         .select("*")
@@ -34,7 +32,6 @@ export default function MembershipTypesPage() {
 
       if (typesError) throw typesError
 
-      // Fetch member counts for each type
       const typesWithCounts: MembershipTypeWithCount[] = await Promise.all(
         (types || []).map(async (type) => {
           const { data: countData } = await supabase
@@ -60,11 +57,9 @@ export default function MembershipTypesPage() {
     fetchMembershipTypes()
   }, [fetchMembershipTypes])
 
-  // Create or update membership type
   async function handleSubmit(data: MembershipTypeFormData) {
     try {
       if (editingType) {
-        // Update existing
         const { error } = await supabase
           .from("membership_types")
           .update({
@@ -85,7 +80,6 @@ export default function MembershipTypesPage() {
 
         toast.success("Beitragsart aktualisiert")
       } else {
-        // Create new
         const { error } = await supabase.from("membership_types").insert({
           name: data.name,
           annual_fee: data.annual_fee,
@@ -113,7 +107,6 @@ export default function MembershipTypesPage() {
     }
   }
 
-  // Delete membership type
   async function handleDelete(id: string) {
     try {
       const { error } = await supabase.from("membership_types").delete().eq("id", id)
@@ -141,22 +134,17 @@ export default function MembershipTypesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Beitragsarten</h1>
-          <p className="text-muted-foreground">
-            Verwalten Sie die Beitragsarten für Ihre Vereinsmitglieder
-          </p>
-        </div>
-        <Button onClick={() => setIsFormOpen(true)} className="w-full sm:w-auto">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Verwalten Sie die Beitragsarten für Ihre Vereinsmitglieder.
+        </p>
+        <Button onClick={() => setIsFormOpen(true)} size="sm">
           <Plus className="mr-2 h-4 w-4" />
           Beitragsart
         </Button>
       </div>
 
-      {/* Table */}
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-10 w-full" />
@@ -172,7 +160,6 @@ export default function MembershipTypesPage() {
         />
       )}
 
-      {/* Form Modal */}
       <MembershipTypeForm
         open={isFormOpen}
         onOpenChange={handleOpenChange}
