@@ -40,6 +40,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
   vorstand: {
     main: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Mein Profil", url: "/profile", icon: User },
     ],
     admin: [
       { title: "Mitglieder", url: "/admin/members", icon: Users },
@@ -62,6 +63,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
   trainer: {
     main: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Mein Profil", url: "/profile", icon: User },
       { title: "Meine Gruppen", url: "/trainer/groups", icon: UsersRound },
       { title: "Trainingsplan", url: "/trainer/schedule", icon: Calendar },
       { title: "Anwesenheit", url: "/trainer/attendance", icon: ClipboardList },
