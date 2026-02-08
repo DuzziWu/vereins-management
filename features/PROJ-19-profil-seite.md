@@ -1,6 +1,6 @@
 # PROJ-19: Profil-Seite (Member Profile Page)
 
-## Status: 🔵 Planned
+## Status: ✅ Deployed (2026-02-08)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für Auth und Passwort-Änderung
