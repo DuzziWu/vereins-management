@@ -1,6 +1,6 @@
 # PROJ-22: Event-Details & Logistik
 
-## Status: 🟢 Ready for Deployment (All Features Complete)
+## Status: ✅ Deployed (2026-02-10)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-20 (Event-Verwaltung) - Basis-Event muss existieren
