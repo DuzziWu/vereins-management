@@ -3,7 +3,7 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { nanoid } from 'nanoid'
 import { revalidatePath } from 'next/cache'
-import type { UserRole } from '@/lib/database.types'
+import type { UserRole } from '@/components/auth'
 
 // ============================================
 // CREATE INVITATION

@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useDashboardView, ROLE_LABELS } from "@/contexts/dashboard-view-context"
-import { UserRole } from "@/lib/database.types"
+import { UserRole } from "@/components/auth"
 
 // Icons für jede Rolle
 const ROLE_ICONS: Record<UserRole, typeof Shield> = {

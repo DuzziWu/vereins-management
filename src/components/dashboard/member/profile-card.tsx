@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useDashboardView, ROLE_LABELS } from "@/contexts/dashboard-view-context"
-import { UserRole } from "@/lib/database.types"
+import { UserRole } from "@/components/auth"
 
 export function ProfileCard() {
   const { profile, email } = useDashboardView()
