@@ -15,6 +15,7 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
+  Users,
 } from "lucide-react"
 import { toast } from "sonner"
 import {
@@ -76,6 +77,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { useSwipe } from "@/hooks/use-swipe"
+import { EventAssignmentDialog, EventRsvpOverview } from "@/components/events"
 
 import {
   type Event,
@@ -144,6 +146,7 @@ export default function AdminEventsPage() {
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
   const [detailDialogOpen, setDetailDialogOpen] = React.useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+  const [assignmentDialogOpen, setAssignmentDialogOpen] = React.useState(false)
   const [selectedEvent, setSelectedEvent] = React.useState<Event | null>(null)
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(null)
 
@@ -735,6 +738,29 @@ export default function AdminEventsPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Teilnehmer Section */}
+                <div className="border-t pt-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Teilnehmer
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setAssignmentDialogOpen(true)}
+                    >
+                      <Users className="h-4 w-4 mr-1.5" />
+                      Gruppen zuweisen
+                    </Button>
+                  </div>
+                  <EventRsvpOverview
+                    eventId={selectedEvent.id}
+                    canSendReminder={true}
+                    onRefresh={fetchEvents}
+                  />
+                </div>
               </div>
 
               <ResponsiveDialogFooter className="gap-2">
@@ -964,6 +990,17 @@ export default function AdminEventsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Event Assignment Dialog */}
+      {selectedEvent && (
+        <EventAssignmentDialog
+          open={assignmentDialogOpen}
+          onOpenChange={setAssignmentDialogOpen}
+          eventId={selectedEvent.id}
+          eventTitle={selectedEvent.title}
+          onSuccess={fetchEvents}
+        />
+      )}
     </div>
   )
 }

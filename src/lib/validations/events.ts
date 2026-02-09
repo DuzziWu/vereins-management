@@ -91,3 +91,82 @@ export interface Event {
     last_name: string
   }
 }
+
+// === PROJ-21: Event-Zuweisung & RSVP ===
+
+// RSVP Status
+export const RSVP_STATUSES = ["ausstehend", "zugesagt", "abgesagt"] as const
+export type RsvpStatus = (typeof RSVP_STATUSES)[number]
+
+export const RSVP_STATUS_LABELS: Record<RsvpStatus, string> = {
+  ausstehend: "Ausstehend",
+  zugesagt: "Zugesagt",
+  abgesagt: "Abgesagt",
+}
+
+export const RSVP_STATUS_COLORS: Record<RsvpStatus, string> = {
+  ausstehend: "bg-orange-100 text-orange-800 border-orange-200",
+  zugesagt: "bg-green-100 text-green-800 border-green-200",
+  abgesagt: "bg-gray-100 text-gray-600 border-gray-200",
+}
+
+// Event Assignment (Einladung zu einem Event)
+export interface EventAssignment {
+  id: string
+  event_id: string
+  group_id: string | null
+  profile_id: string
+  rsvp_status: RsvpStatus
+  rsvp_updated_at: string | null
+  reminder_sent_at: string | null
+  created_at: string
+  profile?: {
+    id: string
+    first_name: string
+    last_name: string
+  }
+  group?: {
+    id: string
+    name: string
+  }
+}
+
+// Für die Zuweisungs-UI: Gruppe mit Mitgliedern
+export interface GroupWithMembers {
+  id: string
+  name: string
+  members: {
+    id: string
+    first_name: string
+    last_name: string
+  }[]
+}
+
+// Event mit RSVP-Stats
+export interface EventWithRsvpStats extends Event {
+  total_invited: number
+  total_confirmed: number
+  total_declined: number
+  total_pending: number
+  my_rsvp_status?: RsvpStatus
+}
+
+// Schema für RSVP Update
+export const updateRsvpSchema = z.object({
+  status: z.enum(["zugesagt", "abgesagt"]),
+})
+
+export type UpdateRsvpInput = z.infer<typeof updateRsvpSchema>
+
+// Schema für Event-Zuweisung (Gruppen/Mitglieder zuweisen)
+export const assignEventSchema = z.object({
+  // Mitglieder mit optionaler Gruppen-Zuordnung
+  assignments: z.array(
+    z.object({
+      profile_id: uuidSchema,
+      group_id: uuidSchema.optional().nullable(),
+    })
+  ).min(1, "Mindestens ein Mitglied auswählen"),
+})
+
+export type AssignEventInput = z.infer<typeof assignEventSchema>

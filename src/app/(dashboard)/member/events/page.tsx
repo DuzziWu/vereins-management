@@ -39,16 +39,23 @@ import {
 } from "@/components/ui/responsive-dialog"
 import { cn } from "@/lib/utils"
 import { useSwipe } from "@/hooks/use-swipe"
+import { EventRsvpButtons, EventRsvpStatusBadge } from "@/components/events"
 
 import {
   type Event,
   type EventType,
+  type RsvpStatus,
   EVENT_TYPES,
   EVENT_TYPE_LABELS,
   EVENT_TYPE_COLORS,
   EVENT_STATUS_LABELS,
   EVENT_STATUS_VARIANTS,
 } from "@/lib/validations/events"
+
+// Extend Event type to include RSVP status for member view
+interface MemberEvent extends Event {
+  my_rsvp_status?: RsvpStatus
+}
 
 // === Helper Functions ===
 
@@ -100,12 +107,12 @@ function EventTypeDot({ type }: { type: EventType }) {
 
 export default function MemberEventsPage() {
   const [currentMonth, setCurrentMonth] = React.useState(new Date())
-  const [events, setEvents] = React.useState<Event[]>([])
+  const [events, setEvents] = React.useState<MemberEvent[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
 
   // Dialogs
   const [detailDialogOpen, setDetailDialogOpen] = React.useState(false)
-  const [selectedEvent, setSelectedEvent] = React.useState<Event | null>(null)
+  const [selectedEvent, setSelectedEvent] = React.useState<MemberEvent | null>(null)
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(null)
 
   // === Data Fetching ===
@@ -156,9 +163,21 @@ export default function MemberEventsPage() {
     day = addDays(day, 1)
   }
 
-  const getEventsForDay = (date: Date): Event[] => {
+  const getEventsForDay = (date: Date): MemberEvent[] => {
     const dateStr = format(date, "yyyy-MM-dd")
     return events.filter((e) => e.event_date === dateStr)
+  }
+
+  // Handler for RSVP status changes
+  function handleRsvpChange(eventId: string, newStatus: RsvpStatus) {
+    setEvents((prev) =>
+      prev.map((e) =>
+        e.id === eventId ? { ...e, my_rsvp_status: newStatus } : e
+      )
+    )
+    if (selectedEvent?.id === eventId) {
+      setSelectedEvent({ ...selectedEvent, my_rsvp_status: newStatus })
+    }
   }
 
   // === Event Handlers ===
@@ -355,9 +374,14 @@ export default function MemberEventsPage() {
                       </div>
                     )}
                   </div>
-                  <Badge variant={EVENT_STATUS_VARIANTS[event.status]}>
-                    {EVENT_STATUS_LABELS[event.status]}
-                  </Badge>
+                  <div className="flex flex-col gap-1 items-end">
+                    <Badge variant={EVENT_STATUS_VARIANTS[event.status]}>
+                      {EVENT_STATUS_LABELS[event.status]}
+                    </Badge>
+                    {event.my_rsvp_status && (
+                      <EventRsvpStatusBadge status={event.my_rsvp_status} />
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -497,6 +521,22 @@ export default function MemberEventsPage() {
                 {selectedEvent.description && (
                   <div className="text-sm border-t pt-4">
                     <p className="whitespace-pre-wrap">{selectedEvent.description}</p>
+                  </div>
+                )}
+
+                {/* RSVP Section - nur wenn Mitglied eingeladen ist */}
+                {selectedEvent.my_rsvp_status && (
+                  <div className="border-t pt-4">
+                    <p className="text-sm font-medium mb-3">Deine Teilnahme:</p>
+                    <EventRsvpButtons
+                      eventId={selectedEvent.id}
+                      currentStatus={selectedEvent.my_rsvp_status}
+                      eventDate={selectedEvent.event_date}
+                      eventStartTime={selectedEvent.start_time}
+                      onStatusChange={(newStatus) =>
+                        handleRsvpChange(selectedEvent.id, newStatus)
+                      }
+                    />
                   </div>
                 )}
               </div>

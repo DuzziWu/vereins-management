@@ -244,6 +244,61 @@ export type Database = {
         }
         Relationships: []
       }
+      event_assignments: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          group_id: string | null
+          id: string
+          profile_id: string
+          reminder_sent_at: string | null
+          rsvp_status: string
+          rsvp_updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          group_id?: string | null
+          id?: string
+          profile_id: string
+          reminder_sent_at?: string | null
+          rsvp_status?: string
+          rsvp_updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          group_id?: string | null
+          id?: string
+          profile_id?: string
+          reminder_sent_at?: string | null
+          rsvp_status?: string
+          rsvp_updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_assignments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_assignments_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_assignments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_status_log: {
         Row: {
           changed_by: string

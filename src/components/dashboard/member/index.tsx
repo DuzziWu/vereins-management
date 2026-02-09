@@ -3,6 +3,7 @@
 import { ProfileCard } from "./profile-card"
 import { MyGroupsList } from "./my-groups-list"
 import { UpcomingEvents } from "./upcoming-events"
+import { MyUpcomingEvents } from "./my-upcoming-events"
 import { NotificationsCard } from "./notifications-card"
 
 export function MemberDashboard() {
@@ -21,6 +22,8 @@ export function MemberDashboard() {
         <MyGroupsList />
         <UpcomingEvents />
       </div>
+
+      <MyUpcomingEvents />
 
       <NotificationsCard />
     </div>
