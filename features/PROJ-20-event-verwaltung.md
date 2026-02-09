@@ -1,6 +1,6 @@
 # PROJ-20: Event-Verwaltung (Basis)
 
-## Status: ✅ Deployed
+## Status: ✅ Deployed (2026-02-09)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für eingeloggte User-Checks
