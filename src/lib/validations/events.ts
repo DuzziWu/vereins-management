@@ -170,3 +170,105 @@ export const assignEventSchema = z.object({
 })
 
 export type AssignEventInput = z.infer<typeof assignEventSchema>
+
+// === PROJ-22: Event-Details & Logistik ===
+
+// Schema für Ablaufplan-Eintrag
+export const scheduleEntrySchema = z.object({
+  id: uuidSchema.optional(), // Optional bei neuen Einträgen
+  time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, "Ungültiges Zeitformat (HH:MM)"),
+  description: z.string().min(1, "Beschreibung erforderlich").max(500, "Maximal 500 Zeichen"),
+  sort_order: z.number().int().min(0).optional(),
+})
+
+export type ScheduleEntryInput = z.infer<typeof scheduleEntrySchema>
+
+// Schema für Ablaufplan-Update (alle Einträge auf einmal)
+// Note: min(1) bedeutet, dass ein existierender Ablaufplan nicht komplett gelöscht werden kann
+// Wenn ein leerer Ablaufplan gewünscht ist, muss die Section einfach nicht angezeigt werden
+export const updateScheduleSchema = z.object({
+  entries: z.array(scheduleEntrySchema).min(1, "Mindestens 1 Eintrag erforderlich").max(20, "Maximal 20 Einträge erlaubt"),
+})
+
+export type UpdateScheduleInput = z.infer<typeof updateScheduleSchema>
+
+// Schema für Logistik-Update
+export const updateLogisticsSchema = z.object({
+  logistics_info: z.string().max(2000, "Maximal 2000 Zeichen").nullable(),
+})
+
+export type UpdateLogisticsInput = z.infer<typeof updateLogisticsSchema>
+
+// Event Schedule Entry für API-Response
+export interface EventScheduleEntry {
+  id: string
+  event_id: string
+  time: string
+  description: string
+  sort_order: number
+  created_at: string
+}
+
+// Event Attachment für API-Response
+export interface EventAttachment {
+  id: string
+  event_id: string
+  file_name: string
+  file_path: string
+  file_size: number
+  file_type: string
+  uploaded_by: string
+  created_at: string
+  uploader?: {
+    first_name: string
+    last_name: string
+  }
+}
+
+// Erlaubte Dateitypen für Uploads
+export const ALLOWED_FILE_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+] as const
+
+export const ALLOWED_FILE_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png", ".docx"] as const
+
+export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+export const MAX_FILES_PER_EVENT = 5
+
+// Datei-Typ Labels für Anzeige
+export const FILE_TYPE_LABELS: Record<string, string> = {
+  "application/pdf": "PDF",
+  "image/jpeg": "Bild",
+  "image/png": "Bild",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "Word",
+}
+
+// Icons für Dateitypen (verwendet Lucide Icon-Namen)
+export const FILE_TYPE_ICONS: Record<string, string> = {
+  "application/pdf": "FileText",
+  "image/jpeg": "Image",
+  "image/png": "Image",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "FileText",
+}
+
+// RSVP Stats für Event-Uebersicht
+export interface RsvpStats {
+  total_invited: number
+  total_confirmed: number
+  total_declined: number
+  total_pending: number
+}
+
+// Erweitertes Event mit Details (Logistik, Ablaufplan, Anhänge, RSVP)
+export interface EventWithDetails extends Event {
+  logistics_info: string | null
+  schedule?: EventScheduleEntry[]
+  attachments?: EventAttachment[]
+  // RSVP-Daten (wenn mit ?rsvp=true oder ?include=... abgefragt)
+  rsvp_stats?: RsvpStats
+  my_rsvp_status?: RsvpStatus | null
+  is_invited?: boolean
+}

@@ -299,6 +299,89 @@ export type Database = {
           },
         ]
       }
+      event_attachments: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attachments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_schedule: {
+        Row: {
+          created_at: string | null
+          description: string
+          event_id: string
+          id: string
+          sort_order: number
+          time: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          event_id: string
+          id?: string
+          sort_order?: number
+          time: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          event_id?: string
+          id?: string
+          sort_order?: number
+          time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_schedule_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_status_log: {
         Row: {
           changed_by: string
@@ -352,6 +435,7 @@ export type Database = {
           event_type: string
           id: string
           location_name: string | null
+          logistics_info: string | null
           meeting_point: string | null
           start_time: string
           status: string
@@ -368,6 +452,7 @@ export type Database = {
           event_type: string
           id?: string
           location_name?: string | null
+          logistics_info?: string | null
           meeting_point?: string | null
           start_time: string
           status?: string
@@ -384,6 +469,7 @@ export type Database = {
           event_type?: string
           id?: string
           location_name?: string | null
+          logistics_info?: string | null
           meeting_point?: string | null
           start_time?: string
           status?: string
@@ -1445,7 +1531,7 @@ export type Database = {
         Args: { check_email: string; check_ip: string }
         Returns: boolean
       }
-      cleanup_old_reset_attempts: { Args: never; Returns: undefined }
+      cleanup_old_reset_attempts: { Args: Record<PropertyKey, never>; Returns: undefined }
       create_notification: {
         Args: {
           p_link?: string
@@ -1463,12 +1549,6 @@ export type Database = {
           title: string
           type: string
           user_id: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "notifications"
-          isOneToOne: true
-          isSetofReturn: false
         }
       }
       get_failed_login_count: {
@@ -1496,7 +1576,7 @@ export type Database = {
         Returns: number
       }
       get_my_profile: {
-        Args: never
+        Args: Record<PropertyKey, never>
         Returns: {
           address_city: string | null
           address_street: string | null
@@ -1517,16 +1597,10 @@ export type Database = {
           updated_at: string
           user_id: string | null
         }
-        SetofOptions: {
-          from: "*"
-          to: "profiles"
-          isOneToOne: true
-          isSetofReturn: false
-        }
       }
-      get_my_profile_id: { Args: never; Returns: string }
-      get_my_role: { Args: never; Returns: string }
-      get_treasury_balance: { Args: never; Returns: number }
+      get_my_profile_id: { Args: Record<PropertyKey, never>; Returns: string }
+      get_my_role: { Args: Record<PropertyKey, never>; Returns: string }
+      get_treasury_balance: { Args: Record<PropertyKey, never>; Returns: number }
       get_unread_message_counts: {
         Args: { p_profile_id: string }
         Returns: {
@@ -1535,17 +1609,18 @@ export type Database = {
           unread_count: number
         }[]
       }
-      get_unread_notification_count: { Args: never; Returns: number }
+      get_unread_notification_count: { Args: Record<PropertyKey, never>; Returns: number }
       is_group_participant: { Args: { p_group_id: string }; Returns: boolean }
       is_member_of_group: { Args: { p_group_id: string }; Returns: boolean }
-      is_trainer: { Args: never; Returns: boolean }
+      is_trainer: { Args: Record<PropertyKey, never>; Returns: boolean }
       is_trainer_of_group: { Args: { p_group_id: string }; Returns: boolean }
-      is_vorstand: { Args: never; Returns: boolean }
-      mark_all_notifications_read: { Args: never; Returns: undefined }
+      is_vorstand: { Args: Record<PropertyKey, never>; Returns: boolean }
+      mark_all_notifications_read: { Args: Record<PropertyKey, never>; Returns: undefined }
       mark_notification_read: {
         Args: { p_notification_id: string }
         Returns: undefined
       }
+      send_event_rsvp_reminders: { Args: Record<PropertyKey, never>; Returns: undefined }
       upsert_trainer_note: {
         Args: { p_content: string; p_group_id: string }
         Returns: {
@@ -1555,12 +1630,6 @@ export type Database = {
           id: string
           trainer_id: string
           updated_at: string | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "trainer_notes"
-          isOneToOne: true
-          isSetofReturn: false
         }
       }
       user_has_role: { Args: { required_role: string }; Returns: boolean }
@@ -1586,25 +1655,26 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DefaultSchema = Database[Extract<keyof Database, "public">]
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+// Type for schemas that have Tables (excludes __InternalSupabase)
+type PublicSchemaName = "public"
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: PublicSchemaName },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: PublicSchemaName
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: PublicSchemaName
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -1622,16 +1692,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: PublicSchemaName },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: PublicSchemaName
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: PublicSchemaName
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -1647,16 +1717,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: PublicSchemaName },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: PublicSchemaName
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: PublicSchemaName
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -1672,16 +1742,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: PublicSchemaName },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: PublicSchemaName
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: PublicSchemaName
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -1689,26 +1759,20 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+    | { schema: PublicSchemaName },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: PublicSchemaName
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: PublicSchemaName
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
-export const Constants = {
-  public: {
-    Enums: {},
-  },
-} as const
-
-// Convenience type aliases
-export type Profile = Tables<"profiles">
-export type ClubSettings = Tables<"club_settings">
+// Helper types for common tables
+export type Profile = Database['public']['Tables']['profiles']['Row']
+export type ClubSettings = Database['public']['Tables']['club_settings']['Row']

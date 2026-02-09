@@ -4,12 +4,19 @@ import { updateEventSchema, isValidUUID } from "@/lib/validations/events"
 
 // ============================================================
 // GET /api/events/[id] - Event-Details
+// Optional query params:
+// - include=schedule,attachments - Include schedule and/or attachments
+// - rsvp=true - Include current user's RSVP status and RSVP stats
 // ============================================================
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+  const { searchParams } = new URL(request.url)
+  const includeRsvp = searchParams.get("rsvp") === "true"
+  const includeParam = searchParams.get("include") || ""
+  const includes = includeParam.split(",").filter(Boolean)
 
   // UUID-Validierung
   if (!isValidUUID(id)) {
@@ -26,6 +33,13 @@ export async function GET(
   if (authError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+
+  // Hole Profil fuer RSVP-Abfrage
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .single()
 
   const { data: event, error } = await supabase
     .from("events")
@@ -44,7 +58,58 @@ export async function GET(
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ event })
+  // Erweitere Event-Objekt mit optionalen Daten
+  const eventWithDetails: Record<string, unknown> = { ...event }
+
+  // Include schedule if requested
+  if (includes.includes("schedule")) {
+    const { data: schedule } = await supabase
+      .from("event_schedule")
+      .select("*")
+      .eq("event_id", id)
+      .order("sort_order", { ascending: true })
+    eventWithDetails.schedule = schedule || []
+  }
+
+  // Include attachments if requested
+  if (includes.includes("attachments")) {
+    const { data: attachments } = await supabase
+      .from("event_attachments")
+      .select(`
+        *,
+        uploader:profiles!event_attachments_uploaded_by_fkey(first_name, last_name)
+      `)
+      .eq("event_id", id)
+      .order("created_at", { ascending: true })
+    eventWithDetails.attachments = attachments || []
+  }
+
+  // Include RSVP data if requested or by default for EventDetailView
+  if (includeRsvp || includes.length > 0) {
+    // Hole RSVP-Stats
+    const { data: assignments } = await supabase
+      .from("event_assignments")
+      .select("rsvp_status, profile_id")
+      .eq("event_id", id)
+
+    if (assignments) {
+      eventWithDetails.rsvp_stats = {
+        total_invited: assignments.length,
+        total_confirmed: assignments.filter(a => a.rsvp_status === "zugesagt").length,
+        total_declined: assignments.filter(a => a.rsvp_status === "abgesagt").length,
+        total_pending: assignments.filter(a => a.rsvp_status === "ausstehend").length,
+      }
+
+      // Hole eigenen RSVP-Status wenn User ein Profil hat
+      if (profile) {
+        const myAssignment = assignments.find(a => a.profile_id === profile.id)
+        eventWithDetails.my_rsvp_status = myAssignment?.rsvp_status || null
+        eventWithDetails.is_invited = !!myAssignment
+      }
+    }
+  }
+
+  return NextResponse.json({ event: eventWithDetails })
 }
 
 // ============================================================
