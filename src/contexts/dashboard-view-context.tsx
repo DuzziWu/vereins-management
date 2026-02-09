@@ -8,7 +8,8 @@ import {
   useCallback,
   type ReactNode,
 } from "react"
-import { UserRole, Profile } from "@/lib/database.types"
+import { UserRole } from "@/components/auth"
+import { Profile } from "@/lib/database.types"
 
 // Rollen-Hierarchie: vorstand > trainer > mitglied
 const ROLE_HIERARCHY: Record<UserRole, UserRole[]> = {
