@@ -244,6 +244,107 @@ export type Database = {
         }
         Relationships: []
       }
+      event_status_log: {
+        Row: {
+          changed_by: string
+          created_at: string | null
+          event_id: string
+          id: string
+          new_status: string
+          old_status: string | null
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string | null
+          event_id: string
+          id?: string
+          new_status: string
+          old_status?: string | null
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          new_status?: string
+          old_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_status_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_status_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          end_time: string | null
+          event_date: string
+          event_type: string
+          id: string
+          location_name: string | null
+          meeting_point: string | null
+          start_time: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          event_type: string
+          id?: string
+          location_name?: string | null
+          meeting_point?: string | null
+          start_time: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          location_name?: string | null
+          meeting_point?: string | null
+          start_time?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       families: {
         Row: {
           created_at: string | null
@@ -687,6 +788,44 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          category: string
+          created_at: string | null
+          email_enabled: boolean
+          id: string
+          profile_id: string
+          push_enabled: boolean
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          email_enabled?: boolean
+          id?: string
+          profile_id: string
+          push_enabled?: boolean
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          email_enabled?: boolean
+          id?: string
+          profile_id?: string
+          push_enabled?: boolean
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -719,44 +858,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      notification_preferences: {
-        Row: {
-          id: string
-          profile_id: string
-          category: string
-          email_enabled: boolean
-          push_enabled: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          profile_id: string
-          category: string
-          email_enabled?: boolean
-          push_enabled?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          profile_id?: string
-          category?: string
-          email_enabled?: boolean
-          push_enabled?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notification_preferences_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       password_reset_attempts: {
         Row: {
@@ -1331,8 +1432,8 @@ export type Database = {
       get_member_emails: {
         Args: { user_ids: string[] }
         Returns: {
-          user_id: string
           email: string
+          user_id: string
         }[]
       }
       get_membership_type_member_count: {
@@ -1382,6 +1483,7 @@ export type Database = {
       get_unread_notification_count: { Args: never; Returns: number }
       is_group_participant: { Args: { p_group_id: string }; Returns: boolean }
       is_member_of_group: { Args: { p_group_id: string }; Returns: boolean }
+      is_trainer: { Args: never; Returns: boolean }
       is_trainer_of_group: { Args: { p_group_id: string }; Returns: boolean }
       is_vorstand: { Args: never; Returns: boolean }
       mark_all_notifications_read: { Args: never; Returns: undefined }
@@ -1552,9 +1654,6 @@ export const Constants = {
   },
 } as const
 
-// Custom types for the application
-export type UserRole = "vorstand" | "trainer" | "mitglied"
-
+// Convenience type aliases
 export type Profile = Tables<"profiles">
-
 export type ClubSettings = Tables<"club_settings">

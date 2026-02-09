@@ -6,6 +6,7 @@ import {
   User,
   UsersRound,
   Calendar,
+  CalendarDays,
   FileText,
   ClipboardList,
   Wallet,
@@ -15,7 +16,7 @@ import {
   Tag,
   type LucideIcon,
 } from "lucide-react"
-import { UserRole } from "@/lib/database.types"
+import { UserRole } from "@/components/auth"
 
 export interface NavItem {
   title: string
@@ -47,6 +48,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
       { title: "User einladen", url: "/admin/users/invite", icon: UserPlus },
       { title: "Einladungen", url: "/admin/users/invitations", icon: Mail },
       { title: "Gruppen", url: "/admin/groups", icon: UsersRound },
+      { title: "Veranstaltungen", url: "/admin/events", icon: CalendarDays },
       { title: "Dokumente", url: "/admin/documents", icon: FileText },
     ],
     finance: {
@@ -66,6 +68,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
       { title: "Mein Profil", url: "/profile", icon: User },
       { title: "Meine Gruppen", url: "/trainer/groups", icon: UsersRound },
       { title: "Trainingsplan", url: "/trainer/schedule", icon: Calendar },
+      { title: "Veranstaltungen", url: "/trainer/events", icon: CalendarDays },
       { title: "Anwesenheit", url: "/trainer/attendance", icon: ClipboardList },
     ],
   },
@@ -75,6 +78,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
       { title: "Mein Profil", url: "/profile", icon: User },
       { title: "Meine Gruppen", url: "/member/groups", icon: UsersRound },
       { title: "Termine", url: "/member/schedule", icon: Calendar },
+      { title: "Veranstaltungen", url: "/member/events", icon: CalendarDays },
       { title: "Dokumente", url: "/member/documents", icon: FileText },
     ],
   },
