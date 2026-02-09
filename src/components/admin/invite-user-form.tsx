@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { createInvitation } from "@/lib/actions"
-import type { UserRole } from "@/lib/database.types"
+import type { UserRole } from "@/components/auth"
 
 const inviteSchema = z.object({
   email: z.string().email("Bitte geben Sie eine gültige Email-Adresse ein"),
