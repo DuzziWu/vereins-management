@@ -195,7 +195,7 @@ export function EventTypeForm({
 
             {/* Vorschau auf hell und dunkel */}
             <div className="space-y-2">
-              <FormLabel>Vorschau</FormLabel>
+              <span className="text-sm font-medium">Vorschau</span>
               <div className="grid grid-cols-2 gap-2">
                 {/* Heller Hintergrund */}
                 <div className="flex items-center gap-2 p-3 bg-white border rounded-md">
