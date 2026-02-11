@@ -45,7 +45,8 @@ export async function GET(
     .from("events")
     .select(`
       *,
-      creator:profiles!events_created_by_fkey(first_name, last_name)
+      creator:profiles!events_created_by_fkey(first_name, last_name),
+      event_type_info:event_types!events_event_type_id_fkey(id, name, color, icon)
     `)
     .eq("id", id)
     .single()
@@ -198,6 +199,8 @@ export async function PUT(
   if (data.location_name !== undefined) updateData.location_name = data.location_name || null
   if (data.address !== undefined) updateData.address = data.address || null
   if (data.meeting_point !== undefined) updateData.meeting_point = data.meeting_point || null
+  // PROJ-23: Dynamischer Event-Typ
+  if (body.event_type_id !== undefined) updateData.event_type_id = body.event_type_id
 
   const { data: event, error } = await supabase
     .from("events")
@@ -205,7 +208,8 @@ export async function PUT(
     .eq("id", id)
     .select(`
       *,
-      creator:profiles!events_created_by_fkey(first_name, last_name)
+      creator:profiles!events_created_by_fkey(first_name, last_name),
+      event_type_info:event_types!events_event_type_id_fkey(id, name, color, icon)
     `)
     .single()
 

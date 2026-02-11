@@ -38,7 +38,8 @@ export async function GET(request: NextRequest) {
     .from("events")
     .select(`
       *,
-      creator:profiles!events_created_by_fkey(first_name, last_name)
+      creator:profiles!events_created_by_fkey(first_name, last_name),
+      event_type_info:event_types!events_event_type_id_fkey(id, name, color, icon)
     `)
     .order("event_date", { ascending: true })
     .order("start_time", { ascending: true })
@@ -149,6 +150,9 @@ export async function POST(request: NextRequest) {
 
   const data = validation.data
 
+  // PROJ-23: Hole event_type_id aus Body (falls mitgesendet)
+  const eventTypeId = body.event_type_id
+
   // Initial-Status basierend auf Rolle
   // Vorstand: Events werden direkt "bestätigt"
   // Trainer: Events starten als "Anfrage"
@@ -160,6 +164,7 @@ export async function POST(request: NextRequest) {
       title: data.title,
       description: data.description || null,
       event_type: data.event_type,
+      event_type_id: eventTypeId || null, // PROJ-23: Dynamischer Event-Typ
       status: initialStatus,
       event_date: data.event_date,
       start_time: data.start_time,
@@ -171,7 +176,8 @@ export async function POST(request: NextRequest) {
     })
     .select(`
       *,
-      creator:profiles!events_created_by_fkey(first_name, last_name)
+      creator:profiles!events_created_by_fkey(first_name, last_name),
+      event_type_info:event_types!events_event_type_id_fkey(id, name, color, icon)
     `)
     .single()
 

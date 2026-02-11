@@ -424,6 +424,39 @@ export type Database = {
           },
         ]
       }
+      event_types: {
+        Row: {
+          color: string
+          created_at: string | null
+          icon: string | null
+          id: string
+          is_system_default: boolean
+          name: string
+          sort_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          color: string
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_system_default?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_system_default?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           address: string | null
@@ -433,6 +466,7 @@ export type Database = {
           end_time: string | null
           event_date: string
           event_type: string
+          event_type_id: string
           id: string
           location_name: string | null
           logistics_info: string | null
@@ -450,6 +484,7 @@ export type Database = {
           end_time?: string | null
           event_date: string
           event_type: string
+          event_type_id: string
           id?: string
           location_name?: string | null
           logistics_info?: string | null
@@ -467,6 +502,7 @@ export type Database = {
           end_time?: string | null
           event_date?: string
           event_type?: string
+          event_type_id?: string
           id?: string
           location_name?: string | null
           logistics_info?: string | null
@@ -482,6 +518,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_event_type_id_fkey"
+            columns: ["event_type_id"]
+            isOneToOne: false
+            referencedRelation: "event_types"
             referencedColumns: ["id"]
           },
         ]
@@ -1531,7 +1574,7 @@ export type Database = {
         Args: { check_email: string; check_ip: string }
         Returns: boolean
       }
-      cleanup_old_reset_attempts: { Args: Record<PropertyKey, never>; Returns: undefined }
+      cleanup_old_reset_attempts: { Args: never; Returns: undefined }
       create_notification: {
         Args: {
           p_link?: string
@@ -1576,7 +1619,7 @@ export type Database = {
         Returns: number
       }
       get_my_profile: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           address_city: string | null
           address_street: string | null
@@ -1598,9 +1641,9 @@ export type Database = {
           user_id: string | null
         }
       }
-      get_my_profile_id: { Args: Record<PropertyKey, never>; Returns: string }
-      get_my_role: { Args: Record<PropertyKey, never>; Returns: string }
-      get_treasury_balance: { Args: Record<PropertyKey, never>; Returns: number }
+      get_my_profile_id: { Args: never; Returns: string }
+      get_my_role: { Args: never; Returns: string }
+      get_treasury_balance: { Args: never; Returns: number }
       get_unread_message_counts: {
         Args: { p_profile_id: string }
         Returns: {
@@ -1609,18 +1652,18 @@ export type Database = {
           unread_count: number
         }[]
       }
-      get_unread_notification_count: { Args: Record<PropertyKey, never>; Returns: number }
+      get_unread_notification_count: { Args: never; Returns: number }
       is_group_participant: { Args: { p_group_id: string }; Returns: boolean }
       is_member_of_group: { Args: { p_group_id: string }; Returns: boolean }
-      is_trainer: { Args: Record<PropertyKey, never>; Returns: boolean }
+      is_trainer: { Args: never; Returns: boolean }
       is_trainer_of_group: { Args: { p_group_id: string }; Returns: boolean }
-      is_vorstand: { Args: Record<PropertyKey, never>; Returns: boolean }
-      mark_all_notifications_read: { Args: Record<PropertyKey, never>; Returns: undefined }
+      is_vorstand: { Args: never; Returns: boolean }
+      mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
         Args: { p_notification_id: string }
         Returns: undefined
       }
-      send_event_rsvp_reminders: { Args: Record<PropertyKey, never>; Returns: undefined }
+      send_event_rsvp_reminders: { Args: never; Returns: undefined }
       upsert_trainer_note: {
         Args: { p_content: string; p_group_id: string }
         Returns: {
@@ -1657,8 +1700,8 @@ export type Database = {
 
 type DefaultSchema = Database[Extract<keyof Database, "public">]
 
-// Type for schemas that have Tables (excludes __InternalSupabase)
-type PublicSchemaName = "public"
+// Exclude internal Supabase schema from generic types
+type PublicSchemaName = Exclude<keyof Database, "__InternalSupabase">
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
@@ -1773,6 +1816,13 @@ export type CompositeTypes<
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
-// Helper types for common tables
-export type Profile = Database['public']['Tables']['profiles']['Row']
-export type ClubSettings = Database['public']['Tables']['club_settings']['Row']
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
+
+// Custom type exports for convenience
+export type Profile = Database["public"]["Tables"]["profiles"]["Row"]
+export type EventType = Database["public"]["Tables"]["event_types"]["Row"]
+export type ClubSettings = Database["public"]["Tables"]["club_settings"]["Row"]

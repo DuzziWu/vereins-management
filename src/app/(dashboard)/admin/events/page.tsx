@@ -81,15 +81,13 @@ import { EventAssignmentDialog, EventRsvpOverview } from "@/components/events"
 
 import {
   type Event,
-  type EventType,
   type EventStatus,
-  EVENT_TYPES,
-  EVENT_TYPE_LABELS,
-  EVENT_TYPE_COLORS,
   EVENT_STATUSES,
   EVENT_STATUS_LABELS,
   EVENT_STATUS_VARIANTS,
 } from "@/lib/validations/events"
+import { type EventType as DynamicEventType } from "@/lib/validations/event-types"
+import { createClient } from "@/lib/supabase/client"
 
 // === Helper Functions ===
 
@@ -125,29 +123,44 @@ function CalendarSkeleton() {
 
 // === Event Type Icon ===
 
-function EventTypeDot({ type }: { type: EventType }) {
+function EventTypeDot({ color, name }: { color: string; name?: string }) {
   return (
     <span
-      className={cn("inline-block h-2.5 w-2.5 rounded-full", EVENT_TYPE_COLORS[type])}
-      title={EVENT_TYPE_LABELS[type]}
+      className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0"
+      style={{ backgroundColor: color }}
+      title={name}
     />
   )
 }
 
 // === Main Component ===
 
+// Extended Event type with dynamic event_type info
+interface EventWithType extends Event {
+  event_type_id?: string
+  event_type_info?: {
+    id: string
+    name: string
+    color: string
+    icon: string | null
+  }
+}
+
 export default function AdminEventsPage() {
   const [currentMonth, setCurrentMonth] = React.useState(new Date())
-  const [events, setEvents] = React.useState<Event[]>([])
+  const [events, setEvents] = React.useState<EventWithType[]>([])
+  const [eventTypes, setEventTypes] = React.useState<DynamicEventType[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [statusFilter, setStatusFilter] = React.useState<EventStatus | "all">("all")
+
+  const supabase = createClient()
 
   // Dialogs
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false)
   const [detailDialogOpen, setDetailDialogOpen] = React.useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [assignmentDialogOpen, setAssignmentDialogOpen] = React.useState(false)
-  const [selectedEvent, setSelectedEvent] = React.useState<Event | null>(null)
+  const [selectedEvent, setSelectedEvent] = React.useState<EventWithType | null>(null)
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(null)
 
   // Form state
@@ -155,7 +168,7 @@ export default function AdminEventsPage() {
   const [formData, setFormData] = React.useState({
     title: "",
     description: "",
-    event_type: "club_event" as EventType,
+    event_type_id: "",
     event_date: "",
     start_time: "",
     end_time: "",
@@ -165,6 +178,21 @@ export default function AdminEventsPage() {
   })
 
   // === Data Fetching ===
+
+  // Fetch event types from Supabase
+  const fetchEventTypes = React.useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("event_types")
+        .select("*")
+        .order("sort_order")
+
+      if (error) throw error
+      setEventTypes(data || [])
+    } catch {
+      console.error("Error fetching event types")
+    }
+  }, [supabase])
 
   const fetchEvents = React.useCallback(async () => {
     const monthStart = startOfMonth(currentMonth)
@@ -187,20 +215,42 @@ export default function AdminEventsPage() {
         return
       }
       const data = await response.json()
-      setEvents(data.events || [])
+
+      // Merge events with event type info
+      const eventsWithTypes = (data.events || []).map((event: EventWithType) => {
+        const eventTypeInfo = eventTypes.find(t => t.id === event.event_type_id)
+        return {
+          ...event,
+          event_type_info: eventTypeInfo ? {
+            id: eventTypeInfo.id,
+            name: eventTypeInfo.name,
+            color: eventTypeInfo.color,
+            icon: eventTypeInfo.icon,
+          } : undefined
+        }
+      })
+
+      setEvents(eventsWithTypes)
     } catch {
       toast.error("Fehler beim Laden der Events")
     }
-  }, [currentMonth, statusFilter])
+  }, [currentMonth, statusFilter, eventTypes])
 
+  // Load event types on mount
+  React.useEffect(() => {
+    fetchEventTypes()
+  }, [fetchEventTypes])
+
+  // Load events when event types are loaded or filters change
   React.useEffect(() => {
     async function init() {
+      if (eventTypes.length === 0) return
       setIsLoading(true)
       await fetchEvents()
       setIsLoading(false)
     }
     init()
-  }, [fetchEvents])
+  }, [fetchEvents, eventTypes.length])
 
   // === Calendar Logic ===
 
@@ -242,12 +292,28 @@ export default function AdminEventsPage() {
     threshold: 50,
   })
 
+  // Helper to get event type info for an event
+  const getEventTypeInfo = React.useCallback((event: EventWithType) => {
+    if (event.event_type_info) return event.event_type_info
+    const typeInfo = eventTypes.find(t => t.id === event.event_type_id)
+    if (typeInfo) return { id: typeInfo.id, name: typeInfo.name, color: typeInfo.color, icon: typeInfo.icon }
+    // Fallback for legacy events
+    return { id: "", name: "Unbekannt", color: "#6B7280", icon: null }
+  }, [eventTypes])
+
+  // Get default event type (first one or Vereins-Event)
+  const getDefaultEventTypeId = React.useCallback(() => {
+    const vereinsEvent = eventTypes.find(t => t.name === "Vereins-Event")
+    if (vereinsEvent) return vereinsEvent.id
+    return eventTypes[0]?.id || ""
+  }, [eventTypes])
+
   function openCreateDialog(date?: Date) {
     setSelectedEvent(null)
     setFormData({
       title: "",
       description: "",
-      event_type: "club_event",
+      event_type_id: getDefaultEventTypeId(),
       event_date: date ? format(date, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
       start_time: "18:00",
       end_time: "",
@@ -258,12 +324,12 @@ export default function AdminEventsPage() {
     setCreateDialogOpen(true)
   }
 
-  function openEditDialog(event: Event) {
+  function openEditDialog(event: EventWithType) {
     setSelectedEvent(event)
     setFormData({
       title: event.title,
       description: event.description || "",
-      event_type: event.event_type,
+      event_type_id: event.event_type_id || getDefaultEventTypeId(),
       event_date: event.event_date,
       start_time: event.start_time.slice(0, 5),
       end_time: event.end_time?.slice(0, 5) || "",
@@ -307,7 +373,7 @@ export default function AdminEventsPage() {
   }, [formData.event_date, formData.start_time, formData.end_time, events, selectedEvent])
 
   async function handleSubmit() {
-    if (!formData.title || !formData.event_date || !formData.start_time) {
+    if (!formData.title || !formData.event_date || !formData.start_time || !formData.event_type_id) {
       toast.error("Bitte fülle alle Pflichtfelder aus")
       return
     }
@@ -319,11 +385,23 @@ export default function AdminEventsPage() {
         : "/api/events"
       const method = selectedEvent ? "PUT" : "POST"
 
+      // Map event_type_id back to event_type for backwards compatibility
+      const eventTypeInfo = eventTypes.find(t => t.id === formData.event_type_id)
+      const legacyEventType = eventTypeInfo?.name === "Auftritt" ? "performance"
+        : eventTypeInfo?.name === "Wettkampf" ? "match"
+        : eventTypeInfo?.name === "Vereins-Event" ? "club_event"
+        : eventTypeInfo?.name === "Training-Event" ? "training_event"
+        : "club_event"
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
+          title: formData.title,
+          event_date: formData.event_date,
+          start_time: formData.start_time,
+          event_type: legacyEventType, // Keep for backwards compat
+          event_type_id: formData.event_type_id,
           end_time: formData.end_time || null,
           description: formData.description || null,
           location_name: formData.location_name || null,
@@ -472,10 +550,11 @@ export default function AdminEventsPage() {
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-4 text-sm">
         <span className="text-muted-foreground">Legende:</span>
-        {EVENT_TYPES.map((type) => (
-          <span key={type} className="flex items-center gap-1.5">
-            <EventTypeDot type={type} />
-            {EVENT_TYPE_LABELS[type]}
+        {eventTypes.map((type) => (
+          <span key={type.id} className="flex items-center gap-1.5">
+            <EventTypeDot color={type.color} name={type.name} />
+            {type.icon && <span>{type.icon}</span>}
+            {type.name}
           </span>
         ))}
       </div>
@@ -539,22 +618,25 @@ export default function AdminEventsPage() {
                     )}
                   </div>
                   <div className="space-y-0.5">
-                    {dayEvents.slice(0, 2).map((event) => (
-                      <div
-                        key={event.id}
-                        className={cn(
-                          "text-[10px] sm:text-xs px-1 py-0.5 rounded truncate flex items-center gap-1",
-                          event.status === "abgesagt" && "line-through opacity-60"
-                        )}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openDetailDialog(event)
-                        }}
-                      >
-                        <EventTypeDot type={event.event_type} />
-                        <span className="truncate">{event.title}</span>
-                      </div>
-                    ))}
+                    {dayEvents.slice(0, 2).map((event) => {
+                      const typeInfo = getEventTypeInfo(event)
+                      return (
+                        <div
+                          key={event.id}
+                          className={cn(
+                            "text-[10px] sm:text-xs px-1 py-0.5 rounded truncate flex items-center gap-1",
+                            event.status === "abgesagt" && "line-through opacity-60"
+                          )}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openDetailDialog(event)
+                          }}
+                        >
+                          <EventTypeDot color={typeInfo.color} name={typeInfo.name} />
+                          <span className="truncate">{event.title}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )
@@ -579,34 +661,37 @@ export default function AdminEventsPage() {
               </ResponsiveDialogDescription>
             </ResponsiveDialogHeader>
             <div className="space-y-2 py-4 max-h-[60vh] overflow-y-auto">
-              {getEventsForDay(selectedDate).map((event) => (
-                <Card
-                  key={event.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => {
-                    setSelectedDate(null)
-                    openDetailDialog(event)
-                  }}
-                >
-                  <CardContent className="p-3">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <EventTypeDot type={event.event_type} />
-                          <span className="font-medium">{event.title}</span>
+              {getEventsForDay(selectedDate).map((event) => {
+                const typeInfo = getEventTypeInfo(event)
+                return (
+                  <Card
+                    key={event.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => {
+                      setSelectedDate(null)
+                      openDetailDialog(event)
+                    }}
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <EventTypeDot color={typeInfo.color} name={typeInfo.name} />
+                            <span className="font-medium">{event.title}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-3.5 w-3.5" />
+                            {formatDateRange(event.start_time, event.end_time)}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="h-3.5 w-3.5" />
-                          {formatDateRange(event.start_time, event.end_time)}
-                        </div>
+                        <Badge variant={EVENT_STATUS_VARIANTS[event.status]}>
+                          {EVENT_STATUS_LABELS[event.status]}
+                        </Badge>
                       </div>
-                      <Badge variant={EVENT_STATUS_VARIANTS[event.status]}>
-                        {EVENT_STATUS_LABELS[event.status]}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                )
+              })}
               <Button
                 variant="outline"
                 className="w-full"
@@ -630,13 +715,20 @@ export default function AdminEventsPage() {
         onOpenChange={setDetailDialogOpen}
       >
         <ResponsiveDialogContent className="sm:max-w-lg">
-          {selectedEvent && (
+          {selectedEvent && (() => {
+            const typeInfo = getEventTypeInfo(selectedEvent)
+            return (
             <>
               <ResponsiveDialogHeader>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <EventTypeDot type={selectedEvent.event_type} />
-                  <Badge variant="outline">
-                    {EVENT_TYPE_LABELS[selectedEvent.event_type]}
+                  <EventTypeDot color={typeInfo.color} name={typeInfo.name} />
+                  <Badge
+                    variant="outline"
+                    className="border-2"
+                    style={{ borderColor: typeInfo.color }}
+                  >
+                    {typeInfo.icon && <span className="mr-1">{typeInfo.icon}</span>}
+                    {typeInfo.name}
                   </Badge>
                   <Badge variant={EVENT_STATUS_VARIANTS[selectedEvent.status]}>
                     {EVENT_STATUS_LABELS[selectedEvent.status]}
@@ -784,13 +876,13 @@ export default function AdminEventsPage() {
                 </Button>
               </ResponsiveDialogFooter>
             </>
-          )}
+          )})()}
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
-      {/* Create/Edit Event Dialog */}
+      {/* Create/Edit Event Dialog - Größeres 2-Spalten-Layout */}
       <ResponsiveDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <ResponsiveDialogContent className="sm:max-w-lg">
+        <ResponsiveDialogContent className="sm:max-w-2xl">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>
               {selectedEvent ? "Event bearbeiten" : "Neues Event erstellen"}
@@ -803,7 +895,7 @@ export default function AdminEventsPage() {
           </ResponsiveDialogHeader>
 
           <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
-            {/* Warnung bei Vergangenheits-Datum */}
+            {/* Warnungen */}
             {isDateInPast && (
               <Alert variant="default" className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
                 <AlertTriangle className="h-4 w-4 text-yellow-600" />
@@ -813,7 +905,6 @@ export default function AdminEventsPage() {
               </Alert>
             )}
 
-            {/* Warnung bei überlappenden Events */}
             {overlappingEvents.length > 0 && (
               <Alert variant="default" className="border-orange-500 bg-orange-50 dark:bg-orange-950/20">
                 <AlertTriangle className="h-4 w-4 text-orange-600" />
@@ -824,46 +915,50 @@ export default function AdminEventsPage() {
               </Alert>
             )}
 
-            {/* Titel */}
-            <div className="space-y-2">
-              <Label htmlFor="title">Titel *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                placeholder="z.B. Stadtfest Auftritt"
-              />
-            </div>
+            {/* 2-Spalten-Layout auf Desktop */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {/* Titel */}
+              <div className="space-y-2">
+                <Label htmlFor="title">Titel *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  placeholder="z.B. Stadtfest Auftritt"
+                />
+              </div>
 
-            {/* Event-Typ */}
-            <div className="space-y-2">
-              <Label htmlFor="event_type">Event-Typ *</Label>
-              <Select
-                value={formData.event_type}
-                onValueChange={(v) =>
-                  setFormData({ ...formData, event_type: v as EventType })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {EVENT_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      <span className="flex items-center gap-2">
-                        <EventTypeDot type={type} />
-                        {EVENT_TYPE_LABELS[type]}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Event-Typ - Dynamisch aus DB */}
+              <div className="space-y-2">
+                <Label htmlFor="event_type_id">Event-Typ *</Label>
+                <Select
+                  value={formData.event_type_id}
+                  onValueChange={(v) =>
+                    setFormData({ ...formData, event_type_id: v })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Typ wählen..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {eventTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        <span className="flex items-center gap-2">
+                          <EventTypeDot color={type.color} name={type.name} />
+                          {type.icon && <span>{type.icon}</span>}
+                          {type.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Datum & Zeit */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-4 sm:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="event_date">Datum *</Label>
                 <Input
@@ -897,33 +992,37 @@ export default function AdminEventsPage() {
                   }
                 />
               </div>
+              <div /> {/* Spacer für Grid-Alignment */}
             </div>
 
-            {/* Ort */}
-            <div className="space-y-2">
-              <Label htmlFor="location_name">Veranstaltungsort</Label>
-              <Input
-                id="location_name"
-                value={formData.location_name}
-                onChange={(e) =>
-                  setFormData({ ...formData, location_name: e.target.value })
-                }
-                placeholder="z.B. Stadthalle"
-              />
+            {/* Ort - 2 Spalten */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="location_name">Veranstaltungsort</Label>
+                <Input
+                  id="location_name"
+                  value={formData.location_name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, location_name: e.target.value })
+                  }
+                  placeholder="z.B. Stadthalle"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Adresse</Label>
+                <Input
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
+                  placeholder="z.B. Marktplatz 1, 12345 Musterstadt"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="address">Adresse</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                placeholder="z.B. Marktplatz 1, 12345 Musterstadt"
-              />
-            </div>
-
+            {/* Treffpunkt - volle Breite */}
             <div className="space-y-2">
               <Label htmlFor="meeting_point">Treffpunkt</Label>
               <Input
@@ -936,7 +1035,7 @@ export default function AdminEventsPage() {
               />
             </div>
 
-            {/* Beschreibung */}
+            {/* Beschreibung - volle Breite */}
             <div className="space-y-2">
               <Label htmlFor="description">Beschreibung</Label>
               <Textarea
