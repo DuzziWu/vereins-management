@@ -1,6 +1,6 @@
 # PROJ-23: Event-Typen & UI-Verbesserungen
 
-## Status: ✅ Ready for Deployment
+## Status: ✅ Deployed (2026-02-11)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-20 (Event-Verwaltung) - Basis-Event-System muss existieren
