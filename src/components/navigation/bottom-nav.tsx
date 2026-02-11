@@ -93,6 +93,7 @@ export function BottomNav() {
                 href={item.url}
                 isActive={isActive}
                 badge={isGroupItem ? totalUnread : undefined}
+                isEvents={item.isEvents}
               />
             )
           })}

@@ -66,6 +66,15 @@
     --sidebar-border: 240 4% 16%;       /* #27272a */
     --sidebar-ring: 217 91% 60%;        /* #3b82f6 */
 
+    /* Navigation Design Refresh (PROJ-24) */
+    --nav-accent: 217 91% 60%;                    /* Blau - wie Primary */
+    --nav-active-bg: 217 91% 60% / 0.1;           /* Primary mit 10% Opacity */
+    --nav-hover-bg: 240 14% 14%;                  /* Leicht heller als Sidebar-BG */
+    --nav-section-bg: 217 91% 60% / 0.08;         /* Subtiler Accent für Sektionen */
+    --nav-active-bar: 217 91% 60%;                /* Solid Primary für Balken */
+    --nav-gradient-start: 217 91% 60%;            /* Gradient Start */
+    --nav-gradient-end: 280 65% 60%;              /* Gradient End (Lila) */
+
     /* Status-Farben (neu hinzugefügt) */
     --success: 142 71% 45%;             /* #22c55e - Erfolg */
     --success-foreground: 0 0% 100%;
@@ -109,6 +118,13 @@
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 240 4% 16%;
     --sidebar-ring: 217 91% 60%;
+    --nav-accent: 217 91% 60%;
+    --nav-active-bg: 217 91% 60% / 0.1;
+    --nav-hover-bg: 240 14% 14%;
+    --nav-section-bg: 217 91% 60% / 0.08;
+    --nav-active-bar: 217 91% 60%;
+    --nav-gradient-start: 217 91% 60%;
+    --nav-gradient-end: 280 65% 60%;
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;

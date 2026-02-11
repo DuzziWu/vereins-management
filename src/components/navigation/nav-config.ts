@@ -85,26 +85,28 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
 }
 
 // Bottom Navigation: Die wichtigsten 3 Items pro Rolle + "Mehr"
+// PROJ-24: Events an Position 2 für alle Rollen (prominentere Platzierung)
 export interface BottomNavItem {
   title: string
   url: string
   icon: LucideIcon
+  isEvents?: boolean // Marker für Events-Item (Accent-Styling)
 }
 
 export const BOTTOM_NAV_ITEMS: Record<UserRole, BottomNavItem[]> = {
   vorstand: [
     { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+    { title: "Events", url: "/admin/events", icon: CalendarDays, isEvents: true },
     { title: "Mitglieder", url: "/admin/members", icon: Users },
-    { title: "Finanzen", url: "/admin/finances/fees", icon: Wallet },
   ],
   trainer: [
     { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+    { title: "Events", url: "/trainer/events", icon: CalendarDays, isEvents: true },
     { title: "Gruppen", url: "/trainer/groups", icon: UsersRound },
-    { title: "Training", url: "/trainer/schedule", icon: Calendar },
   ],
   mitglied: [
     { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-    { title: "Profil", url: "/profile", icon: User },
+    { title: "Events", url: "/member/events", icon: CalendarDays, isEvents: true },
     { title: "Termine", url: "/member/schedule", icon: Calendar },
   ],
 }
@@ -123,4 +125,18 @@ export function getAllNavItems(role: UserRole): NavItem[] {
   }
 
   return items
+}
+
+// Events URL pro Rolle
+export function getEventsUrl(role: UserRole): string {
+  switch (role) {
+    case "vorstand":
+      return "/admin/events"
+    case "trainer":
+      return "/trainer/events"
+    case "mitglied":
+      return "/member/events"
+    default:
+      return "/member/events"
+  }
 }
