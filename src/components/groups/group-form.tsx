@@ -173,11 +173,16 @@ export function GroupForm({
 
     setIsSubmitting(true)
     try {
+      // When editing, exclude chat_enabled as it can only be set at creation
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { chat_enabled, ...dataWithoutChat } = data
+      const submitData = isEditing ? dataWithoutChat : data
+
       await onSubmit({
-        ...data,
+        ...submitData,
         co_trainer_ids: selectedCoTrainers,
         member_ids: selectedMembers,
-      })
+      } as GroupFormData & { co_trainer_ids: string[]; member_ids: string[] })
       onOpenChange(false)
     } finally {
       setIsSubmitting(false)
