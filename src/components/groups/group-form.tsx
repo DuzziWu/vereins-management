@@ -123,14 +123,6 @@ export function GroupForm({
   // Reset form when group changes
   React.useEffect(() => {
     if (open) {
-      // Debug: Log form initialization
-      console.log('[GroupForm] Form opened:', {
-        groupId: group?.id,
-        existingMembersCount: existingMembers.length,
-        existingCoTrainersCount: existingCoTrainers.length,
-        allMembersCount: allMembers.length,
-      })
-
       if (group) {
         form.reset({
           name: group.name,
@@ -185,14 +177,6 @@ export function GroupForm({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { chat_enabled, ...dataWithoutChat } = data
       const submitData = isEditing ? dataWithoutChat : data
-
-      // Debug: Log what's being submitted
-      console.log('[GroupForm] Submitting:', {
-        isEditing,
-        selectedMembers,
-        selectedCoTrainers,
-        allMembersCount: allMembers.length,
-      })
 
       await onSubmit({
         ...submitData,
