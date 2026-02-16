@@ -1,6 +1,6 @@
 # PROJ-25: Workgroup-Verwaltung
 
-## Status: Ready for Testing (Bugs Fixed)
+## Status: Deployed
 
 ## Abhangigkeiten
 - Benotigt: PROJ-1 (User Authentication) - fur eingeloggte User-Checks
