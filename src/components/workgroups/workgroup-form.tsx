@@ -401,10 +401,12 @@ export function WorkgroupForm({
               {/* Members Section */}
               <div className="space-y-4">
                 <div>
-                  <FormLabel>Mitglieder zuweisen *</FormLabel>
-                  <FormDescription>
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Mitglieder zuweisen *
+                  </label>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Wählen Sie mindestens ein Mitglied für diese Workgroup.
-                  </FormDescription>
+                  </p>
                 </div>
 
                 {/* Selected Members Preview */}
