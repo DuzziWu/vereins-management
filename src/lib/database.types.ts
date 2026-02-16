@@ -1545,6 +1545,117 @@ export type Database = {
           },
         ]
       }
+      workgroup_categories: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_system_default: boolean
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_system_default?: boolean
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_system_default?: boolean
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      workgroup_members: {
+        Row: {
+          id: string
+          joined_at: string | null
+          profile_id: string
+          workgroup_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string | null
+          profile_id: string
+          workgroup_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string | null
+          profile_id?: string
+          workgroup_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workgroup_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workgroup_members_workgroup_id_fkey"
+            columns: ["workgroup_id"]
+            isOneToOne: false
+            referencedRelation: "workgroups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workgroups: {
+        Row: {
+          archived_at: string | null
+          category_id: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          category_id?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          category_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workgroups_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "workgroup_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workgroups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1826,3 +1937,6 @@ export const Constants = {
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"]
 export type EventType = Database["public"]["Tables"]["event_types"]["Row"]
 export type ClubSettings = Database["public"]["Tables"]["club_settings"]["Row"]
+export type Workgroup = Database["public"]["Tables"]["workgroups"]["Row"]
+export type WorkgroupCategory = Database["public"]["Tables"]["workgroup_categories"]["Row"]
+export type WorkgroupMember = Database["public"]["Tables"]["workgroup_members"]["Row"]

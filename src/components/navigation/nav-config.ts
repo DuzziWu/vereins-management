@@ -14,6 +14,7 @@ import {
   Receipt,
   BookOpen,
   Tag,
+  FolderKanban,
   type LucideIcon,
 } from "lucide-react"
 import { UserRole } from "@/components/auth"
@@ -42,12 +43,14 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
     main: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "Mein Profil", url: "/profile", icon: User },
+      { title: "Meine Workgroups", url: "/admin/my-workgroups", icon: FolderKanban },
     ],
     admin: [
       { title: "Mitglieder", url: "/admin/members", icon: Users },
       { title: "User einladen", url: "/admin/users/invite", icon: UserPlus },
       { title: "Einladungen", url: "/admin/users/invitations", icon: Mail },
       { title: "Gruppen", url: "/admin/groups", icon: UsersRound },
+      { title: "Workgroups", url: "/admin/workgroups", icon: FolderKanban },
       { title: "Veranstaltungen", url: "/admin/events", icon: CalendarDays },
       { title: "Dokumente", url: "/admin/documents", icon: FileText },
     ],
@@ -67,6 +70,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "Mein Profil", url: "/profile", icon: User },
       { title: "Meine Gruppen", url: "/trainer/groups", icon: UsersRound },
+      { title: "Meine Workgroups", url: "/trainer/workgroups", icon: FolderKanban },
       { title: "Trainingsplan", url: "/trainer/schedule", icon: Calendar },
       { title: "Veranstaltungen", url: "/trainer/events", icon: CalendarDays },
       { title: "Anwesenheit", url: "/trainer/attendance", icon: ClipboardList },
@@ -77,6 +81,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "Mein Profil", url: "/profile", icon: User },
       { title: "Meine Gruppen", url: "/member/groups", icon: UsersRound },
+      { title: "Meine Workgroups", url: "/member/workgroups", icon: FolderKanban },
       { title: "Termine", url: "/member/schedule", icon: Calendar },
       { title: "Veranstaltungen", url: "/member/events", icon: CalendarDays },
       { title: "Dokumente", url: "/member/documents", icon: FileText },
