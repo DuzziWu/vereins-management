@@ -1,6 +1,6 @@
 # PROJ-26: Document Folder-System
 
-## Status: Planned
+## Status: Implementation Complete (Backend + Frontend)
 
 ## Abhangigkeiten
 - Benotigt: PROJ-1 (User Authentication) - fur eingeloggte User-Checks
@@ -399,6 +399,191 @@ Nach PROJ-26 werden diese Features die Document Cloud erweitern:
 - [x] File gespeichert: `/features/PROJ-26-document-folder-system.md`
 - [x] Status gesetzt: Planned
 - [ ] User Review: Ausstehend
+
+---
+
+---
+
+## Tech-Design (Solution Architect)
+
+### Bestehende Architektur-Analyse
+
+Das Projekt hat bereits:
+- **Dokumente-Seite** (`/admin/documents`, `/member/documents`) → Existiert als Platzhalter
+- **Event-Attachments** → Pattern für Datei-Uploads mit Supabase Storage
+- **Hierarchische Strukturen** → Keine vergleichbaren Baum-Strukturen vorhanden (neu!)
+
+### Component-Struktur
+
+```
+Dashboard (Alle Rollen)
+├── Navigation
+│   └── Menüpunkt "Dokumente" (existiert bereits)
+│
+└── Dokumente-Bereich
+    ├── Haupt-Ansicht (Split-View)
+    │   ├── Linke Seite: Ordner-Baum
+    │   │   ├── Ordner-Knoten (aufklappbar)
+    │   │   │   ├── Ordner-Icon (voll/leer)
+    │   │   │   ├── Ordner-Name
+    │   │   │   └── Unterordner (eingezogen)
+    │   │   └── System-Ordner mit Schloss-Icon
+    │   │
+    │   └── Rechte Seite: Ordner-Inhalt
+    │       ├── Breadcrumb-Navigation
+    │       │   └── Home > Protokolle > 2026 > Januar
+    │       ├── Ordner-Header (Name, Beschreibung)
+    │       ├── Unterordner-Liste
+    │       ├── Dokumente-Liste (Platzhalter für PROJ-27)
+    │       └── Leerer-Zustand Nachricht
+    │
+    ├── "Neuer Ordner" Dialog (nur Vorstand)
+    │   ├── Name-Eingabefeld
+    │   ├── Beschreibungs-Feld
+    │   ├── Parent-Ordner Dropdown
+    │   └── Berechtigungs-Anzeige (vererbt)
+    │
+    └── Berechtigungs-Dialog (nur Vorstand)
+        ├── Vererbte Berechtigungen (nicht änderbar, ausgegraut)
+        ├── Zusätzliche Berechtigungen (erweiterbar)
+        │   ├── Rollen-Checkboxen
+        │   └── Gruppen-Auswahl
+        └── Kettensymbol für vererbte Rechte
+```
+
+### Daten-Model (vereinfacht)
+
+```
+Ordner:
+- Name (Pflicht)
+- Beschreibung (optional)
+- Übergeordneter Ordner (optional, NULL = Root)
+- Pfad (für schnelle Abfragen: "/uuid1/uuid2/uuid3")
+- Tiefe (0-5, automatisch berechnet)
+- System-Standard markiert (nicht löschbar)
+- Erstellt von
+
+Ordner-Berechtigungen:
+- Verknüpfter Ordner
+- Berechtigung für: Rolle ODER Gruppe ODER Einzelperson
+- Vererbt-Markierung (ja/nein)
+
+Vererbungsregel:
+→ Unterordner erben automatisch alle Berechtigungen des Eltern-Ordners
+→ Vererbte Berechtigungen können ERWEITERT aber nicht EINGESCHRÄNKT werden
+```
+
+### Hierarchie-Visualisierung
+
+```
+Root (Ebene 0)
+├── Protokolle [🔒 System] (Ebene 1)
+│   ├── 2025 (Ebene 2)
+│   └── 2026 (Ebene 2)
+│       ├── Januar (Ebene 3)
+│       └── Februar (Ebene 3)
+├── Allgemeine Infos [🔒 System] (Ebene 1)
+└── Formulare [🔒 System] (Ebene 1)
+
+Maximum: 5 Ebenen tief
+```
+
+### Berechtigungs-Vererbung (visuell)
+
+```
+"Protokolle" (nur Vorstand)
+    │
+    ↓ vererbt
+"2026" (nur Vorstand + vererbt)
+    │
+    ↓ vererbt + erweitert
+"Januar" (nur Vorstand + Trainer hinzugefügt)
+    │
+    → Trainer können Januar sehen, aber nicht 2026 oder Protokolle
+```
+
+### Tech-Entscheidungen
+
+| Entscheidung | Begründung |
+|--------------|------------|
+| **Materialized Path für Hierarchie** | Schnelle Abfragen "alle Unterordner" ohne Rekursion |
+| **Depth-Column** | Direkte Tiefenprüfung ohne Berechnung |
+| **Split-View Layout** | Bekanntes Explorer-Pattern, intuitive Navigation |
+| **Collapsible Tree** | Platzsparend bei vielen Ordnern |
+| **System-Ordner bei Installation** | Sofort nutzbare Grundstruktur |
+| **Berechtigungen als separate Tabelle** | Flexibel für verschiedene Zieltypen (Rolle/Gruppe/Person) |
+
+### Wiederverwendbare Komponenten
+
+- **Breadcrumb** → Ähnlich zu Dashboard-Navigation, anpassbar
+- **Badge** → Für Berechtigungs-Anzeige
+- **Dialog** → Für Ordner-Formulare
+- **Checkbox/Select** → Für Berechtigungs-Editor
+
+### Neue UI-Komponenten (zu erstellen)
+
+- **Folder-Tree** → Aufklappbare Baum-Struktur
+- **Folder-Breadcrumb** → Klickbare Pfad-Navigation mit Kollabierung
+- **Permission-Indicator** → Kettensymbol für vererbte Rechte
+
+### Dependencies
+
+| Package | Zweck |
+|---------|-------|
+| **Keine neuen** | Baum-Struktur mit nativen HTML/CSS umsetzbar |
+
+### Aufwand-Schätzung
+
+| Bereich | Komplexität |
+|---------|-------------|
+| Datenbank-Setup | Mittel (Hierarchie, Vererbung, Trigger) |
+| Folder-Tree Component | Mittel (rekursive Darstellung, State) |
+| Berechtigungs-Logik | Mittel (Vererbung, RLS-Policies) |
+| Breadcrumb-Navigation | Niedrig (bekanntes Pattern) |
+| Split-View Layout | Niedrig (Flexbox/Grid) |
+
+---
+
+## Backend Implementation (Complete)
+
+### Database Tables
+- `folders` - Hierarchische Ordner-Struktur mit Materialized Path
+- `folder_permissions` - Zugriffsrechte (Rolle, Gruppe, Profil)
+
+### Database Functions
+- `get_profile_id_for_user(user_uuid)` - Profile-ID für User
+- `get_user_role(profile_uuid)` - Rolle eines Profils
+- `update_folder_path()` - Trigger für Pfad-Updates
+- `inherit_folder_permissions()` - Trigger für Berechtigungs-Vererbung
+- `update_folder_timestamp()` - Trigger für updated_at
+
+### RLS Policies
+- `folders_select` - Vorstand sieht alles, andere nur freigegebene
+- `folders_insert/update/delete` - Nur Vorstand
+- `folder_permissions_*` - Nur Vorstand
+
+### API Routes
+- `GET /api/folders` - Liste Ordner (mit parent_id Filter)
+- `POST /api/folders` - Ordner erstellen
+- `GET /api/folders/tree` - Kompletter Ordner-Baum
+- `GET /api/folders/[id]` - Ordner-Details mit Breadcrumb
+- `PATCH /api/folders/[id]` - Ordner umbenennen/verschieben
+- `DELETE /api/folders/[id]` - Ordner löschen
+- `GET /api/folders/[id]/permissions` - Berechtigungen abrufen
+- `POST /api/folders/[id]/permissions` - Berechtigungen hinzufügen
+- `DELETE /api/folders/[id]/permissions` - Berechtigung entfernen
+
+### Validation Schemas
+- `folderCreateSchema` - Ordner erstellen
+- `folderUpdateSchema` - Ordner aktualisieren
+- `folderMoveSchema` - Ordner verschieben
+- `folderPermissionSchema` - Einzelne Berechtigung
+- `folderPermissionsUpdateSchema` - Mehrere Berechtigungen
+
+### System Default Folders
+- "Protokolle" (nur Vorstand)
+- "Allgemeine Infos" (alle Mitglieder)
+- "Formulare" (alle Mitglieder)
 
 ---
 

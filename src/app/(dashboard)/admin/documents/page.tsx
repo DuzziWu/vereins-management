@@ -1,23 +1,26 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText } from "lucide-react"
+import { Suspense } from "react"
+import { DocumentsView } from "@/components/documents"
+import { Skeleton } from "@/components/ui/skeleton"
+
+function DocumentsPageSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-10 w-32" />
+      </div>
+      <div className="flex gap-4 h-[calc(100vh-12rem)]">
+        <Skeleton className="hidden md:block w-64 h-full" />
+        <Skeleton className="flex-1 h-full" />
+      </div>
+    </div>
+  )
+}
 
 export default function AdminDocumentsPage() {
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Dokumente</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Dokumente
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Diese Seite wird in einem zukünftigen Update verfügbar sein.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+    <Suspense fallback={<DocumentsPageSkeleton />}>
+      <DocumentsView isVorstand={true} basePath="/admin/documents" />
+    </Suspense>
   )
 }

@@ -606,6 +606,112 @@ export type Database = {
           },
         ]
       }
+      folder_permissions: {
+        Row: {
+          created_at: string | null
+          folder_id: string
+          group_id: string | null
+          id: string
+          is_inherited: boolean
+          profile_id: string | null
+          role: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          folder_id: string
+          group_id?: string | null
+          id?: string
+          is_inherited?: boolean
+          profile_id?: string | null
+          role?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          folder_id?: string
+          group_id?: string | null
+          id?: string
+          is_inherited?: boolean
+          profile_id?: string | null
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folder_permissions_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "folder_permissions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "folder_permissions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      folders: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          depth: number
+          description: string | null
+          id: string
+          is_system_default: boolean
+          name: string
+          parent_id: string | null
+          path: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          depth?: number
+          description?: string | null
+          id?: string
+          is_system_default?: boolean
+          name: string
+          parent_id?: string | null
+          path?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          depth?: number
+          description?: string | null
+          id?: string
+          is_system_default?: boolean
+          name?: string
+          parent_id?: string | null
+          path?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_chat_reads: {
         Row: {
           group_id: string
@@ -1754,7 +1860,9 @@ export type Database = {
       }
       get_my_profile_id: { Args: never; Returns: string }
       get_my_role: { Args: never; Returns: string }
+      get_profile_id_for_user: { Args: { user_uuid: string }; Returns: string }
       get_treasury_balance: { Args: never; Returns: number }
+      get_user_role: { Args: { profile_uuid: string }; Returns: string }
       get_unread_message_counts: {
         Args: { p_profile_id: string }
         Returns: {
@@ -1940,3 +2048,10 @@ export type ClubSettings = Database["public"]["Tables"]["club_settings"]["Row"]
 export type Workgroup = Database["public"]["Tables"]["workgroups"]["Row"]
 export type WorkgroupCategory = Database["public"]["Tables"]["workgroup_categories"]["Row"]
 export type WorkgroupMember = Database["public"]["Tables"]["workgroup_members"]["Row"]
+
+// PROJ-26: Folder Types
+export type Folder = Database["public"]["Tables"]["folders"]["Row"]
+export type FolderInsert = Database["public"]["Tables"]["folders"]["Insert"]
+export type FolderUpdate = Database["public"]["Tables"]["folders"]["Update"]
+export type FolderPermission = Database["public"]["Tables"]["folder_permissions"]["Row"]
+export type FolderPermissionInsert = Database["public"]["Tables"]["folder_permissions"]["Insert"]
