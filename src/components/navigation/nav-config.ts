@@ -74,6 +74,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
       { title: "Trainingsplan", url: "/trainer/schedule", icon: Calendar },
       { title: "Veranstaltungen", url: "/trainer/events", icon: CalendarDays },
       { title: "Anwesenheit", url: "/trainer/attendance", icon: ClipboardList },
+      { title: "Dokumente", url: "/trainer/documents", icon: FileText },
     ],
   },
   mitglied: {
