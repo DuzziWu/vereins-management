@@ -83,10 +83,13 @@ export async function GET(
   // Generate signed URL for current version
   let downloadUrl = null
   if (currentVersion?.storage_path) {
-    const { data: signedUrlData } = await supabase.storage
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from("documents")
       .createSignedUrl(currentVersion.storage_path, 3600) // 1 hour
 
+    if (signedUrlError) {
+      console.error("Error creating signed URL:", signedUrlError)
+    }
     downloadUrl = signedUrlData?.signedUrl || null
   }
 

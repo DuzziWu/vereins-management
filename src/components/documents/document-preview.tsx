@@ -106,6 +106,7 @@ export function DocumentPreview({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        hideCloseButton
         className={cn(
           "flex flex-col p-0",
           isFullscreen

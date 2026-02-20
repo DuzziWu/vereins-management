@@ -99,6 +99,7 @@ export function DocumentsView({ isVorstand, basePath }: DocumentsViewProps) {
   const [isLoadingConfirmations, setIsLoadingConfirmations] = React.useState(false)
   const [versionsWithUrls, setVersionsWithUrls] = React.useState<Array<{ id: string; download_url: string | null }>>([])
   const [isLoadingVersions, setIsLoadingVersions] = React.useState(false)
+  const [isLoadingPreview, setIsLoadingPreview] = React.useState(false)
   const [movingDocumentId, setMovingDocumentId] = React.useState<string | null>(null)
   const [isMovingDocument, setIsMovingDocument] = React.useState(false)
   const [duplicateInfo, setDuplicateInfo] = React.useState<{
@@ -435,6 +436,7 @@ export function DocumentsView({ isVorstand, basePath }: DocumentsViewProps) {
     setSelectedDocument(doc)
     setShowPreviewDialog(true)
     setDocumentFileUrl(null)
+    setIsLoadingPreview(true)
 
     // Fetch document details with download URL
     try {
@@ -444,10 +446,16 @@ export function DocumentsView({ isVorstand, basePath }: DocumentsViewProps) {
         setDocumentFileUrl(data.document.download_url)
         // Update selected document with full details
         setSelectedDocument(data.document)
+      } else {
+        const errorData = await response.json()
+        console.error("Error fetching document:", errorData.error)
+        toast.error("Fehler beim Laden des Dokuments")
       }
     } catch (error) {
       console.error("Error fetching document:", error)
       toast.error("Fehler beim Laden des Dokuments")
+    } finally {
+      setIsLoadingPreview(false)
     }
   }
 
@@ -877,6 +885,7 @@ export function DocumentsView({ isVorstand, basePath }: DocumentsViewProps) {
         onOpenChange={setShowPreviewDialog}
         document={selectedDocument}
         fileUrl={documentFileUrl}
+        isLoading={isLoadingPreview}
         isVorstand={isVorstand}
         onDownload={() => selectedDocument && handleDownloadDocument(selectedDocument.id)}
         onViewHistory={() => {
