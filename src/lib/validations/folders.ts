@@ -4,6 +4,16 @@ import { z } from "zod"
 // PROJ-26: Document Folder System Validation Schemas
 // =============================================
 
+// Role types for folder permissions
+export const FOLDER_ROLES = ["vorstand", "trainer", "mitglied"] as const
+export type FolderRole = typeof FOLDER_ROLES[number]
+
+export const FOLDER_ROLE_LABELS: Record<FolderRole, string> = {
+  vorstand: "Vorstand",
+  trainer: "Trainer",
+  mitglied: "Alle Mitglieder",
+}
+
 // Folder Create Schema
 export const folderCreateSchema = z.object({
   name: z
@@ -16,6 +26,8 @@ export const folderCreateSchema = z.object({
     .optional()
     .or(z.literal("")),
   parent_id: z.string().uuid("Ungültige Ordner-ID").nullable().optional(),
+  // Permissions - which roles can access this folder
+  roles: z.array(z.enum(FOLDER_ROLES)).min(1, "Mindestens eine Berechtigung erforderlich"),
 })
 
 export type FolderCreateData = z.infer<typeof folderCreateSchema>
@@ -33,7 +45,9 @@ export const folderUpdateSchema = z.object({
     .nullable()
     .optional(),
   parent_id: z.string().uuid("Ungültige Ordner-ID").nullable().optional(),
-}).strict()
+  // Permissions - which roles can access this folder
+  roles: z.array(z.enum(FOLDER_ROLES)).min(1, "Mindestens eine Berechtigung erforderlich").optional(),
+})
 
 export type FolderUpdateData = z.infer<typeof folderUpdateSchema>
 

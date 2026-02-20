@@ -32,7 +32,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     .from('folders')
     .select(`
       *,
-      created_by_profile:profiles!folders_created_by_fkey(id, first_name, last_name)
+      created_by_profile:profiles!created_by(id, first_name, last_name)
     `)
     .eq('id', id)
     .single()
@@ -177,13 +177,41 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     .eq('id', id)
     .select(`
       *,
-      created_by_profile:profiles!folders_created_by_fkey(id, first_name, last_name)
+      created_by_profile:profiles!created_by(id, first_name, last_name)
     `)
     .single()
 
   if (updateError) {
     console.error('Error updating folder:', updateError)
     return NextResponse.json({ error: updateError.message }, { status: 500 })
+  }
+
+  // Update permissions if roles are provided
+  if (data.roles && data.roles.length > 0) {
+    // Delete existing non-inherited permissions
+    await supabase
+      .from('folder_permissions')
+      .delete()
+      .eq('folder_id', id)
+      .eq('is_inherited', false)
+
+    // Insert new permissions
+    const permissionsToInsert = data.roles.map(role => ({
+      folder_id: id,
+      role: role,
+      is_inherited: false,
+    }))
+
+    const { error: permError } = await supabase
+      .from('folder_permissions')
+      .insert(permissionsToInsert)
+
+    if (permError) {
+      console.error('Error updating folder permissions:', permError)
+    }
+
+    // Update subfolder inherited permissions
+    await updateSubfolderPermissions(supabase, id)
   }
 
   return NextResponse.json({ folder })
@@ -284,7 +312,7 @@ async function handleMoveFolder(
       .from('folders')
       .select(`
         *,
-        created_by_profile:profiles!folders_created_by_fkey(id, first_name, last_name)
+        created_by_profile:profiles!created_by(id, first_name, last_name)
       `)
       .eq('id', folderId)
       .single()
@@ -335,7 +363,7 @@ async function handleMoveFolder(
     .eq('id', folderId)
     .select(`
       *,
-      created_by_profile:profiles!folders_created_by_fkey(id, first_name, last_name)
+      created_by_profile:profiles!created_by(id, first_name, last_name)
     `)
     .single()
 

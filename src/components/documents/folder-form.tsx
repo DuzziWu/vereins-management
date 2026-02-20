@@ -43,7 +43,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { folderCreateSchema, FolderCreateData } from "@/lib/validations/folders"
+import { Checkbox } from "@/components/ui/checkbox"
+import { folderCreateSchema, FolderCreateData, FOLDER_ROLES, FOLDER_ROLE_LABELS, FolderRole } from "@/lib/validations/folders"
 import type { Folder, FolderPermission } from "./types"
 
 interface FolderFormProps {
@@ -75,8 +76,20 @@ export function FolderForm({
       name: "",
       description: "",
       parent_id: null,
+      roles: ["vorstand"],
     },
   })
+
+  // Extract roles from inherited permissions for editing
+  const getExistingRoles = React.useCallback((): FolderRole[] => {
+    if (!inheritedPermissions || inheritedPermissions.length === 0) {
+      return ["vorstand"]
+    }
+    const roles = inheritedPermissions
+      .filter(p => p.role && !p.is_inherited)
+      .map(p => p.role as FolderRole)
+    return roles.length > 0 ? roles : ["vorstand"]
+  }, [inheritedPermissions])
 
   // Reset form when folder or parentFolder changes
   React.useEffect(() => {
@@ -86,16 +99,18 @@ export function FolderForm({
           name: folder.name,
           description: folder.description || "",
           parent_id: folder.parent_id,
+          roles: getExistingRoles(),
         })
       } else {
         form.reset({
           name: "",
           description: "",
           parent_id: parentFolder?.id || null,
+          roles: ["vorstand"],
         })
       }
     }
-  }, [open, folder, parentFolder, form])
+  }, [open, folder, parentFolder, form, getExistingRoles])
 
   async function handleSubmit(data: FolderCreateData) {
     setIsSubmitting(true)
@@ -254,42 +269,89 @@ export function FolderForm({
                 />
               )}
 
-              {/* Inherited Permissions Display */}
-              {(inheritedPermissions.length > 0 || selectedParent) && (
-                <div className="space-y-2">
+              {/* Permissions Field */}
+              <FormField
+                control={form.control}
+                name="roles"
+                render={() => (
+                  <FormItem>
+                    <div className="mb-4">
+                      <FormLabel>Berechtigungen *</FormLabel>
+                      <FormDescription>
+                        Wählen Sie, welche Benutzergruppen auf diesen Ordner zugreifen können.
+                      </FormDescription>
+                    </div>
+                    <div className="space-y-3">
+                      {FOLDER_ROLES.map((role) => (
+                        <FormField
+                          key={role}
+                          control={form.control}
+                          name="roles"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={role}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(role)}
+                                    onCheckedChange={(checked) => {
+                                      const currentValue = field.value || []
+                                      if (checked) {
+                                        field.onChange([...currentValue, role])
+                                      } else {
+                                        // Ensure at least one role remains
+                                        const newValue = currentValue.filter((v) => v !== role)
+                                        if (newValue.length > 0) {
+                                          field.onChange(newValue)
+                                        }
+                                      }
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer">
+                                  {FOLDER_ROLE_LABELS[role]}
+                                  {role === "mitglied" && (
+                                    <span className="text-muted-foreground ml-1">(inkl. Trainer & Vorstand)</span>
+                                  )}
+                                  {role === "trainer" && (
+                                    <span className="text-muted-foreground ml-1">(inkl. Vorstand)</span>
+                                  )}
+                                </FormLabel>
+                              </FormItem>
+                            )
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Inherited Permissions Info (when editing or with parent) */}
+              {selectedParent && inheritedPermissions.length > 0 && (
+                <div className="space-y-2 rounded-md border p-3 bg-muted/50">
                   <div className="flex items-center gap-2">
                     <Link2 className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-medium">
-                      Vererbte Berechtigungen
-                      {selectedParent && ` von "${selectedParent.name}"`}
+                      Vererbte Berechtigungen von &quot;{selectedParent.name}&quot;
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {inheritedPermissions.length > 0 ? (
-                      inheritedPermissions.map((perm) => (
-                        <Badge
-                          key={perm.id}
-                          variant="secondary"
-                          className="text-muted-foreground flex items-center gap-1"
-                        >
-                          {/* BUG-4 FIX: Show chain icon for inherited permissions */}
-                          {perm.is_inherited && (
-                            <Link2 className="h-3 w-3" aria-label="Vererbt" />
-                          )}
-                          {formatPermission(perm)}
-                        </Badge>
-                      ))
-                    ) : (
-                      <Badge variant="secondary" className="text-muted-foreground flex items-center gap-1">
-                        <Link2 className="h-3 w-3" aria-label="Standard" />
-                        Vorstand (Standard)
+                    {inheritedPermissions.filter(p => p.is_inherited).map((perm) => (
+                      <Badge
+                        key={perm.id}
+                        variant="secondary"
+                        className="text-muted-foreground"
+                      >
+                        {formatPermission(perm)}
                       </Badge>
-                    )}
+                    ))}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Diese Berechtigungen werden automatisch vom übergeordneten
-                    Ordner geerbt und können erweitert, aber nicht eingeschränkt
-                    werden.
+                    Diese Berechtigungen werden automatisch vom übergeordneten Ordner übernommen.
                   </p>
                 </div>
               )}

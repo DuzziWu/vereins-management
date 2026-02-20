@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     .from('folders')
     .select(`
       *,
-      created_by_profile:profiles!folders_created_by_fkey(id, first_name, last_name)
+      created_by_profile:profiles!created_by(id, first_name, last_name)
     `)
     .order('name', { ascending: true })
 
@@ -187,13 +187,32 @@ export async function POST(request: NextRequest) {
     })
     .select(`
       *,
-      created_by_profile:profiles!folders_created_by_fkey(id, first_name, last_name)
+      created_by_profile:profiles!created_by(id, first_name, last_name)
     `)
     .single()
 
   if (insertError) {
     console.error('Error creating folder:', insertError)
     return NextResponse.json({ error: insertError.message }, { status: 500 })
+  }
+
+  // Insert permissions for the selected roles
+  const roles = data.roles || ['vorstand']
+  const permissionsToInsert = roles.map(role => ({
+    folder_id: folder.id,
+    role: role,
+    is_inherited: false,
+  }))
+
+  const { error: permError } = await supabase
+    .from('folder_permissions')
+    .insert(permissionsToInsert)
+
+  if (permError) {
+    console.error('Error creating folder permissions:', permError)
+    // Rollback folder creation
+    await supabase.from('folders').delete().eq('id', folder.id)
+    return NextResponse.json({ error: 'Fehler beim Erstellen der Berechtigungen' }, { status: 500 })
   }
 
   return NextResponse.json({ folder }, { status: 201 })
