@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -114,6 +115,9 @@ export function DocumentPreview({
       >
         {/* Header */}
         <DialogHeader className="flex-shrink-0 border-b p-4">
+          <DialogDescription className="sr-only">
+            Dokumentvorschau für {document.name}
+          </DialogDescription>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <DialogTitle className="truncate">

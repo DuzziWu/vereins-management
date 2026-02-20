@@ -44,20 +44,11 @@ export async function GET(
     .from("documents")
     .select(`
       *,
-      created_by_profile:profiles!documents_created_by_fkey(id, first_name, last_name),
-      current_version:document_versions!documents_current_version_fkey(
-        id, version_number, file_size, storage_path, change_note, created_at,
-        uploaded_by_profile:profiles!document_versions_uploaded_by_fkey(id, first_name, last_name)
-      ),
-      folder:folders!documents_folder_id_fkey(id, name, path),
-      versions:document_versions(
-        id, version_number, file_size, storage_path, change_note, created_at,
-        uploaded_by_profile:profiles!document_versions_uploaded_by_fkey(id, first_name, last_name)
-      )
+      created_by_profile:profiles!created_by(id, first_name, last_name),
+      folder:folders!folder_id(id, name, path)
     `)
     .eq("id", id)
     .is("deleted_at", null)
-    .order("version_number", { referencedTable: "document_versions", ascending: false })
     .single()
 
   if (error) {
@@ -67,6 +58,19 @@ export async function GET(
     console.error("Error fetching document:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // Fetch versions separately
+  const { data: versions } = await supabase
+    .from("document_versions")
+    .select(`
+      id, version_number, file_size, storage_path, change_note, created_at,
+      uploaded_by_profile:profiles!uploaded_by(id, first_name, last_name)
+    `)
+    .eq("document_id", id)
+    .order("version_number", { ascending: false })
+
+  // Get current version
+  const currentVersion = versions?.find(v => v.id === document.current_version_id) || versions?.[0] || null
 
   // Get user's confirmation for this document
   const { data: userConfirmation } = await supabase
@@ -78,10 +82,10 @@ export async function GET(
 
   // Generate signed URL for current version
   let downloadUrl = null
-  if (document.current_version?.storage_path) {
+  if (currentVersion?.storage_path) {
     const { data: signedUrlData } = await supabase.storage
       .from("documents")
-      .createSignedUrl(document.current_version.storage_path, 3600) // 1 hour
+      .createSignedUrl(currentVersion.storage_path, 3600) // 1 hour
 
     downloadUrl = signedUrlData?.signedUrl || null
   }
@@ -89,6 +93,8 @@ export async function GET(
   return NextResponse.json({
     document: {
       ...document,
+      current_version: currentVersion,
+      versions: versions || [],
       user_confirmation: userConfirmation,
       download_url: downloadUrl,
     },
