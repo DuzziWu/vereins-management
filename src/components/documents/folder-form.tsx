@@ -273,7 +273,7 @@ export function FolderForm({
               <FormField
                 control={form.control}
                 name="roles"
-                render={() => (
+                render={({ field }) => (
                   <FormItem>
                     <div className="mb-4">
                       <FormLabel>Berechtigungen *</FormLabel>
@@ -282,48 +282,44 @@ export function FolderForm({
                       </FormDescription>
                     </div>
                     <div className="space-y-3">
-                      {FOLDER_ROLES.map((role) => (
-                        <FormField
-                          key={role}
-                          control={form.control}
-                          name="roles"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={role}
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(role)}
-                                    onCheckedChange={(checked) => {
-                                      const currentValue = field.value || []
-                                      if (checked) {
-                                        field.onChange([...currentValue, role])
-                                      } else {
-                                        // Ensure at least one role remains
-                                        const newValue = currentValue.filter((v) => v !== role)
-                                        if (newValue.length > 0) {
-                                          field.onChange(newValue)
-                                        }
-                                      }
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  {FOLDER_ROLE_LABELS[role]}
-                                  {role === "mitglied" && (
-                                    <span className="text-muted-foreground ml-1">(inkl. Trainer & Vorstand)</span>
-                                  )}
-                                  {role === "trainer" && (
-                                    <span className="text-muted-foreground ml-1">(inkl. Vorstand)</span>
-                                  )}
-                                </FormLabel>
-                              </FormItem>
-                            )
-                          }}
-                        />
-                      ))}
+                      {FOLDER_ROLES.map((role) => {
+                        const isChecked = field.value?.includes(role) ?? false
+                        return (
+                          <div
+                            key={role}
+                            className="flex flex-row items-start space-x-3 space-y-0"
+                          >
+                            <Checkbox
+                              id={`role-${role}`}
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                const currentValue = field.value || []
+                                if (checked) {
+                                  field.onChange([...currentValue, role])
+                                } else {
+                                  // Ensure at least one role remains
+                                  const newValue = currentValue.filter((v) => v !== role)
+                                  if (newValue.length > 0) {
+                                    field.onChange(newValue)
+                                  }
+                                }
+                              }}
+                            />
+                            <label
+                              htmlFor={`role-${role}`}
+                              className="text-sm font-normal cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {FOLDER_ROLE_LABELS[role]}
+                              {role === "mitglied" && (
+                                <span className="text-muted-foreground ml-1">(inkl. Trainer & Vorstand)</span>
+                              )}
+                              {role === "trainer" && (
+                                <span className="text-muted-foreground ml-1">(inkl. Vorstand)</span>
+                              )}
+                            </label>
+                          </div>
+                        )
+                      })}
                     </div>
                     <FormMessage />
                   </FormItem>
