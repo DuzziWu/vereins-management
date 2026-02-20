@@ -231,8 +231,8 @@ export function DocumentUpload({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>
             {mode === "new_version"
               ? "Neue Version hochladen"
@@ -246,7 +246,7 @@ export function DocumentUpload({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 overflow-y-auto flex-1 pr-1">
             {/* Drop Zone */}
             <div
               className={cn(
@@ -466,7 +466,7 @@ export function DocumentUpload({
               </FormItem>
             )}
 
-            <DialogFooter>
+            <DialogFooter className="flex-shrink-0 pt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -615,15 +615,15 @@ export function NewVersionUpload({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Neue Version hochladen</DialogTitle>
           <DialogDescription>
             Neue Version für &quot;{documentName}&quot; hochladen
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto flex-1 pr-1">
           {/* Drop Zone */}
           <div
             className={cn(
@@ -752,7 +752,7 @@ export function NewVersionUpload({
           </Alert>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0 pt-4">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
