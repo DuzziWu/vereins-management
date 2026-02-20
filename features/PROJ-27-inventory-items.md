@@ -1,6 +1,24 @@
 # PROJ-27: Inventory Items & Kategorien
 
-## Status: Planned
+## Status: READY FOR BROWSER TESTING
+
+### Frontend-Implementierung (abgeschlossen)
+- [x] Navigation: Inventar-Menüpunkt in Admin-Sidebar
+- [x] Validierungen: Zod Schemas für Categories, Items, Sets
+- [x] Components: StatusBadge, CategoryForm, ItemForm, SetForm, ItemStatusDialog
+- [x] Seiten: /admin/inventory (Items), /admin/inventory/categories, /admin/inventory/sets
+- [x] Seiten: /admin/inventory/new, /admin/inventory/[id] (Detail/Edit)
+- [x] Seiten: /admin/inventory/sets/[id] (Set-Detail)
+- [x] Seiten: /member/equipment (Mein Equipment für Mitglieder)
+- [x] API-Routes: Alle CRUD-Endpoints erstellt
+- [x] Bug-Fixes: HTTP Method, Pagination, Public URLs (2026-02-20)
+
+### Backend-Implementierung (abgeschlossen)
+- [x] Datenbank-Migration (6 Tabellen) - Migration 20260220094926
+- [x] Supabase Storage Bucket "inventory-images" - Migration create_inventory_images_bucket
+- [x] RLS Policies aktiviert - Migration 20260220095001
+- [x] Trigger für Inventarnummer-Generierung aktiv
+- [ ] TypeScript-Typen regenerieren: `npx supabase gen types typescript`
 
 ## Abhangigkeiten
 - Benotigt: PROJ-1 (User Authentication) - fur eingeloggte User-Checks
@@ -593,8 +611,261 @@ Nach PROJ-27 werden diese Features das Inventar-System erweitern:
 
 ---
 
+---
+
+## Tech-Design (Solution Architect)
+
+### Bestehende Architektur-Analyse
+
+Das Projekt hat bereits:
+- **Event-Attachments** → Bild-Upload Pattern mit Supabase Storage
+- **Event-Types** → Kategorien-Verwaltung Pattern
+- **DataTable** → Tabellen mit Filter, Sortierung, Paginierung
+- **Gruppen-Mitglieder** → M:N Beziehungen (für Item-Sets)
+
+### Component-Struktur
+
+```
+Admin-Dashboard
+├── Navigation
+│   └── Neuer Menüpunkt: "Inventar" (in Administration)
+│       ├── Items
+│       ├── Kategorien
+│       └── Sets
+│
+└── Inventar-Bereich
+    ├── Items-Übersicht
+    │   ├── Ansicht-Toggle: [Tabelle] [Karten]
+    │   ├── Filter-Leiste
+    │   │   ├── Kategorie-Dropdown
+    │   │   ├── Status-Dropdown
+    │   │   └── Suchfeld
+    │   ├── Tabellen-Ansicht
+    │   │   └── Zeile: Thumbnail | Name | Kategorie | Status-Badge | Größe | Inventarnr.
+    │   ├── Karten-Ansicht
+    │   │   └── Karte: Bild + Name + Status-Badge + Kategorie
+    │   └── Paginierung
+    │
+    ├── Item-Formular (eigene Seite)
+    │   ├── Basis-Daten
+    │   │   ├── Name (Pflicht)
+    │   │   ├── Kategorie (Pflicht)
+    │   │   ├── Inventarnummer (auto oder manuell)
+    │   │   └── Größe/Maße
+    │   ├── Anschaffungs-Daten
+    │   │   ├── Datum
+    │   │   └── Preis
+    │   ├── Zustand-Auswahl (Radio)
+    │   ├── Beschreibung (Textfeld)
+    │   ├── Bilder-Upload (bis zu 5)
+    │   └── Interne Notizen (nur Vorstand)
+    │
+    ├── Status-Dialog
+    │   ├── Aktuelle Status-Anzeige
+    │   ├── Neuer Status (Radio-Auswahl)
+    │   ├── "Verliehen an" Mitglieder-Suche (bei Verleih)
+    │   └── Notiz-Feld
+    │
+    ├── Kategorien-Verwaltung
+    │   ├── Sortierbare Liste mit Drag & Drop
+    │   └── Erstellen/Bearbeiten Dialog
+    │       ├── Name
+    │       ├── Beschreibung
+    │       └── Emoji-Auswahl
+    │
+    └── Sets-Verwaltung
+        ├── Sets-Liste
+        └── Set-Formular
+            ├── Name
+            ├── Beschreibung
+            └── Item-Multi-Select
+
+Mitglieder-Dashboard
+├── Navigation
+│   └── Neuer Menüpunkt: "Mein Equipment" (oder im Dashboard-Widget)
+│
+└── Mein Equipment
+    └── Liste: Item-Name | Kategorie | Verliehen seit
+```
+
+### Daten-Model (vereinfacht)
+
+```
+Kategorien:
+- Name (Pflicht, eindeutig)
+- Beschreibung (optional)
+- Emoji/Icon (optional)
+- Sortierreihenfolge
+
+Items:
+- Name (Pflicht)
+- Verknüpfte Kategorie
+- Inventarnummer (auto-generiert: KAT-0001)
+- Status: Verfügbar | Verliehen | Defekt | In Reinigung | Reserviert
+- Zustand: Neu | Gut | Gebraucht | Reparaturbedürftig
+- Größe/Maße (Freitext)
+- Anschaffungsdatum & -preis
+- Beschreibung
+- Interne Notizen
+- Aktueller Besitzer (bei Verleih)
+- Archiviert-Markierung
+
+Item-Bilder:
+- Verknüpftes Item
+- Speicherpfad (Supabase Storage)
+- Sortierreihenfolge (erstes = Thumbnail)
+
+Sets:
+- Name
+- Beschreibung
+- Verknüpfte Items (M:N)
+
+Status-Protokoll:
+- Verknüpftes Item
+- Alter & Neuer Status
+- Geändert von (Vorstand)
+- Verliehen an (bei Verleih)
+- Zeitstempel
+```
+
+### Status-Workflow (visuell)
+
+```
+           ┌─────────────┐
+           │  Verfügbar  │ (grün)
+           └─────┬───────┘
+                 │
+    ┌────────────┼────────────┬─────────────┐
+    ↓            ↓            ↓             ↓
+┌────────┐ ┌──────────┐ ┌──────────┐ ┌───────────┐
+│Verliehen│ │  Defekt  │ │ In Rein. │ │ Reserviert│
+│(orange) │ │  (rot)   │ │  (blau)  │ │  (gelb)   │
+└────────┘ └──────────┘ └──────────┘ └───────────┘
+
+Alle Status können zu "Verfügbar" zurückwechseln
+```
+
+### Inventarnummer-Schema
+
+```
+Automatisch generiert:
+[Kategorie-Prefix]-[Laufende Nummer]
+
+Beispiele:
+- KOS-0001 (Kostüme)
+- TEC-0001 (Technik)
+- REQ-0001 (Requisiten)
+- TRA-0001 (Training)
+
+Prefix = Erste 3 Buchstaben der Kategorie (uppercase)
+```
+
+### Bild-Upload & Storage
+
+```
+Supabase Storage Bucket: "inventory-images"
+
+Struktur:
+inventory-images/
+├── {item-id}/
+│   ├── {image-id}-thumb.webp (300px)
+│   └── {image-id}-full.webp (1200px)
+
+Komprimierung serverseitig:
+- Thumbnail: 300px Breite, für Listen
+- Vollbild: 1200px Breite, für Details
+```
+
+### Tech-Entscheidungen
+
+| Entscheidung | Begründung |
+|--------------|------------|
+| **Keine vordefinierten Kategorien** | Jeder Verein hat andere Anforderungen |
+| **Auto-generierte Inventarnummer** | Weniger Fehler, konsistentes Format |
+| **Sets als separate Entität** | Items können in mehreren Sets sein |
+| **Status-Log Tabelle** | Nachvollziehbare Verleih-Historie |
+| **Soft-Delete für Items** | Archivierte Items bleiben erhalten |
+| **WebP für Bilder** | Modernes Format, gute Komprimierung |
+
+### Wiederverwendbare Komponenten
+
+- **DataTable** → Für Item-Listen (wie Members-Tabelle)
+- **Badge** → Für Status-Anzeige (verschiedene Farben)
+- **Avatar** → Für Mitglieder bei "Verliehen an"
+- **Combobox** → Für Mitglieder-Suche bei Verleih
+- **File-Upload** → Ähnlich zu Event-Attachments
+- **Radio-Group** → Für Status & Zustand
+
+### Neue UI-Komponenten (zu erstellen)
+
+- **Image-Gallery** → Mehrere Bilder mit Thumbnail-Auswahl
+- **Status-Badge** → Farbcodierte Status-Anzeige
+- **Inventory-Card** → Karten-Ansicht für Items
+- **Set-Item-Picker** → Multi-Select für Items in Sets
+
+### Dependencies
+
+| Package | Zweck | Bereits installiert? |
+|---------|-------|---------------------|
+| **sharp** (Backend) | Bild-Komprimierung | ❓ Prüfen |
+| **Keine neuen für UI** | Alles mit shadcn/ui umsetzbar | ✅ |
+
+### Aufwand-Schätzung
+
+| Bereich | Komplexität |
+|---------|-------------|
+| Datenbank-Setup | Mittel (6 Tabellen, Trigger für Inventarnummer) |
+| Kategorien-CRUD | Niedrig (bekanntes Pattern) |
+| Item-Formular | Mittel (viele Felder, Multi-Image-Upload) |
+| Status-Workflow | Mittel (Dialog, Log, Mitglieder-Suche) |
+| Sets-Verwaltung | Niedrig (einfache M:N) |
+| Tabellen/Karten-Toggle | Niedrig (State + zwei Views) |
+| Mitglieder-Ansicht | Niedrig (einfache Liste) |
+
+---
+
 ## Git Workflow
 
 ```bash
 git commit -m "feat(PROJ-27): Add inventory items & categories specification"
 ```
+
+---
+
+## QA Test Results
+
+**Tested:** 2026-02-20
+**Test Type:** Code Review + Bug Fixes
+**Full Report:** [test-reports/PROJ-27-qa-report.md](../test-reports/PROJ-27-qa-report.md)
+
+### Fixed Bugs (4)
+
+| ID | Severity | Status |
+|----|----------|--------|
+| BUG-1 | Critical | FIXED - HTTP Method auf PUT geandert |
+| BUG-2 | High | FIXED - Pagination Response Format korrigiert |
+| BUG-3 | High | FIXED - Public URLs in Items-API hinzugefugt |
+| BUG-4 | Critical | FIXED - Backend deployed (DB + Storage + RLS) |
+
+### Remaining Issues (Medium/Low - Nachste Iteration)
+
+| ID | Severity | Description |
+|----|----------|-------------|
+| BUG-5 | Medium | Drag & Drop fur Kategorien fehlt |
+| BUG-6 | Medium | Bild-Sortierung fehlt |
+| SEC-1 | Medium | SQL Injection Pattern verbessern |
+| SEC-2 | Medium | Magic-Bytes Validierung |
+| SEC-3 | Low | Rate-Limiting |
+
+### Summary
+
+- **Acceptance Criteria:** 35 passed, 6 nachste Iteration
+- **Critical/High Bugs:** 4 FIXED, 0 offen
+- **Production-Ready:** READY FOR BROWSER TESTING
+
+### Nachste Schritte
+
+1. Manuelle Browser-Tests durchfuhren
+2. Cross-Browser testen (Chrome, Firefox, Safari)
+3. Mobile-Responsiveness testen
+4. TypeScript-Typen regenerieren

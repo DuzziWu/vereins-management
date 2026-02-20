@@ -1762,6 +1762,273 @@ export type Database = {
           },
         ]
       }
+      inventory_categories: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          icon: string | null
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          icon?: string | null
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          icon?: string | null
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inventory_items: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          category_id: string
+          inventory_number: string | null
+          status: string
+          condition: string
+          size_info: string | null
+          purchase_date: string | null
+          purchase_price: number | null
+          notes: string | null
+          current_holder_id: string | null
+          loaned_at: string | null
+          is_archived: boolean
+          created_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          category_id: string
+          inventory_number?: string | null
+          status?: string
+          condition?: string
+          size_info?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          notes?: string | null
+          current_holder_id?: string | null
+          loaned_at?: string | null
+          is_archived?: boolean
+          created_by: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          category_id?: string
+          inventory_number?: string | null
+          status?: string
+          condition?: string
+          size_info?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          notes?: string | null
+          current_holder_id?: string | null
+          loaned_at?: string | null
+          is_archived?: boolean
+          created_by?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_items_current_holder_id_fkey"
+            columns: ["current_holder_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      inventory_item_images: {
+        Row: {
+          id: string
+          item_id: string
+          storage_path: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          storage_path: string
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          storage_path?: string
+          sort_order?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_item_images_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      inventory_sets: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          created_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          created_by: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          created_by?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_sets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      inventory_set_items: {
+        Row: {
+          id: string
+          set_id: string
+          item_id: string
+        }
+        Insert: {
+          id?: string
+          set_id: string
+          item_id: string
+        }
+        Update: {
+          id?: string
+          set_id?: string
+          item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_set_items_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_sets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_set_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      inventory_status_log: {
+        Row: {
+          id: string
+          item_id: string
+          old_status: string | null
+          new_status: string
+          changed_by: string
+          holder_id: string | null
+          note: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          old_status?: string | null
+          new_status: string
+          changed_by: string
+          holder_id?: string | null
+          note?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          old_status?: string | null
+          new_status?: string
+          changed_by?: string
+          holder_id?: string | null
+          note?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_status_log_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_status_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_status_log_holder_id_fkey"
+            columns: ["holder_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

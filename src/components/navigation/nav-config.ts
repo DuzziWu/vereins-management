@@ -15,6 +15,8 @@ import {
   BookOpen,
   Tag,
   FolderKanban,
+  Package,
+  Shirt,
   type LucideIcon,
 } from "lucide-react"
 import { UserRole } from "@/components/auth"
@@ -53,6 +55,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
       { title: "Workgroups", url: "/admin/workgroups", icon: FolderKanban },
       { title: "Veranstaltungen", url: "/admin/events", icon: CalendarDays },
       { title: "Dokumente", url: "/admin/documents", icon: FileText },
+      { title: "Inventar", url: "/admin/inventory", icon: Package },
     ],
     finance: {
       title: "Finanzen",
@@ -86,6 +89,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, RoleNavConfig> = {
       { title: "Termine", url: "/member/schedule", icon: Calendar },
       { title: "Veranstaltungen", url: "/member/events", icon: CalendarDays },
       { title: "Dokumente", url: "/member/documents", icon: FileText },
+      { title: "Mein Equipment", url: "/member/equipment", icon: Shirt },
     ],
   },
 }
