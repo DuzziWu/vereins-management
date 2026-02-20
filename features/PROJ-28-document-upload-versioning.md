@@ -1,6 +1,6 @@
 # PROJ-28: Document Upload & Versioning
 
-## Status: 🟢 Ready for Deployment
+## Status: ✅ Deployed (2026-02-20)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für eingeloggte User-Checks
