@@ -50,12 +50,12 @@ export async function GET(request: NextRequest) {
     .from("documents")
     .select(`
       *,
-      created_by_profile:profiles!documents_created_by_fkey(id, first_name, last_name),
-      current_version:document_versions!documents_current_version_fkey(
+      created_by_profile:profiles!created_by(id, first_name, last_name),
+      current_version:document_versions!current_version_id(
         id, version_number, file_size, storage_path, change_note, created_at,
-        uploaded_by_profile:profiles!document_versions_uploaded_by_fkey(id, first_name, last_name)
+        uploaded_by_profile:profiles!uploaded_by(id, first_name, last_name)
       ),
-      folder:folders!documents_folder_id_fkey(id, name, path)
+      folder:folders!folder_id(id, name, path)
     `, { count: "exact" })
     .is("deleted_at", null)
     .order("updated_at", { ascending: false })
@@ -304,12 +304,12 @@ export async function POST(request: NextRequest) {
     .from("documents")
     .select(`
       *,
-      created_by_profile:profiles!documents_created_by_fkey(id, first_name, last_name),
-      current_version:document_versions!documents_current_version_fkey(
+      created_by_profile:profiles!created_by(id, first_name, last_name),
+      current_version:document_versions!current_version_id(
         id, version_number, file_size, storage_path, change_note, created_at,
-        uploaded_by_profile:profiles!document_versions_uploaded_by_fkey(id, first_name, last_name)
+        uploaded_by_profile:profiles!uploaded_by(id, first_name, last_name)
       ),
-      folder:folders!documents_folder_id_fkey(id, name, path)
+      folder:folders!folder_id(id, name, path)
     `)
     .eq("id", documentId)
     .single()

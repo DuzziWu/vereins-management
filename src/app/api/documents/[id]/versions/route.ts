@@ -45,7 +45,7 @@ export async function GET(
     .from("document_versions")
     .select(`
       *,
-      uploaded_by_profile:profiles!document_versions_uploaded_by_fkey(id, first_name, last_name)
+      uploaded_by_profile:profiles!uploaded_by(id, first_name, last_name)
     `)
     .eq("document_id", id)
     .order("version_number", { ascending: false })
@@ -203,7 +203,7 @@ export async function POST(
     })
     .select(`
       *,
-      uploaded_by_profile:profiles!document_versions_uploaded_by_fkey(id, first_name, last_name)
+      uploaded_by_profile:profiles!uploaded_by(id, first_name, last_name)
     `)
     .single()
 

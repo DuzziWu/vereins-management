@@ -25,31 +25,39 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  // Fetch document with current version (RLS handles access control)
+  // Fetch document (RLS handles access control)
   const { data: document, error } = await supabase
     .from("documents")
-    .select(`
-      id, name, original_filename, mime_type,
-      current_version:document_versions!documents_current_version_fkey(
-        storage_path
-      )
-    `)
+    .select("id, name, original_filename, mime_type, current_version_id")
     .eq("id", id)
     .is("deleted_at", null)
     .single()
 
   if (error || !document) {
+    console.error("Error fetching document:", error)
     return NextResponse.json({ error: "Document not found" }, { status: 404 })
   }
 
-  if (!document.current_version?.storage_path) {
+  if (!document.current_version_id) {
+    return NextResponse.json({ error: "No file available" }, { status: 404 })
+  }
+
+  // Fetch current version separately
+  const { data: currentVersion, error: versionError } = await supabase
+    .from("document_versions")
+    .select("storage_path")
+    .eq("id", document.current_version_id)
+    .single()
+
+  if (versionError || !currentVersion?.storage_path) {
+    console.error("Error fetching version:", versionError)
     return NextResponse.json({ error: "No file available" }, { status: 404 })
   }
 
   // Download file from storage
   const { data: fileData, error: downloadError } = await supabase.storage
     .from("documents")
-    .download(document.current_version.storage_path)
+    .download(currentVersion.storage_path)
 
   if (downloadError || !fileData) {
     console.error("Error downloading file:", downloadError)

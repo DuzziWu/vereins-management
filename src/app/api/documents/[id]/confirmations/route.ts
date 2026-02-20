@@ -40,7 +40,7 @@ export async function GET(
       name,
       requires_confirmation,
       current_version_id,
-      folder:folders!documents_folder_id_fkey(id, name)
+      folder:folders!folder_id(id, name)
     `)
     .eq("id", id)
     .is("deleted_at", null)
@@ -65,7 +65,7 @@ export async function GET(
       id,
       confirmed_at,
       version_id,
-      profile:profiles!document_confirmations_profile_id_fkey(
+      profile:profiles!profile_id(
         id, first_name, last_name
       )
     `)
