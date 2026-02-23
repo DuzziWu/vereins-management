@@ -453,7 +453,7 @@ export function KanbanTaskDetail({
                 </Badge>
               ))}
               <Select
-                value=""
+                key={taskData.assignees?.length || 0}
                 onValueChange={(profileId) => {
                   const currentIds = taskData.assignees?.map((a) => a.profile_id) || []
                   if (!currentIds.includes(profileId)) {
