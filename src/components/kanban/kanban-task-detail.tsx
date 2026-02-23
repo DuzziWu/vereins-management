@@ -37,6 +37,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -67,6 +72,50 @@ interface Member {
   profile_id: string
   first_name: string
   last_name: string
+}
+
+// Separate component for assignee selection to avoid re-render issues
+function AssigneePopover({
+  members,
+  assignedIds,
+  onSelect,
+}: {
+  members: Member[]
+  assignedIds: string[]
+  onSelect: (profileId: string) => void
+}) {
+  const [open, setOpen] = React.useState(false)
+  const availableMembers = members.filter((m) => !assignedIds.includes(m.profile_id))
+
+  if (availableMembers.length === 0) {
+    return null
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 px-2">
+          + Hinzufügen
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-48 p-1" align="start">
+        <div className="max-h-48 overflow-y-auto">
+          {availableMembers.map((member) => (
+            <button
+              key={member.profile_id}
+              className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-muted transition-colors"
+              onClick={() => {
+                onSelect(member.profile_id)
+                setOpen(false)
+              }}
+            >
+              {member.first_name} {member.last_name}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 interface KanbanTaskDetailProps {
@@ -452,36 +501,16 @@ export function KanbanTaskDetail({
                   </button>
                 </Badge>
               ))}
-              <Select
-                key={taskData.assignees?.length || 0}
-                onValueChange={(profileId) => {
+              <AssigneePopover
+                members={members}
+                assignedIds={taskData.assignees?.map((a) => a.profile_id) || []}
+                onSelect={(profileId) => {
                   const currentIds = taskData.assignees?.map((a) => a.profile_id) || []
                   if (!currentIds.includes(profileId)) {
                     handleAssigneesChange([...currentIds, profileId])
                   }
                 }}
-              >
-                <SelectTrigger className="w-[140px] h-8">
-                  <span className="text-muted-foreground">+ Hinzufügen</span>
-                </SelectTrigger>
-                <SelectContent>
-                  {members
-                    .filter(
-                      (m) =>
-                        !taskData.assignees?.some(
-                          (a) => a.profile_id === m.profile_id
-                        )
-                    )
-                    .map((member) => (
-                      <SelectItem
-                        key={member.profile_id}
-                        value={member.profile_id}
-                      >
-                        {member.first_name} {member.last_name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
           </div>
 
