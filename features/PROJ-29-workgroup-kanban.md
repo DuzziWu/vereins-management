@@ -569,6 +569,163 @@ Nach PROJ-29 könnte erweitert werden:
 
 ---
 
+## Tech-Design (Solution Architect)
+
+### Bestehende Architektur (Wiederverwendung)
+
+Dieses Feature baut auf bereits implementierten Systemen auf:
+- **PROJ-25 (Workgroups):** Workgroup-Detail-Seite hat bereits Platzhalter fuer Kanban-Board
+- **@dnd-kit:** Drag & Drop Library bereits installiert und konfiguriert
+- **Supabase Storage:** Wird bereits fuer Datei-Uploads verwendet
+- **Existing Components:** `workgroup-detail-content.tsx` enthaelt Platzhalter
+
+### Component-Struktur
+
+```
+Workgroup-Detail-Seite (erweitert bestehende Seite)
+├── Header (bereits vorhanden)
+│   ├── Workgroup-Name
+│   ├── Kategorie-Badge
+│   └── Mitglieder-Anzahl
+├── Mitglieder-Karte (bereits vorhanden)
+├── [NEU] Kanban-Board (ersetzt Platzhalter)
+│   ├── Filter-Leiste
+│   │   ├── Suchfeld
+│   │   ├── Filter: Zugewiesen an
+│   │   ├── Filter: Label
+│   │   ├── Filter: Prioritaet
+│   │   └── Toggle: "Nur meine Tasks"
+│   ├── Spalten-Container (horizontal scrollbar)
+│   │   └── Spalte (mehrere, per Drag & Drop sortierbar)
+│   │       ├── Spalten-Header
+│   │       │   ├── Name + Farbe
+│   │       │   ├── Task-Anzahl
+│   │       │   └── Bearbeiten-Icon (nur Vorstand)
+│   │       ├── "Neuer Task" Button
+│   │       └── Task-Liste (vertikal, per Drag & Drop sortierbar)
+│   │           └── Task-Karte (kompakt)
+│   │               ├── Prioritaets-Streifen (farbig)
+│   │               ├── Titel (max 2 Zeilen)
+│   │               ├── Labels (als Chips)
+│   │               ├── Zugewiesene Avatare
+│   │               ├── Deadline-Badge
+│   │               ├── Anhang-Icon (falls vorhanden)
+│   │               └── Checklisten-Fortschritt
+│   └── "+ Neue Spalte" Button (nur Vorstand)
+├── [NEU] Task-Detail-Panel (Slide-over von rechts)
+│   ├── Titel (editierbar)
+│   ├── Status-Anzeige (aktuelle Spalte)
+│   ├── Prioritaet-Dropdown
+│   ├── Deadline-Picker
+│   ├── Beschreibung (Markdown-Editor)
+│   ├── Zuweisungs-Picker (Multi-Select)
+│   ├── Label-Picker (Multi-Select)
+│   ├── Checkliste
+│   │   └── Checklisten-Punkt (abhakbar, sortierbar)
+│   ├── Anhaenge
+│   │   ├── Datei-Liste
+│   │   └── "Datei hinzufuegen" Button
+│   └── Aktivitaets-Log
+└── [NEU] "Meine Tasks" Widget (Dashboard)
+    ├── Task-Liste (sortiert nach Deadline)
+    │   └── Task-Zeile
+    │       ├── Prioritaets-Icon
+    │       ├── Titel
+    │       ├── Workgroup-Name
+    │       └── Deadline
+    └── "Alle anzeigen" Link
+```
+
+### Daten-Model (einfach beschrieben)
+
+**Spalte:**
+- Eindeutige ID
+- Gehoert zu welcher Workgroup
+- Name (z.B. "Zu erledigen", "In Arbeit", "Erledigt")
+- Farbe (optional, fuer visuelle Unterscheidung)
+- Reihenfolge (Position im Board)
+- Wann erstellt/aktualisiert
+
+**Task:**
+- Eindeutige ID
+- In welcher Spalte
+- Titel
+- Beschreibung (optional, mit Textformatierung)
+- Prioritaet (Niedrig, Normal, Hoch, Dringend)
+- Deadline (optional)
+- Reihenfolge innerhalb der Spalte
+- Wer hat erstellt
+- Wann erstellt/aktualisiert
+
+**Task-Zuweisung:**
+- Task-ID
+- Mitglied-ID
+- Wann zugewiesen
+
+**Label:**
+- Eindeutige ID
+- Gehoert zu welcher Workgroup
+- Name (z.B. "Einkauf", "Wichtig")
+- Farbe
+
+**Checklisten-Punkt:**
+- Eindeutige ID
+- Gehoert zu welchem Task
+- Text
+- Abgehakt? (Ja/Nein)
+- Reihenfolge
+- Wer hat abgehakt
+- Wann abgehakt
+
+**Task-Anhang:**
+- Eindeutige ID
+- Gehoert zu welchem Task
+- Dateiname
+- Speicherpfad
+- Dateigroesse
+- Wer hat hochgeladen
+
+**Gespeichert in:** Supabase Datenbank + Supabase Storage (fuer Anhaenge)
+
+### Tech-Entscheidungen
+
+**Warum @dnd-kit fuer Drag & Drop?**
+- Bereits im Projekt installiert
+- Modern und leistungsfaehig
+- Unterstuetzt Touch-Geraete (Mobile)
+- Barrierefreiheit (Tastatur-Support)
+- Optimistic UI moeglich (sofortige Anzeige, Server-Sync im Hintergrund)
+
+**Warum Default-Spalten bei neuer Workgroup?**
+- Schneller Start ohne manuelle Einrichtung
+- Standard-Workflow: "Zu erledigen" -> "In Arbeit" -> "Erledigt"
+- Vorstand kann Spalten jederzeit anpassen
+
+**Warum Task-Detail als Slide-over statt Seiten-Wechsel?**
+- Kontext bleibt erhalten (Board ist im Hintergrund sichtbar)
+- Schnelles Wechseln zwischen Tasks
+- Bewaehrtes Pattern von Trello/Asana
+
+**Warum Checklisten direkt am Task?**
+- Fuer kleinere Teilaufgaben ideal
+- Keine extra Task-Erstellung noetig
+- Fortschritt sofort sichtbar auf der Karte
+
+**Warum "Meine Tasks" Dashboard-Widget?**
+- Mitglieder in mehreren Workgroups behalten Ueberblick
+- Wichtigste Aufgaben auf einen Blick
+- Deadline-sortiert = dringendste zuerst
+
+### Dependencies
+
+Bereits vorhanden - keine neuen Packages erforderlich:
+- @dnd-kit/core (Drag & Drop Engine)
+- @dnd-kit/sortable (Sortierbare Listen)
+- @dnd-kit/utilities (Hilfsfunktionen)
+- Supabase Storage (fuer Anhaenge)
+
+---
+
 ## Git Workflow
 
 ```bash

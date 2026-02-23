@@ -4,13 +4,12 @@ import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { ChevronRight, Users, Calendar, FolderKanban, MessageSquare } from "lucide-react"
+import { ChevronRight, Users, FolderKanban, MessageSquare } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Separator } from "@/components/ui/separator"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,6 +18,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { Button } from "@/components/ui/button"
+import { KanbanBoard } from "@/components/kanban"
 import { WorkgroupListItem, WorkgroupCategory } from "./workgroup-form"
 
 interface WorkgroupMember {
@@ -81,6 +87,9 @@ export function WorkgroupDetailContent({
   const router = useRouter()
   const [workgroup, setWorkgroup] = React.useState<WorkgroupDetail | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
+  const [isVorstand, setIsVorstand] = React.useState(false)
+  const [currentUserId, setCurrentUserId] = React.useState<string>("")
+  const [isMembersOpen, setIsMembersOpen] = React.useState(false)
 
   React.useEffect(() => {
     async function fetchWorkgroup() {
@@ -104,6 +113,8 @@ export function WorkgroupDetailContent({
 
         const data = await response.json()
         setWorkgroup(data.workgroup)
+        setIsVorstand(data.is_vorstand || false)
+        setCurrentUserId(data.current_user_id || "")
       } catch (error) {
         console.error("Error fetching workgroup:", error)
         toast.error("Fehler beim Laden der Workgroup")
@@ -168,79 +179,83 @@ export function WorkgroupDetailContent({
         )}
       </div>
 
-      {/* Content Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Members Card */}
+      {/* Members Collapsible */}
+      <Collapsible open={isMembersOpen} onOpenChange={setIsMembersOpen}>
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Mitglieder
-            </CardTitle>
-            <CardDescription>
-              {workgroup.members.length} Mitglieder in dieser Workgroup
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {workgroup.members.map((member) => (
-                <div
-                  key={member.profile_id}
-                  className="flex items-center gap-3"
-                >
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback>
-                      {getInitials(member.first_name, member.last_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium">
-                    {member.first_name} {member.last_name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Users className="h-5 w-5" />
+                  Mitglieder ({workgroup.members.length})
+                </CardTitle>
+                <Button variant="ghost" size="sm">
+                  {isMembersOpen ? "Einklappen" : "Anzeigen"}
+                </Button>
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <div className="flex flex-wrap gap-3">
+                {workgroup.members.map((member) => (
+                  <div
+                    key={member.profile_id}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50"
+                  >
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className="text-xs">
+                        {getInitials(member.first_name, member.last_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm">
+                      {member.first_name} {member.last_name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </CollapsibleContent>
         </Card>
+      </Collapsible>
 
-        {/* Placeholder Cards for future features */}
-        <div className="space-y-6">
-          {/* Kanban Placeholder */}
-          <Card className="border-dashed">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                <FolderKanban className="h-5 w-5" />
-                Kanban-Board
-              </CardTitle>
-              <CardDescription>
-                Task-Management kommt in PROJ-26
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center py-8 text-muted-foreground">
-                <p className="text-sm">Bald verfügbar...</p>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Kanban Board */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FolderKanban className="h-5 w-5" />
+            Kanban-Board
+          </CardTitle>
+          <CardDescription>
+            Verwalte die Aufgaben dieser Workgroup
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <KanbanBoard
+            workgroupId={workgroupId}
+            isVorstand={isVorstand}
+            currentUserId={currentUserId}
+          />
+        </CardContent>
+      </Card>
 
-          {/* Chat Placeholder */}
-          <Card className="border-dashed">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                <MessageSquare className="h-5 w-5" />
-                Workgroup-Chat
-              </CardTitle>
-              <CardDescription>
-                Chat-Funktion kommt in PROJ-28
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center py-8 text-muted-foreground">
-                <p className="text-sm">Bald verfügbar...</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Chat Placeholder */}
+      <Card className="border-dashed">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-muted-foreground">
+            <MessageSquare className="h-5 w-5" />
+            Workgroup-Chat
+          </CardTitle>
+          <CardDescription>
+            Chat-Funktion kommt in einem zukünftigen Update
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8 text-muted-foreground">
+            <p className="text-sm">Bald verfügbar...</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

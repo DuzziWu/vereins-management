@@ -1394,6 +1394,295 @@ export type Database = {
         }
         Relationships: []
       }
+      kanban_checklist_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          id: string
+          is_completed: boolean
+          sort_order: number
+          task_id: string
+          text: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          id?: string
+          is_completed?: boolean
+          sort_order?: number
+          task_id: string
+          text: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          id?: string
+          is_completed?: boolean
+          sort_order?: number
+          task_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kanban_checklist_items_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kanban_checklist_items_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "kanban_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kanban_columns: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string | null
+          workgroup_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string | null
+          workgroup_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string | null
+          workgroup_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kanban_columns_workgroup_id_fkey"
+            columns: ["workgroup_id"]
+            isOneToOne: false
+            referencedRelation: "workgroups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kanban_labels: {
+        Row: {
+          color: string
+          created_at: string | null
+          id: string
+          name: string
+          workgroup_id: string
+        }
+        Insert: {
+          color: string
+          created_at?: string | null
+          id?: string
+          name: string
+          workgroup_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          workgroup_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kanban_labels_workgroup_id_fkey"
+            columns: ["workgroup_id"]
+            isOneToOne: false
+            referencedRelation: "workgroups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kanban_task_assignees: {
+        Row: {
+          assigned_at: string | null
+          id: string
+          profile_id: string
+          task_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          id?: string
+          profile_id: string
+          task_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          id?: string
+          profile_id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kanban_task_assignees_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kanban_task_assignees_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "kanban_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kanban_task_attachments: {
+        Row: {
+          created_at: string | null
+          file_size: number
+          filename: string
+          id: string
+          mime_type: string
+          storage_path: string
+          task_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_size: number
+          filename: string
+          id?: string
+          mime_type: string
+          storage_path: string
+          task_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string | null
+          file_size?: number
+          filename?: string
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          task_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kanban_task_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "kanban_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kanban_task_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kanban_task_label_assignments: {
+        Row: {
+          id: string
+          label_id: string
+          task_id: string
+        }
+        Insert: {
+          id?: string
+          label_id: string
+          task_id: string
+        }
+        Update: {
+          id?: string
+          label_id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kanban_task_label_assignments_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "kanban_labels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kanban_task_label_assignments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "kanban_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kanban_tasks: {
+        Row: {
+          column_id: string
+          created_at: string | null
+          created_by: string
+          deadline: string | null
+          description: string | null
+          id: string
+          priority: string
+          sort_order: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          column_id: string
+          created_at?: string | null
+          created_by: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          priority?: string
+          sort_order?: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          column_id?: string
+          created_at?: string | null
+          created_by?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          priority?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kanban_tasks_column_id_fkey"
+            columns: ["column_id"]
+            isOneToOne: false
+            referencedRelation: "kanban_columns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kanban_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       login_attempts: {
         Row: {
           attempted_at: string
@@ -2242,6 +2531,7 @@ export type Database = {
           user_id: string
         }
       }
+      get_column_workgroup_id: { Args: { col_id: string }; Returns: string }
       get_failed_login_count: {
         Args: { check_email: string; check_ip: string }
         Returns: number
@@ -2292,6 +2582,7 @@ export type Database = {
       get_my_profile_id: { Args: never; Returns: string }
       get_my_role: { Args: never; Returns: string }
       get_profile_id_for_user: { Args: { user_uuid: string }; Returns: string }
+      get_task_workgroup_id: { Args: { t_id: string }; Returns: string }
       get_treasury_balance: { Args: never; Returns: number }
       get_unread_message_counts: {
         Args: { p_profile_id: string }
@@ -2309,6 +2600,7 @@ export type Database = {
       is_trainer: { Args: never; Returns: boolean }
       is_trainer_of_group: { Args: { p_group_id: string }; Returns: boolean }
       is_vorstand: { Args: never; Returns: boolean }
+      is_workgroup_member: { Args: { wg_id: string }; Returns: boolean }
       mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
         Args: { p_notification_id: string }
@@ -2351,7 +2643,7 @@ export type Database = {
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof DatabaseWithoutInternals, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
@@ -2472,6 +2764,6 @@ export const Constants = {
   },
 } as const
 
-// Convenience type exports
-export type Profile = Tables<"profiles">
-export type ClubSettings = Tables<"club_settings">
+// Convenience type exports for commonly used tables
+export type Profile = Database["public"]["Tables"]["profiles"]["Row"]
+export type ClubSettings = Database["public"]["Tables"]["club_settings"]["Row"]

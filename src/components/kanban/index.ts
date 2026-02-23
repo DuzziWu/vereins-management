@@ -1,0 +1,11 @@
+// PROJ-29: Kanban Board Components
+export { KanbanBoard } from "./kanban-board"
+export { KanbanColumn, KanbanColumnSkeleton, ColumnColorPicker } from "./kanban-column"
+export { KanbanTaskCard, KanbanTaskCardSkeleton } from "./kanban-task-card"
+export { KanbanTaskDetail } from "./kanban-task-detail"
+export { KanbanFilters } from "./kanban-filters"
+export { KanbanChecklist } from "./kanban-checklist"
+export { KanbanLabelPicker } from "./kanban-label-picker"
+export { KanbanAttachment } from "./kanban-attachment"
+export { KanbanColumnForm } from "./kanban-column-form"
+export { KanbanTaskForm } from "./kanban-task-form"
