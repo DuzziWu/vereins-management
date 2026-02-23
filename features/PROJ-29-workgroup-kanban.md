@@ -1,6 +1,6 @@
 # PROJ-29: Workgroup Kanban-Board
 
-## Status: 🔵 Planned
+## Status: ✅ Deployed (2026-02-23)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für eingeloggte User-Checks
@@ -564,8 +564,8 @@ Nach PROJ-29 könnte erweitert werden:
 - [x] Edge Cases identifiziert: 8 Edge Cases dokumentiert
 - [x] Feature-ID vergeben: PROJ-29
 - [x] File gespeichert: `/features/PROJ-29-workgroup-kanban.md`
-- [x] Status gesetzt: 🔵 Planned
-- [ ] User Review: Ausstehend
+- [x] Status gesetzt: ✅ Deployed
+- [x] User Review: Deployed to Production (2026-02-23)
 
 ---
 
