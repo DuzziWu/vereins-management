@@ -249,14 +249,9 @@ export function KanbanTaskDetail({
         throw new Error("Fehler beim Speichern")
       }
 
-      // Refresh task data
-      const taskResponse = await fetch(
-        `/api/workgroups/${workgroupId}/kanban/tasks/${taskData.id}`
-      )
-      if (taskResponse.ok) {
-        const { task: updatedTask } = await taskResponse.json()
-        setTaskData(updatedTask)
-      }
+      // Use the response directly instead of fetching again
+      const { assignees } = await response.json()
+      setTaskData(prev => prev ? { ...prev, assignees } : null)
     } catch (err) {
       toast.error("Zuweisung konnte nicht gespeichert werden")
     }
@@ -280,14 +275,9 @@ export function KanbanTaskDetail({
         throw new Error("Fehler beim Speichern")
       }
 
-      // Refresh task data
-      const taskResponse = await fetch(
-        `/api/workgroups/${workgroupId}/kanban/tasks/${taskData.id}`
-      )
-      if (taskResponse.ok) {
-        const { task: updatedTask } = await taskResponse.json()
-        setTaskData(updatedTask)
-      }
+      // Use the response directly instead of fetching again
+      const { labels } = await response.json()
+      setTaskData(prev => prev ? { ...prev, labels } : null)
     } catch (err) {
       toast.error("Labels konnten nicht gespeichert werden")
     }
