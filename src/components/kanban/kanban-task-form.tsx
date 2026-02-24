@@ -66,7 +66,6 @@ export function KanbanTaskForm({
 }: KanbanTaskFormProps) {
   const [isSaving, setIsSaving] = React.useState(false)
   const [selectedAssignees, setSelectedAssignees] = React.useState<string[]>([])
-  const [assignToSelf, setAssignToSelf] = React.useState(false)
 
   const {
     register,
@@ -85,7 +84,6 @@ export function KanbanTaskForm({
     if (isOpen) {
       reset({ title: "" })
       setSelectedAssignees([])
-      setAssignToSelf(false)
     }
   }, [isOpen, reset])
 
@@ -137,15 +135,6 @@ export function KanbanTaskForm({
     }
   }
 
-  // Toggle assignee selection
-  const toggleAssignee = (profileId: string) => {
-    setSelectedAssignees((prev) =>
-      prev.includes(profileId)
-        ? prev.filter((id) => id !== profileId)
-        : [...prev, profileId]
-    )
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
@@ -178,14 +167,19 @@ export function KanbanTaskForm({
               <Label>Zuweisen an (optional)</Label>
               <div className="max-h-32 overflow-y-auto border rounded-md p-2 space-y-1">
                 {members.map((member) => (
-                  <div
+                  <label
                     key={member.profile_id}
                     className="flex items-center gap-2 p-1.5 rounded hover:bg-muted/50 cursor-pointer"
-                    onClick={() => toggleAssignee(member.profile_id)}
                   >
                     <Checkbox
                       checked={selectedAssignees.includes(member.profile_id)}
-                      onCheckedChange={() => toggleAssignee(member.profile_id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedAssignees(prev => [...prev, member.profile_id])
+                        } else {
+                          setSelectedAssignees(prev => prev.filter(id => id !== member.profile_id))
+                        }
+                      }}
                     />
                     <Avatar className="h-6 w-6">
                       <AvatarFallback className="text-xs">
@@ -195,7 +189,7 @@ export function KanbanTaskForm({
                     <span className="text-sm">
                       {member.first_name} {member.last_name}
                     </span>
-                  </div>
+                  </label>
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
