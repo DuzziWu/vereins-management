@@ -40,6 +40,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Get current user's profile
+  const { data: currentProfile } = await supabase
+    .from('profiles')
+    .select('id, role')
+    .eq('user_id', user.id)
+    .single()
+
+  const isVorstand = currentProfile?.role === 'vorstand'
+
   // Fetch all members
   const { data: members } = await supabase
     .from('workgroup_members')
@@ -62,7 +71,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         role: m.profile?.role,
         joined_at: m.joined_at,
       })) ?? [],
-    }
+    },
+    is_vorstand: isVorstand,
+    current_user_id: currentProfile?.id || "",
   })
 }
 
