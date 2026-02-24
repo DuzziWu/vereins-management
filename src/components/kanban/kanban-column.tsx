@@ -106,17 +106,22 @@ export function KanbanColumn({
       ref={setSortableRef}
       style={style}
       className={cn(
-        "flex flex-col w-72 min-w-72 bg-muted/30 rounded-lg border",
-        isDragging && "opacity-50",
-        isOver && "ring-2 ring-primary ring-offset-2"
+        "flex flex-col w-72 min-w-72 rounded-xl border transition-all duration-200",
+        "bg-gradient-to-b from-muted/40 to-muted/20 dark:from-muted/20 dark:to-muted/10",
+        "shadow-sm hover:shadow-md",
+        isDragging && "opacity-60 rotate-2 scale-105 shadow-xl",
+        isOver && "ring-2 ring-primary ring-offset-2 bg-primary/5"
       )}
     >
       {/* Column Header */}
       <div
-        className="flex items-center gap-2 p-3 border-b"
+        className={cn(
+          "flex items-center gap-2 p-3 rounded-t-xl border-b transition-colors",
+          column.color ? "border-l-4" : ""
+        )}
         style={{
           borderLeftColor: column.color || undefined,
-          borderLeftWidth: column.color ? "4px" : undefined,
+          backgroundColor: column.color ? `${column.color}08` : undefined,
         }}
       >
         {/* Drag Handle (Vorstand only) */}
@@ -156,7 +161,14 @@ export function KanbanColumn({
         </div>
 
         {/* Task Count */}
-        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+        <span
+          className={cn(
+            "text-xs font-medium px-2 py-0.5 rounded-full transition-colors",
+            column.tasks.length > 0
+              ? "bg-primary/10 text-primary"
+              : "bg-muted text-muted-foreground"
+          )}
+        >
           {column.tasks.length}
         </span>
 
@@ -192,11 +204,16 @@ export function KanbanColumn({
       </div>
 
       {/* Add Task Button */}
-      <div className="p-2 border-b">
+      <div className="px-2 py-1.5">
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          className={cn(
+            "w-full justify-start text-muted-foreground",
+            "hover:text-foreground hover:bg-primary/10",
+            "transition-all duration-200",
+            "border border-dashed border-transparent hover:border-primary/30"
+          )}
           onClick={() => onAddTask(column.id)}
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -230,8 +247,11 @@ export function KanbanColumn({
             )}
 
             {!isLoading && column.tasks.length === 0 && (
-              <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                Keine Tasks
+              <div className="flex flex-col items-center justify-center py-8 text-sm text-muted-foreground/60">
+                <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-2">
+                  <Plus className="h-5 w-5" />
+                </div>
+                <span>Keine Tasks</span>
               </div>
             )}
           </div>
