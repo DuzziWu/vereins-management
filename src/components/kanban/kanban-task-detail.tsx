@@ -151,22 +151,47 @@ export function KanbanTaskDetail({
 }: KanbanTaskDetailProps) {
   const [isSaving, setIsSaving] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
+  const [isLoading, setIsLoading] = React.useState(false)
   const [taskData, setTaskData] = React.useState<KanbanTask | null>(null)
   const [localTitle, setLocalTitle] = React.useState("")
   const [localDescription, setLocalDescription] = React.useState("")
   const [hasChanges, setHasChanges] = React.useState(false)
 
-  // Initialize local state when task changes
+  // Fetch full task data when panel opens
   React.useEffect(() => {
-    if (task) {
-      setTaskData(task)
+    if (task && isOpen) {
+      // Set initial data from prop for immediate display
       setLocalTitle(task.title)
       setLocalDescription(task.description || "")
       setHasChanges(false)
-    }
-  }, [task])
 
-  const canDelete = task && (task.created_by === currentUserId || isVorstand)
+      // Fetch full task data including attachments, checklist, etc.
+      const fetchFullTask = async () => {
+        setIsLoading(true)
+        try {
+          const response = await fetch(
+            `/api/workgroups/${workgroupId}/kanban/tasks/${task.id}`
+          )
+          if (response.ok) {
+            const { task: fullTask } = await response.json()
+            setTaskData(fullTask)
+          } else {
+            // Fall back to prop data if fetch fails
+            setTaskData(task)
+          }
+        } catch {
+          setTaskData(task)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+      fetchFullTask()
+    } else if (!isOpen) {
+      setTaskData(null)
+    }
+  }, [task, isOpen, workgroupId])
+
+  const canDelete = taskData && (taskData.created_by === currentUserId || isVorstand)
   const currentColumn = columns.find((c) => c.id === taskData?.column_id)
 
   // Save task changes

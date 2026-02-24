@@ -183,7 +183,7 @@ export function KanbanAttachment({
       const data = await response.json()
 
       // Open signed URL in new tab
-      window.open(data.url, "_blank")
+      window.open(data.download_url, "_blank")
     } catch (err) {
       toast.error("Datei konnte nicht heruntergeladen werden")
     }
