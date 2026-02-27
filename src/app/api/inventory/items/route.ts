@@ -180,6 +180,9 @@ export async function POST(request: NextRequest) {
   // Convert purchase_price from string to number
   const purchasePrice = data.purchase_price ? parseFloat(data.purchase_price) : null
 
+  // Convert location_id empty string to null
+  const locationId = data.location_id && data.location_id !== '' ? data.location_id : null
+
   // Insert item
   const { data: item, error: insertError } = await supabase
     .from('inventory_items')
@@ -194,6 +197,7 @@ export async function POST(request: NextRequest) {
       purchase_date: data.purchase_date || null,
       purchase_price: purchasePrice,
       notes: data.notes || null,
+      location_id: locationId,
       created_by: profile.id,
     })
     .select(`

@@ -120,7 +120,8 @@ export const itemSchema = z.object({
     .string()
     .uuid()
     .optional()
-    .nullable(),
+    .nullable()
+    .or(z.literal("")),
 })
 
 export type ItemFormData = z.infer<typeof itemSchema>
