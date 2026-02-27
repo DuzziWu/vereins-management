@@ -1,6 +1,6 @@
 # PROJ-30: Inventory Location & QR-Code System
 
-## Status: 🔵 Planned
+## Status: ✅ Deployed (2026-02-27)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für eingeloggte User-Checks
