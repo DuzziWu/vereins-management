@@ -116,6 +116,11 @@ export const itemSchema = z.object({
     .string()
     .optional()
     .or(z.literal("")),
+  location_id: z
+    .string()
+    .uuid()
+    .optional()
+    .nullable(),
 })
 
 export type ItemFormData = z.infer<typeof itemSchema>
@@ -149,6 +154,7 @@ export const itemPatchSchema = z.object({
   purchase_price: z.number().min(0, "Preis muss positiv sein").nullable().optional(),
   notes: z.string().nullable().optional(),
   is_archived: z.boolean().optional(),
+  location_id: z.string().uuid().nullable().optional(),
 }).strict()
 
 export type ItemPatchData = z.infer<typeof itemPatchSchema>
@@ -248,6 +254,7 @@ export interface InventoryItem {
   notes: string | null
   current_holder_id: string | null
   loaned_at: string | null
+  location_id: string | null
   is_archived: boolean
   created_by: string
   created_at: string
@@ -260,6 +267,11 @@ export interface InventoryItem {
     last_name: string
   }
   images?: ItemImage[]
+  location?: {
+    id: string
+    name: string
+    path: string
+  }
 }
 
 export interface ItemImage {
@@ -310,6 +322,7 @@ export interface InventoryFilters {
   category_id: string | null
   status: ItemStatus | null
   condition: ItemCondition | null
+  location_id: string | null
 }
 
 export const defaultFilters: InventoryFilters = {
@@ -317,4 +330,162 @@ export const defaultFilters: InventoryFilters = {
   category_id: null,
   status: null,
   condition: null,
+  location_id: null,
+}
+
+// ===========================================
+// PROJ-30: Location & Loan Schemas
+// ===========================================
+
+// Return Condition
+export const RETURN_CONDITION = ["good", "damaged", "lost"] as const
+export type ReturnCondition = typeof RETURN_CONDITION[number]
+
+export const RETURN_CONDITION_CONFIG: Record<ReturnCondition, { label: string }> = {
+  good: { label: "Gut" },
+  damaged: { label: "Beschädigt" },
+  lost: { label: "Verloren" },
+}
+
+// Location Schema
+export const locationSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Mindestens 2 Zeichen")
+    .max(100, "Maximal 100 Zeichen"),
+  description: z
+    .string()
+    .max(500, "Maximal 500 Zeichen")
+    .optional()
+    .or(z.literal("")),
+  notes: z
+    .string()
+    .optional()
+    .or(z.literal("")),
+  parent_id: z
+    .string()
+    .uuid()
+    .optional()
+    .nullable(),
+})
+
+export type LocationFormData = z.infer<typeof locationSchema>
+
+// Location Patch Schema
+export const locationPatchSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Mindestens 2 Zeichen")
+    .max(100, "Maximal 100 Zeichen")
+    .optional(),
+  description: z
+    .string()
+    .max(500, "Maximal 500 Zeichen")
+    .nullable()
+    .optional(),
+  notes: z
+    .string()
+    .nullable()
+    .optional(),
+  parent_id: z
+    .string()
+    .uuid()
+    .nullable()
+    .optional(),
+}).strict()
+
+export type LocationPatchData = z.infer<typeof locationPatchSchema>
+
+// Loan Schema (creating a new loan)
+export const loanSchema = z.object({
+  item_id: z
+    .string()
+    .uuid("Ungültige Item-ID"),
+  borrower_id: z
+    .string()
+    .uuid("Bitte ein Mitglied auswählen"),
+  expected_return_date: z
+    .string()
+    .optional()
+    .or(z.literal("")),
+  loan_note: z
+    .string()
+    .max(500, "Maximal 500 Zeichen")
+    .optional()
+    .or(z.literal("")),
+})
+
+export type LoanFormData = z.infer<typeof loanSchema>
+
+// Return Schema (recording a return)
+export const returnSchema = z.object({
+  return_location_id: z
+    .string()
+    .uuid()
+    .optional()
+    .nullable(),
+  return_note: z
+    .string()
+    .max(500, "Maximal 500 Zeichen")
+    .optional()
+    .or(z.literal("")),
+  return_condition: z
+    .enum(RETURN_CONDITION)
+    .optional(),
+})
+
+export type ReturnFormData = z.infer<typeof returnSchema>
+
+// Location Type
+export interface InventoryLocation {
+  id: string
+  name: string
+  description: string | null
+  notes: string | null
+  parent_id: string | null
+  path: string
+  depth: number
+  qr_code_data: string | null
+  created_by: string
+  created_at: string
+  updated_at: string
+  // Computed
+  item_count?: number
+  children?: InventoryLocation[]
+  parent?: InventoryLocation
+}
+
+// Loan Type
+export interface InventoryLoan {
+  id: string
+  item_id: string
+  borrower_id: string
+  loaned_by: string
+  loaned_at: string
+  expected_return_date: string | null
+  returned_at: string | null
+  returned_by: string | null
+  return_location_id: string | null
+  loan_note: string | null
+  return_note: string | null
+  return_condition: ReturnCondition | null
+  created_at: string
+  // Relations
+  item?: InventoryItem
+  borrower?: {
+    id: string
+    first_name: string
+    last_name: string
+  }
+  loaned_by_profile?: {
+    id: string
+    first_name: string
+    last_name: string
+  }
+  returned_by_profile?: {
+    id: string
+    first_name: string
+    last_name: string
+  }
+  return_location?: InventoryLocation
 }

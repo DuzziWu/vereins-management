@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Pencil, Trash2, History } from "lucide-react"
+import { ArrowLeft, Pencil, Trash2, History, QrCode } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,7 @@ import {
 import { ItemForm } from "@/components/inventory/item-form"
 import { StatusBadge } from "@/components/inventory/status-badge"
 import { ItemStatusDialog } from "@/components/inventory/item-status-dialog"
+import { QRCodeDisplay } from "@/components/inventory/qr-code-display"
 import {
   Category,
   InventoryItem,
@@ -67,6 +68,7 @@ export default function ItemDetailPage() {
   // Dialogs
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [statusDialogOpen, setStatusDialogOpen] = React.useState(false)
+  const [qrDialogOpen, setQrDialogOpen] = React.useState(false)
 
   // Fetch item
   const fetchItem = React.useCallback(async () => {
@@ -274,6 +276,10 @@ export default function ItemDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setQrDialogOpen(true)}>
+            <QrCode className="mr-2 h-4 w-4" />
+            QR-Code
+          </Button>
           <Button variant="outline" onClick={() => setIsEditing(true)}>
             <Pencil className="mr-2 h-4 w-4" />
             Bearbeiten
@@ -491,6 +497,16 @@ export default function ItemDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* QR Code Dialog */}
+      <QRCodeDisplay
+        open={qrDialogOpen}
+        onOpenChange={setQrDialogOpen}
+        type="item"
+        id={item.id}
+        name={item.name}
+        inventoryNumber={item.inventory_number}
+      />
     </div>
   )
 }

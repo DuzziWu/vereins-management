@@ -9,7 +9,7 @@ export default async function AdminLayout({
   const profile = await getMyProfile()
 
   // Redirect wenn User nicht eingeloggt oder kein Vorstand
-  if (!profile || profile.role !== "vorstand") {
+  if (!profile || !profile.is_vorstand) {
     redirect("/dashboard")
   }
 

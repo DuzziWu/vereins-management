@@ -30,21 +30,24 @@ import {
 import {
   Category,
   InventoryItem,
+  InventoryLocation,
   ItemFormData,
   itemSchema,
   ITEM_CONDITION,
   CONDITION_CONFIG,
   ItemImage,
 } from "@/lib/validations/inventory"
+import { LocationSelect } from "./location-select"
 
 interface ItemFormProps {
   item?: InventoryItem | null
   categories: Category[]
+  locations?: InventoryLocation[]
   onSubmit: (data: ItemFormData, images: File[]) => Promise<void>
   onCancel: () => void
 }
 
-export function ItemForm({ item, categories, onSubmit, onCancel }: ItemFormProps) {
+export function ItemForm({ item, categories, locations = [], onSubmit, onCancel }: ItemFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [newImages, setNewImages] = React.useState<File[]>([])
   const [existingImages, setExistingImages] = React.useState<ItemImage[]>(item?.images || [])
@@ -64,6 +67,7 @@ export function ItemForm({ item, categories, onSubmit, onCancel }: ItemFormProps
       purchase_date: item?.purchase_date || "",
       purchase_price: item?.purchase_price?.toString() || "",
       notes: item?.notes || "",
+      location_id: item?.location_id || null,
     },
   })
 
@@ -196,6 +200,29 @@ export function ItemForm({ item, categories, onSubmit, onCancel }: ItemFormProps
                   )}
                 />
               </div>
+
+              {locations.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="location_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lagerort</FormLabel>
+                      <FormControl>
+                        <LocationSelect
+                          locations={locations}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Kein Lagerort"
+                          allowClear
+                        />
+                      </FormControl>
+                      <FormDescription>Optional</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </CardContent>
           </Card>
 

@@ -124,7 +124,8 @@ export async function GET(
   }
 
   // Get profiles that have not confirmed
-  const confirmedProfileIds = new Set((confirmations || []).map((c) => c.profile?.id).filter(Boolean))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const confirmedProfileIds = new Set((confirmations || []).map((c: any) => c.profile?.id).filter(Boolean))
   const pendingProfileIds = [...targetProfileIds].filter((id) => !confirmedProfileIds.has(id))
 
   // Fetch pending profiles

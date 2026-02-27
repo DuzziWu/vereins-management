@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Plus, LayoutGrid, List, Search, Package, Filter } from "lucide-react"
+import { Plus, LayoutGrid, List, Search, Package, Filter, MapPin, QrCode } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -220,6 +220,12 @@ export default function InventoryPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button asChild variant="outline" className="w-full sm:w-auto">
+            <Link href="/admin/inventory/scanner">
+              <QrCode className="mr-2 h-4 w-4" />
+              Scanner
+            </Link>
+          </Button>
           <Button asChild className="w-full sm:w-auto">
             <Link href="/admin/inventory/new">
               <Plus className="mr-2 h-4 w-4" />
@@ -229,7 +235,7 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Tabs for Items / Categories / Sets */}
+      {/* Tabs for Items / Categories / Sets / Locations */}
       <Tabs defaultValue="items" className="space-y-4">
         <TabsList>
           <TabsTrigger value="items" className="gap-2">
@@ -246,6 +252,12 @@ export default function InventoryPage() {
             <Link href="/admin/inventory/sets" className="gap-2">
               <LayoutGrid className="h-4 w-4" />
               Sets
+            </Link>
+          </TabsTrigger>
+          <TabsTrigger value="locations" asChild>
+            <Link href="/admin/inventory/locations" className="gap-2">
+              <MapPin className="h-4 w-4" />
+              Lagerorte
             </Link>
           </TabsTrigger>
         </TabsList>

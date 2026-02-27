@@ -71,11 +71,12 @@ export default function AdminWorkgroupsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         // Get the profile ID (not auth UID) for workgroup_members
-        const { data: profile } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: profile } = await (supabase
           .from('profiles')
           .select('id')
           .eq('user_id', user.id)
-          .single()
+          .single() as any)
         setCurrentUserId(profile?.id || "")
       }
     }

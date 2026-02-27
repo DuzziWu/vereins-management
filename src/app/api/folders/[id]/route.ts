@@ -64,7 +64,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       // Sort by path order
       const ancestorMap = new Map(ancestors.map(a => [a.id, a]))
       breadcrumb = pathIds
-        .map(pid => ancestorMap.get(pid))
+        .map((pid: string) => ancestorMap.get(pid))
         .filter(Boolean) as Array<{ id: string; name: string }>
     }
   }

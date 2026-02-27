@@ -34,10 +34,14 @@ export default function MembershipTypesPage() {
 
       if (typesError) throw typesError
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typedTypes = types as any[]
+
       // Fetch member counts for each type
       const typesWithCounts: MembershipTypeWithCount[] = await Promise.all(
-        (types || []).map(async (type) => {
-          const { data: countData } = await supabase
+        (typedTypes || []).map(async (type) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: countData } = await (supabase as any)
             .rpc("get_membership_type_member_count", { type_id: type.id })
 
           return {
@@ -65,8 +69,9 @@ export default function MembershipTypesPage() {
     try {
       if (editingType) {
         // Update existing
-        const { error } = await supabase
-          .from("membership_types")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase
+          .from("membership_types") as any)
           .update({
             name: data.name,
             annual_fee: data.annual_fee,
@@ -86,7 +91,8 @@ export default function MembershipTypesPage() {
         toast.success("Beitragsart aktualisiert")
       } else {
         // Create new
-        const { error } = await supabase.from("membership_types").insert({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.from("membership_types") as any).insert({
           name: data.name,
           annual_fee: data.annual_fee,
           description: data.description || null,
@@ -116,7 +122,8 @@ export default function MembershipTypesPage() {
   // Delete membership type
   async function handleDelete(id: string) {
     try {
-      const { error } = await supabase.from("membership_types").delete().eq("id", id)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase.from("membership_types") as any).delete().eq("id", id)
 
       if (error) throw error
 

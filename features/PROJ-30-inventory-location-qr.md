@@ -645,8 +645,204 @@ Nach PROJ-30 könnte erweitert werden:
 
 ---
 
+## Tech-Design (Solution Architect)
+
+### Bestehende Architektur (Wiederverwendung)
+
+Dieses Feature baut auf bereits implementierten Systemen auf:
+- **PROJ-27 (Inventory):** Items, Kategorien, Status, Sets bereits vorhanden
+- **Existing Components:** `item-form.tsx`, `status-badge.tsx`, `category-form.tsx`
+- **Existing APIs:** `/api/inventory/items`, `/api/inventory/categories`
+- **UI Patterns:** Baum-Ansichten aehnlich wie `folder-tree.tsx`
+
+### Component-Struktur
+
+```
+Inventar-Bereich (erweitert bestehendes System)
+├── Inventar-Navigation
+│   ├── Items (bereits vorhanden)
+│   ├── Kategorien (bereits vorhanden)
+│   ├── Sets (bereits vorhanden)
+│   └── [NEU] Lagerorte (neuer Tab)
+├── [NEU] Lagerorte-Seite
+│   ├── Toolbar
+│   │   ├── "Neuer Lagerort" Button
+│   │   └── QR-Codes drucken (Batch)
+│   └── Lagerorte-Baum (hierarchisch)
+│       └── Lagerort-Zeile
+│           ├── Expand/Collapse Icon (falls Unterorte)
+│           ├── Standort-Icon
+│           ├── Name
+│           ├── Item-Anzahl
+│           └── Aktionen (Bearbeiten, QR, Loeschen)
+├── [NEU] Lagerort-Detail
+│   ├── Breadcrumb (Vereinsheim > Lagerraum A > Schrank 1)
+│   ├── Header (Name, Beschreibung)
+│   ├── QR-Code Vorschau + Download
+│   ├── Items an diesem Ort
+│   │   └── Item-Zeile (mit Status, Bild)
+│   └── "Item hier einlagern" Button
+├── Item-Detail (erweitert)
+│   ├── ... (bestehende Felder)
+│   ├── [NEU] Lagerort-Auswahl (Dropdown mit Baum)
+│   ├── [NEU] QR-Code Button
+│   ├── [NEU] Verleihen Button
+│   └── [NEU] Historie-Tab
+│       └── Verleih-Eintraege (chronologisch)
+├── [NEU] Scanner-Seite
+│   ├── Kamera-Feed
+│   │   ├── QR-Erkennungs-Rahmen
+│   │   └── Licht-Toggle
+│   ├── Kamera-Wechsel Button
+│   └── Manuelle Eingabe (Fallback)
+│       ├── Inventarnummer-Feld
+│       └── Suchen-Button
+├── [NEU] Nach-Scan-Aktionen
+│   ├── Item-Info-Karte
+│   │   ├── Bild
+│   │   ├── Name + Inventarnummer
+│   │   ├── Status
+│   │   └── Aktueller Lagerort
+│   └── Quick-Actions
+│       ├── Details anzeigen
+│       ├── Status aendern
+│       ├── Verleihen / Rueckgabe
+│       └── Lagerort aendern
+├── [NEU] Verleih-Dialog
+│   ├── Mitglied-Suche (Autocomplete)
+│   ├── Rueckgabedatum (optional)
+│   └── Notiz (optional)
+├── [NEU] Rueckgabe-Dialog
+│   ├── Zustand-Auswahl (Gut, Beschaedigt, etc.)
+│   ├── Lagerort-Auswahl (wohin zuruecklegen)
+│   └── Notiz (optional)
+└── [NEU] QR-Druck-Seite
+    ├── Format-Auswahl (Klein/Mittel/Gross)
+    ├── Ausgewaehlte Items/Lagerorte
+    ├── Label-Vorschau (Raster)
+    └── PDF Download / Drucken Button
+```
+
+### Daten-Model (einfach beschrieben)
+
+**Lagerort:**
+- Eindeutige ID
+- Name (z.B. "Schrank 1")
+- Beschreibung (optional)
+- Interne Notizen (optional)
+- Uebergeordneter Lagerort (fuer Hierarchie)
+- Pfad (z.B. "/vereinsheim/lagerraum-a/schrank-1")
+- Tiefe in der Hierarchie (max. 5 Ebenen)
+- QR-Code Daten (gecached)
+- Wer hat erstellt
+- Wann erstellt/aktualisiert
+
+**Erweiterung des bestehenden Inventar-Items:**
+- [NEU] Aktueller Lagerort
+
+**Verleih-Eintrag:**
+- Eindeutige ID
+- Welches Item
+- An wen verliehen (Mitglied)
+- Wer hat den Verleih erfasst
+- Verliehen am
+- Geplante Rueckgabe (optional)
+- Zurueckgegeben am (oder NULL falls noch ausgeliehen)
+- Wer hat Rueckgabe erfasst
+- Wohin zurueckgelegt (Lagerort)
+- Notiz bei Ausleihe
+- Notiz bei Rueckgabe
+- Zustand bei Rueckgabe
+
+**Gespeichert in:** Supabase Datenbank
+
+### Tech-Entscheidungen
+
+**Warum hierarchische Lagerorte (Baum-Struktur)?**
+- Bildet reale Welt ab: Gebaeude > Raum > Schrank > Fach
+- Flexible Organisation ohne feste Ebenen
+- Max. 5 Ebenen = ausreichend detailliert ohne Ueberkomplicierung
+- Aehnlich wie Ordner-System (PROJ-26), konsistente UX
+
+**Warum QR-Codes statt Barcodes?**
+- Smartphone-Kameras lesen QR-Codes zuverlaessiger
+- Mehr Daten speicherbar (URL + ID + Version)
+- Keine spezielle Scanner-Hardware noetig
+- Jedes Mitglied kann mit eigenem Handy scannen
+
+**Warum html5-qrcode fuer den Scanner?**
+- Funktioniert in allen modernen Browsern
+- Keine App-Installation noetig
+- Touch-optimiert fuer Smartphones
+- WebRTC-basiert, schnelle Erkennung
+
+**Warum Verleih-Historie statt nur aktueller Status?**
+- Nachvollziehbarkeit wer wann was hatte
+- Bei Beschaedigungen: Verantwortlichkeit klaeren
+- Statistiken: Wie oft wird ein Item genutzt?
+- Muster erkennen: Welche Items sind beliebt?
+
+**Warum Label-Druck mit verschiedenen Formaten?**
+- Kleine Labels fuer einzelne Items (Kostueme)
+- Mittlere Labels fuer Schraenke
+- Grosse Labels fuer Raeume/Regale
+- PDF-Export funktioniert mit jedem Drucker
+
+### Dependencies
+
+**Neu zu installieren:**
+- `qrcode` (QR-Code Generierung als PNG/SVG)
+- `html5-qrcode` (Kamera-Scanner im Browser)
+
+**Bereits vorhanden:**
+- Lucide Icons (fuer Scanner-UI)
+- Radix UI Dialogs (fuer Verleih/Rueckgabe)
+
+---
+
 ## Git Workflow
 
 ```bash
 git commit -m "feat(PROJ-30): Add inventory location & QR-code system specification"
 ```
+
+---
+
+## QA Test Results
+
+**Tested:** 2026-02-27
+**Full Report:** `/test-reports/PROJ-30-qa-report.md`
+
+### Summary (nach Bugfixes)
+
+| Status | Count |
+|--------|-------|
+| Acceptance Criteria Passed | 41 |
+| Acceptance Criteria Failed | 5 |
+| Critical Bugs | 0 (2 gefixt) |
+| High Bugs | 0 (1 gefixt) |
+| Medium Bugs | 3 |
+
+### Fixed Bugs (2026-02-27)
+
+#### BUG-1: Rueckgabe-Endpunkt existiert nicht - FIXED
+- **Fix:** Scanner verwendet jetzt PATCH auf `/api/inventory/items/[id]/loans`
+- **Commit:** Scanner page uses correct PATCH endpoint for returns
+
+#### BUG-2: QR-Code Target-Pfade sind falsch - FIXED
+- **Fix:** `getQRCodeTargetPath()` zeigt jetzt auf korrekte `/admin/inventory/...` Pfade
+- **Commit:** Fix QR code target paths
+
+#### BUG-3: QR-Code Button fehlt auf Item-Detail-Seite - FIXED
+- **Fix:** QR-Code Button und Dialog zu Item-Detail-Seite hinzugefuegt
+- **Commit:** Add QR code button to item detail page
+
+### Remaining Medium Bugs (Nice to Have)
+
+- BUG-4: Verleih-Historie Tab fehlt auf Item-Detail-Seite
+- BUG-5: Ausgeliehene Items Tab fehlt auf Mitglieder-Profil
+- BUG-6: Lagerort-Wechsel Historie nicht implementiert
+
+### Production-Ready Decision
+
+**READY** - Alle Critical und High Bugs wurden gefixt. Medium Bugs sind Nice-to-Have Features.

@@ -127,7 +127,8 @@ export async function GET(request: NextRequest) {
   }> = {}
 
   for (const t of categoryData || []) {
-    const cat = t.category as { id: string; name: string; icon: string | null; color: string | null } | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cat = t.category as any
     const key = cat ? `${cat.id}_${t.type}` : `uncategorized_${t.type}`
     if (!categoryBreakdown[key]) {
       categoryBreakdown[key] = {

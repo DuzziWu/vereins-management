@@ -82,9 +82,11 @@ export async function POST(
       .limit(1)
       .maybeSingle()
 
-    const group = isTrainer?.group as { trainer_id: string; group_trainers: { profile_id: string }[] } | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const group = isTrainer?.group as any
     const isGroupTrainer = group?.trainer_id === profile.id ||
-      group?.group_trainers?.some((gt: { profile_id: string }) => gt.profile_id === profile.id)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      group?.group_trainers?.some((gt: any) => gt.profile_id === profile.id)
 
     if (!isGroupTrainer) {
       return NextResponse.json(
@@ -132,10 +134,11 @@ export async function POST(
   })
 
   // Erstelle Notifications für alle mit ausstehenden RSVPs
-  const notifications = pendingAssignments
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const notifications = (pendingAssignments as any[])
     .filter(a => a.profile?.user_id) // Nur Mitglieder mit Account
     .map(a => ({
-      user_id: (a.profile as { user_id: string }).user_id,
+      user_id: a.profile.user_id,
       type: "event" as const,
       title: "RSVP-Erinnerung",
       message: `Bitte bestätige deine Teilnahme für "${event.title}" am ${eventDateFormatted}.`,

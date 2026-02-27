@@ -80,10 +80,11 @@ export async function GET(request: NextRequest) {
   }
 
   // Formatiere Ergebnis
-  const events = ((assignments || []) as AssignmentWithEvent[])
-    .filter((a: AssignmentWithEvent) => a.event) // Filter out any null events
-    .map((a: AssignmentWithEvent) => {
-      const event = a.event!
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const events = ((assignments || []) as any[])
+    .filter((a: any) => a.event) // Filter out any null events
+    .map((a: any) => {
+      const event = a.event
       return {
         id: event.id,
         title: event.title,

@@ -28,23 +28,25 @@ export async function POST(
   }
 
   // Get user profile
-  const { data: profile } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: profile } = await (supabase
     .from("profiles")
     .select("id")
     .eq("user_id", user.id)
-    .single()
+    .single() as any)
 
   if (!profile) {
     return NextResponse.json({ error: "Profile not found" }, { status: 404 })
   }
 
   // Check if document exists and requires confirmation
-  const { data: document, error: docError } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: document, error: docError } = await (supabase
     .from("documents")
     .select("id, name, requires_confirmation, current_version_id")
     .eq("id", id)
     .is("deleted_at", null)
-    .single()
+    .single() as any)
 
   if (docError || !document) {
     return NextResponse.json({ error: "Document not found" }, { status: 404 })

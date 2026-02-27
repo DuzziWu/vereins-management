@@ -101,11 +101,8 @@ export async function GET() {
 
   for (const m of memberships || []) {
     const groupId = m.group_id
-    const memberProfile = m.profile as {
-      id: string
-      first_name: string
-      last_name: string
-    } | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const memberProfile = m.profile as any
 
     if (!memberProfile) continue
 

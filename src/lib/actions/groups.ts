@@ -106,7 +106,8 @@ export async function getAllGroups(): Promise<GroupWithTrainer[]> {
     }
     const entry = membersByGroup.get(groupId)!
     entry.count++
-    const memberProfile = gm.profile as { date_of_birth: string | null } | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const memberProfile = gm.profile as any
     if (memberProfile?.date_of_birth) {
       entry.ages.push(calculateAge(memberProfile.date_of_birth))
     }
@@ -119,7 +120,8 @@ export async function getAllGroups(): Promise<GroupWithTrainer[]> {
     if (!coTrainersByGroup.has(groupId)) {
       coTrainersByGroup.set(groupId, [])
     }
-    const trainerProfile = ct.profile as TrainerProfile | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const trainerProfile = ct.profile as any
     if (trainerProfile) {
       coTrainersByGroup.get(groupId)!.push(trainerProfile)
     }
@@ -228,7 +230,8 @@ export async function getMyGroups(): Promise<GroupWithTrainer[]> {
       }
       const entry = membersByGroup.get(groupId)!
       entry.count++
-      const memberProfile = gm.profile as { date_of_birth: string | null } | null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const memberProfile = gm.profile as any
       if (memberProfile?.date_of_birth) {
         entry.ages.push(calculateAge(memberProfile.date_of_birth))
       }
@@ -317,8 +320,9 @@ export async function getGroup(groupId: string): Promise<GroupWithTrainer | null
   const group = data as GroupWithTrainer
   group.member_count = countResult.data ?? 0
   group.age_range = ageResult.data ?? "Keine Mitglieder"
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   group.co_trainers = (coTrainersData || [])
-    .map((ct: { profile: TrainerProfile | null }) => ct.profile)
+    .map((ct: any) => ct.profile)
     .filter(Boolean) as TrainerProfile[]
 
   return group

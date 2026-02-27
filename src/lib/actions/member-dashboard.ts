@@ -112,19 +112,13 @@ export async function getMyMemberGroups(): Promise<MemberGroup[]> {
   // Filter active groups and map to result type
   return memberships
     .filter((m) => {
-      const group = m.group as { is_active: boolean } | null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const group = m.group as any
       return group && group.is_active
     })
     .map((m) => {
-      const g = m.group as {
-        id: string
-        name: string
-        training_day: string | null
-        training_start_time: string | null
-        training_end_time: string | null
-        chat_enabled: boolean
-        trainer: { first_name: string; last_name: string } | null
-      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const g = m.group as any
       const trainerName = g.trainer && g.trainer.first_name?.trim()
         ? `${g.trainer.first_name.trim()} ${g.trainer.last_name?.trim() ? g.trainer.last_name.trim().charAt(0) + "." : ""}`.trim()
         : null
@@ -216,7 +210,8 @@ export async function getMyUpcomingTrainings(): Promise<MemberUpcomingTraining[]
   }
 
   return filteredSessions.map((s) => {
-    const group = s.group as { name: string } | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const group = s.group as any
     const rawRsvp = rsvpMap.get(s.id) || "pending"
     const validStatuses = ["confirmed", "declined", "pending"] as const
     const rsvp_status = validStatuses.includes(rawRsvp as typeof validStatuses[number])

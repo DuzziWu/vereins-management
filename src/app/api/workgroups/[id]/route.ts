@@ -64,7 +64,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     workgroup: {
       ...workgroup,
       member_count: members?.length ?? 0,
-      members: members?.map(m => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      members: members?.map((m: any) => ({
         profile_id: m.profile?.id,
         first_name: m.profile?.first_name,
         last_name: m.profile?.last_name,

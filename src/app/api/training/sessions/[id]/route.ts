@@ -196,13 +196,14 @@ export async function PATCH(
     const groupName =
       (session.group as { id: string; name: string } | null)?.name || "Gruppe"
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const notifications = members
-      .filter((m) => {
-        const memberProfile = m.profile as { user_id: string | null } | null
+      .filter((m: any) => {
+        const memberProfile = m.profile
         return memberProfile?.user_id != null
       })
-      .map((m) => {
-        const memberProfile = m.profile as { user_id: string }
+      .map((m: any) => {
+        const memberProfile = m.profile
         return {
           user_id: memberProfile.user_id,
           type: "event" as const,

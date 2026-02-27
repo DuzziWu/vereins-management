@@ -15,10 +15,12 @@ export async function GET(request: NextRequest) {
   // Parse query parameters
   const { searchParams } = new URL(request.url)
   const category_id = searchParams.get('category_id')
+  const location_id = searchParams.get('location_id')
   const status = searchParams.get('status')
   const condition = searchParams.get('condition')
   const search = searchParams.get('search')
   const include_archived = searchParams.get('include_archived') === 'true'
+  const no_location = searchParams.get('no_location') === 'true'
   const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100)
   const offset = parseInt(searchParams.get('offset') || '0')
 
@@ -32,7 +34,8 @@ export async function GET(request: NextRequest) {
       *,
       category:inventory_categories(id, name, icon),
       current_holder:profiles!inventory_items_current_holder_id_fkey(id, first_name, last_name),
-      images:inventory_item_images(id, storage_path, sort_order)
+      images:inventory_item_images(id, storage_path, sort_order),
+      location:inventory_locations!inventory_items_location_id_fkey(id, name, path)
     `, { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
@@ -58,6 +61,14 @@ export async function GET(request: NextRequest) {
   if (search) {
     // Search in name and inventory_number
     query = query.or(`name.ilike.%${search}%,inventory_number.ilike.%${search}%`)
+  }
+
+  if (location_id) {
+    query = query.eq('location_id', location_id)
+  }
+
+  if (no_location) {
+    query = query.is('location_id', null)
   }
 
   const { data: items, error, count } = await query

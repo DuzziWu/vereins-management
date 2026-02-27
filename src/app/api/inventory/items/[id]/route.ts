@@ -29,7 +29,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       category:inventory_categories(id, name, icon),
       current_holder:profiles!inventory_items_current_holder_id_fkey(id, first_name, last_name),
       created_by_profile:profiles!inventory_items_created_by_fkey(id, first_name, last_name),
-      images:inventory_item_images(id, storage_path, sort_order)
+      images:inventory_item_images(id, storage_path, sort_order),
+      location:inventory_locations!inventory_items_location_id_fkey(id, name, path)
     `)
     .eq('id', id)
     .single()
@@ -117,6 +118,19 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
   }
 
+  // Check if location exists when updating location_id
+  if (data.location_id) {
+    const { data: location, error: locationError } = await supabase
+      .from('inventory_locations')
+      .select('id')
+      .eq('id', data.location_id)
+      .single()
+
+    if (locationError || !location) {
+      return NextResponse.json({ error: 'Lagerort nicht gefunden' }, { status: 400 })
+    }
+  }
+
   // Update item
   const { data: item, error: updateError } = await supabase
     .from('inventory_items')
@@ -125,7 +139,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     .select(`
       *,
       category:inventory_categories(id, name, icon),
-      current_holder:profiles!inventory_items_current_holder_id_fkey(id, first_name, last_name)
+      current_holder:profiles!inventory_items_current_holder_id_fkey(id, first_name, last_name),
+      location:inventory_locations!inventory_items_location_id_fkey(id, name, path)
     `)
     .single()
 

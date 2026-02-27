@@ -59,7 +59,7 @@ export default async function ProfilePage() {
       {/* Section 4: Club Info (Read-only) */}
       <ClubInfoSection
         profile={{
-          role: profile.role,
+          role: profile.role ?? "member",
           is_active: profile.is_active,
           created_at: profile.created_at,
         }}

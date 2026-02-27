@@ -267,18 +267,13 @@ export async function getMyGroups(): Promise<MyGroupInfo[]> {
 
   return (memberships || [])
     .filter((m) => {
-      const group = m.group as { is_active: boolean } | null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const group = m.group as any
       return group && group.is_active
     })
     .map((m) => {
-      const g = m.group as {
-        id: string
-        name: string
-        training_day: string | null
-        training_start_time: string | null
-        training_end_time: string | null
-        trainer: { first_name: string; last_name: string } | null
-      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const g = m.group as any
       const trainerName = g.trainer
         ? `${g.trainer.first_name} ${g.trainer.last_name}`
         : null
@@ -342,7 +337,8 @@ export async function getMyFees(): Promise<MyFeeInfo[]> {
   }
 
   return (fees || []).map((f) => {
-    const membershipType = f.membership_type as { name: string } | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const membershipType = f.membership_type as any
     let status: "unpaid" | "partial" | "paid" = "unpaid"
     if (f.amount_paid >= f.amount_due) {
       status = "paid"

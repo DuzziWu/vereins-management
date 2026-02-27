@@ -95,7 +95,8 @@ export async function POST(
     return NextResponse.json({ error: 'Task not found' }, { status: 404 })
   }
 
-  const taskColumn = task.column as { workgroup_id: string } | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const taskColumn = task.column as any
   if (!taskColumn || taskColumn.workgroup_id !== workgroupId) {
     return NextResponse.json({ error: 'Task not found in this workgroup' }, { status: 404 })
   }

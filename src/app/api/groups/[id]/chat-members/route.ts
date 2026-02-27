@@ -75,7 +75,8 @@ export async function GET(
 
   // Add main trainer
   if (group?.trainer) {
-    const trainer = group.trainer as { id: string; first_name: string | null; last_name: string | null }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const trainer = group.trainer as any
     membersList.push({
       id: trainer.id,
       display_name: anonymise(trainer.first_name, trainer.last_name),
@@ -84,8 +85,9 @@ export async function GET(
   }
 
   // Add co-trainers
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const coTrainers = (coTrainersResult.data || [])
-    .map((ct: { profile: unknown }) => ct.profile as { id: string; first_name: string | null; last_name: string | null } | null)
+    .map((ct: any) => ct.profile)
     .filter(Boolean)
 
   for (const ct of coTrainers) {
@@ -98,8 +100,9 @@ export async function GET(
   }
 
   // Add regular members
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const regularMembers = (membersResult.data || [])
-    .map((m: { profile: unknown }) => m.profile as { id: string; first_name: string | null; last_name: string | null } | null)
+    .map((m: any) => m.profile)
     .filter(Boolean)
 
   for (const m of regularMembers) {

@@ -54,15 +54,16 @@ export async function GET(
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  const formattedAssignees = (assignees || []).map(a => {
-    const profile = a.profile as { id: string; first_name: string; last_name: string } | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const formattedAssignees = (assignees || []).map((a: any) => {
+    const profile = a.profile
     return {
       profile_id: profile?.id,
       first_name: profile?.first_name,
       last_name: profile?.last_name,
       assigned_at: a.assigned_at,
     }
-  }).filter(a => a.profile_id)
+  }).filter((a: any) => a.profile_id)
 
   return NextResponse.json({ assignees: formattedAssignees })
 }
@@ -121,7 +122,8 @@ export async function PUT(
     return NextResponse.json({ error: 'Task not found' }, { status: 404 })
   }
 
-  const taskColumn = task.column as { workgroup_id: string } | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const taskColumn = task.column as any
   if (!taskColumn || taskColumn.workgroup_id !== workgroupId) {
     return NextResponse.json({ error: 'Task not found in this workgroup' }, { status: 404 })
   }
@@ -194,15 +196,16 @@ export async function PUT(
     `)
     .eq('task_id', taskId)
 
-  const formattedAssignees = (assignees || []).map(a => {
-    const p = a.profile as { id: string; first_name: string; last_name: string } | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const formattedAssignees = (assignees || []).map((a: any) => {
+    const p = a.profile
     return {
       profile_id: p?.id,
       first_name: p?.first_name,
       last_name: p?.last_name,
       assigned_at: a.assigned_at,
     }
-  }).filter(a => a.profile_id)
+  }).filter((a: any) => a.profile_id)
 
   return NextResponse.json({ assignees: formattedAssignees })
 }

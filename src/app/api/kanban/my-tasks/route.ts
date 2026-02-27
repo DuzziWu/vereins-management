@@ -80,24 +80,18 @@ export async function GET(request: NextRequest) {
   }
 
   // Filter out tasks from archived workgroups
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filteredTasks = (tasks || [])
-    .filter(task => {
-      const column = task.column as {
-        id: string
-        name: string
-        workgroup: { id: string; name: string; status: string } | null
-      } | null
+    .filter((task: any) => {
+      const column = task.column
       return column?.workgroup?.status === 'active'
     })
     .slice(0, limit)
 
   // Format response
-  const formattedTasks = filteredTasks.map(task => {
-    const column = task.column as {
-      id: string
-      name: string
-      workgroup: { id: string; name: string; status: string } | null
-    } | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const formattedTasks = filteredTasks.map((task: any) => {
+    const column = task.column
 
     return {
       id: task.id,

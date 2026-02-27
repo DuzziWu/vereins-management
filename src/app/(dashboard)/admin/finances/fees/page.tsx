@@ -85,7 +85,7 @@ export default function FeesPage() {
       .select("year")
       .order("year", { ascending: false })
 
-    const years = [...new Set(data?.map((f) => f.year) ?? [])]
+    const years = [...new Set((data as { year: number }[] | null)?.map((f) => f.year) ?? [])]
     if (!years.includes(currentYear)) {
       years.unshift(currentYear)
     }
@@ -130,6 +130,10 @@ export default function FeesPage() {
 
       if (individualError) throw individualError
 
+      // Type assertion for individualFees
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typedIndividualFees = individualFees as any[]
+
       // Fetch family fees
       const { data: familyFees, error: familyError } = await supabase
         .from("membership_fees")
@@ -165,11 +169,15 @@ export default function FeesPage() {
 
       if (familyError) throw familyError
 
+      // Type assertion for familyFees
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typedFamilyFees = familyFees as any[]
+
       // Transform data to FeeEntry format
       const allEntries: FeeEntry[] = []
 
       // Process individual fees
-      for (const fee of individualFees ?? []) {
+      for (const fee of typedIndividualFees ?? []) {
         const profile = fee.profiles as { id: string; first_name: string; last_name: string; family_id: string | null; membership_types: { id: string; name: string } | null } | null
         if (!profile) continue
         // BUG-2 FIX: Skip profiles that belong to a family (they're handled in family fees)
@@ -190,7 +198,7 @@ export default function FeesPage() {
       }
 
       // Process family fees
-      for (const fee of familyFees ?? []) {
+      for (const fee of typedFamilyFees ?? []) {
         const family = fee.families as {
           id: string
           name: string
@@ -307,6 +315,10 @@ export default function FeesPage() {
 
       if (indError) throw indError
 
+      // Type assertion for individuals
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typedIndividuals = individuals as any[]
+
       // Get families with their members
       const { data: families, error: famError } = await supabase
         .from("families")
@@ -329,6 +341,10 @@ export default function FeesPage() {
 
       if (famError) throw famError
 
+      // Type assertion for families
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typedFamilies = families as any[]
+
       // Calculate preview
       let individualCount = 0
       let familyCount = 0
@@ -336,7 +352,7 @@ export default function FeesPage() {
       const membersWithoutTypeNames: string[] = []
 
       // Process individuals
-      for (const member of individuals ?? []) {
+      for (const member of typedIndividuals ?? []) {
         const membershipType = member.membership_types as { id: string; annual_fee: number } | null
         if (membershipType) {
           individualCount++
@@ -347,7 +363,7 @@ export default function FeesPage() {
       }
 
       // Process families
-      for (const family of families ?? []) {
+      for (const family of typedFamilies ?? []) {
         const members = family.profiles as Array<{
           id: string
           first_name: string
@@ -436,6 +452,12 @@ export default function FeesPage() {
           )
         `)
 
+      // Type assertions for complex Supabase queries
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typedIndividuals = individuals as any[]
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typedFamilies = families as any[]
+
       const feesToInsert: Array<{
         year: number
         profile_id?: string
@@ -445,7 +467,7 @@ export default function FeesPage() {
       }> = []
 
       // Create entries for individuals
-      for (const member of individuals ?? []) {
+      for (const member of typedIndividuals ?? []) {
         const membershipType = member.membership_types as { id: string; annual_fee: number } | null
         if (!membershipType) continue
 
@@ -458,7 +480,7 @@ export default function FeesPage() {
       }
 
       // Create entries for families
-      for (const family of families ?? []) {
+      for (const family of typedFamilies ?? []) {
         const members = family.profiles as Array<{
           id: string
           membership_type_id: string | null
@@ -505,7 +527,8 @@ export default function FeesPage() {
 
       // Insert all fees
       if (feesToInsert.length > 0) {
-        const { error } = await supabase.from("membership_fees").insert(feesToInsert)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.from("membership_fees") as any).insert(feesToInsert)
         if (error) throw error
       }
 
@@ -529,18 +552,20 @@ export default function FeesPage() {
       if (!user) throw new Error("Not authenticated")
 
       // Get the old amount before updating
-      const { data: currentFee, error: fetchError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: currentFee, error: fetchError } = await (supabase
         .from("membership_fees")
         .select("amount_due")
         .eq("id", feeId)
-        .single()
+        .single() as any)
 
       if (fetchError) throw fetchError
       const oldAmount = Number(currentFee.amount_due)
 
       // Update the fee
-      const { error: updateError } = await supabase
-        .from("membership_fees")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: updateError } = await (supabase
+        .from("membership_fees") as any)
         .update({
           amount_due: newAmount,
           adjustment_reason: reason,
@@ -551,8 +576,9 @@ export default function FeesPage() {
       if (updateError) throw updateError
 
       // BUG-3: Write to fee_adjustments history table
-      const { error: historyError } = await supabase
-        .from("fee_adjustments")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: historyError } = await (supabase
+        .from("fee_adjustments") as any)
         .insert({
           fee_id: feeId,
           old_amount: oldAmount,
@@ -593,11 +619,13 @@ export default function FeesPage() {
         .select("profile_id, family_id")
         .eq("year", filters.year)
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typedExistingFees = existingFees as any[]
       const existingProfileIds = new Set(
-        existingFees?.filter((f) => f.profile_id).map((f) => f.profile_id) ?? []
+        typedExistingFees?.filter((f) => f.profile_id).map((f) => f.profile_id) ?? []
       )
       const existingFamilyIds = new Set(
-        existingFees?.filter((f) => f.family_id).map((f) => f.family_id) ?? []
+        typedExistingFees?.filter((f) => f.family_id).map((f) => f.family_id) ?? []
       )
 
       const membersWithout: MemberWithoutFee[] = []
@@ -620,7 +648,9 @@ export default function FeesPage() {
         .is("family_id", null)
         .not("membership_type_id", "is", null)
 
-      for (const member of individuals ?? []) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typedIndividuals = individuals as any[]
+      for (const member of typedIndividuals ?? []) {
         if (existingProfileIds.has(member.id)) continue
         const membershipType = member.membership_types as { id: string; name: string; annual_fee: number } | null
         if (!membershipType) continue
@@ -652,7 +682,9 @@ export default function FeesPage() {
           )
         `)
 
-      for (const family of families ?? []) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typedFamilies = families as any[]
+      for (const family of typedFamilies ?? []) {
         if (existingFamilyIds.has(family.id)) continue
 
         const members = family.profiles as Array<{
@@ -719,11 +751,12 @@ export default function FeesPage() {
         const member = membersWithoutFee.find((m) => m.id === memberId && m.type === "individual")
         if (!member) continue
 
-        const { data: profile } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: profile } = await (supabase
           .from("profiles")
           .select("membership_type_id")
           .eq("id", memberId)
-          .single()
+          .single() as any)
 
         if (profile?.membership_type_id) {
           feesToInsert.push({
@@ -741,12 +774,13 @@ export default function FeesPage() {
         if (!member) continue
 
         // Get first membership type from family members
-        const { data: familyMembers } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: familyMembers } = await (supabase
           .from("profiles")
           .select("membership_type_id")
           .eq("family_id", familyId)
           .not("membership_type_id", "is", null)
-          .limit(1)
+          .limit(1) as any)
 
         feesToInsert.push({
           year: filters.year,
@@ -757,7 +791,8 @@ export default function FeesPage() {
       }
 
       if (feesToInsert.length > 0) {
-        const { error } = await supabase.from("membership_fees").insert(feesToInsert)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.from("membership_fees") as any).insert(feesToInsert)
         if (error) throw error
       }
 
@@ -804,7 +839,9 @@ export default function FeesPage() {
 
       if (error) throw error
 
-      const mappedPayments: Payment[] = (data ?? []).map((p) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const typedData = data as any[]
+      const mappedPayments: Payment[] = (typedData ?? []).map((p) => {
         const profile = p.profiles as { first_name: string; last_name: string } | null
         return {
           id: p.id,
@@ -839,15 +876,17 @@ export default function FeesPage() {
       if (!user) throw new Error("Not authenticated")
 
       // Get user's profile ID (payments.created_by references profiles.id, not auth.users.id)
-      const { data: profile, error: profileError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: profile, error: profileError } = await (supabase
         .from("profiles")
         .select("id")
         .eq("user_id", user.id)
-        .single()
+        .single() as any)
 
       if (profileError || !profile) throw new Error("Profile not found")
 
-      const { error } = await supabase.from("payments").insert({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase.from("payments") as any).insert({
         fee_id: feeId,
         amount: data.amount,
         payment_date: data.paymentDate,
@@ -882,16 +921,18 @@ export default function FeesPage() {
       if (!user) throw new Error("Not authenticated")
 
       // Get user's profile ID (payments.cancelled_by references profiles.id, not auth.users.id)
-      const { data: profile, error: profileError } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: profile, error: profileError } = await (supabase
         .from("profiles")
         .select("id")
         .eq("user_id", user.id)
-        .single()
+        .single() as any)
 
       if (profileError || !profile) throw new Error("Profile not found")
 
-      const { error } = await supabase
-        .from("payments")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase
+        .from("payments") as any)
         .update({
           is_cancelled: true,
           cancellation_reason: reason,
@@ -922,8 +963,9 @@ export default function FeesPage() {
   // PROJ-7: Edit a payment (only note and method)
   async function handleEditPayment(paymentId: string, data: PaymentEditData) {
     try {
-      const { error } = await supabase
-        .from("payments")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase
+        .from("payments") as any)
         .update({
           payment_method: data.paymentMethod,
           note: data.note || null,

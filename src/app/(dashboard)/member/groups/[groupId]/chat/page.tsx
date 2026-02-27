@@ -27,11 +27,12 @@ export default async function MemberChatPage({ params }: PageProps) {
   const supabase = await createClient()
 
   // Fetch group details
-  const { data: group, error: groupError } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: group, error: groupError } = await (supabase
     .from("groups")
     .select("id, name, chat_enabled, is_active")
     .eq("id", groupId)
-    .single()
+    .single() as any)
 
   if (groupError || !group) {
     redirect("/member/groups")

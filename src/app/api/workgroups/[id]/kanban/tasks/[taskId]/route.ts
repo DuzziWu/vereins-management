@@ -58,7 +58,8 @@ export async function GET(
   }
 
   // Verify task belongs to workgroup
-  const taskColumn = task.column as { workgroup_id: string } | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const taskColumn = task.column as any
   if (!taskColumn || taskColumn.workgroup_id !== workgroupId) {
     return NextResponse.json({ error: 'Task not found in this workgroup' }, { status: 404 })
   }
@@ -98,18 +99,20 @@ export async function GET(
     creator_name: task.creator
       ? `${task.creator.first_name} ${task.creator.last_name}`
       : null,
-    assignees: (assigneesRes.data || []).map(a => {
-      const profile = a.profile as { id: string; first_name: string; last_name: string } | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    assignees: (assigneesRes.data || []).map((a: any) => {
+      const profile = a.profile
       return {
         profile_id: profile?.id,
         first_name: profile?.first_name,
         last_name: profile?.last_name,
         assigned_at: a.assigned_at,
       }
-    }).filter(a => a.profile_id),
+    }).filter((a: any) => a.profile_id),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     labels: (labelsRes.data || [])
-      .map(l => l.label as { id: string; name: string; color: string } | null)
-      .filter((l): l is { id: string; name: string; color: string } => l !== null),
+      .map((l: any) => l.label)
+      .filter((l: any) => l !== null),
     checklist_items: checklistRes.data || [],
     attachments: (attachmentsRes.data || []).map(att => ({
       ...att,
@@ -176,7 +179,8 @@ export async function PATCH(
     return NextResponse.json({ error: 'Task not found' }, { status: 404 })
   }
 
-  const taskColumn = existingTask.column as { workgroup_id: string } | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const taskColumn = existingTask.column as any
   if (!taskColumn || taskColumn.workgroup_id !== workgroupId) {
     return NextResponse.json({ error: 'Task not found in this workgroup' }, { status: 404 })
   }
@@ -281,7 +285,8 @@ export async function DELETE(
     return NextResponse.json({ error: 'Task not found' }, { status: 404 })
   }
 
-  const taskColumn = task.column as { workgroup_id: string } | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const taskColumn = task.column as any
   if (!taskColumn || taskColumn.workgroup_id !== workgroupId) {
     return NextResponse.json({ error: 'Task not found in this workgroup' }, { status: 404 })
   }

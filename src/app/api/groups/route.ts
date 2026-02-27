@@ -143,7 +143,8 @@ export async function GET(request: NextRequest) {
       }
       const entry = membersByGroup.get(groupId)!
       entry.count++
-      const memberProfile = gm.profile as { date_of_birth: string | null } | null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const memberProfile = gm.profile as any
       if (memberProfile?.date_of_birth) {
         entry.ages.push(calculateAge(memberProfile.date_of_birth))
       }

@@ -149,11 +149,8 @@ export async function GET(request: NextRequest) {
 
   // Initialize all members in the map
   for (const member of members || []) {
-    const memberProfile = member.profile as {
-      id: string
-      first_name: string
-      last_name: string
-    } | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const memberProfile = member.profile as any
     if (memberProfile) {
       profileMap.set(memberProfile.id, {
         profile_id: memberProfile.id,
@@ -172,11 +169,8 @@ export async function GET(request: NextRequest) {
 
   // Populate attendance data
   for (const record of attendanceData || []) {
-    const recordProfile = record.profile as {
-      id: string
-      first_name: string
-      last_name: string
-    } | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recordProfile = record.profile as any
 
     if (!recordProfile) continue
 

@@ -230,7 +230,8 @@ export async function getMyUpcomingTrainerSessions(): Promise<TrainerUpcomingSes
     .slice(0, 5)
 
   return filteredSessions.map((s) => {
-    const group = s.group as { name: string } | null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const group = s.group as any
     return {
       id: s.id,
       date: s.date,

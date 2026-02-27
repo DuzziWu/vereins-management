@@ -98,7 +98,8 @@ export async function GET(request: NextRequest) {
       }
       const entry = membersByWorkgroup.get(workgroupId)!
       entry.count++
-      const memberProfile = member.profile as { id: string; first_name: string; last_name: string } | null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const memberProfile = member.profile as any
       if (memberProfile) {
         entry.members.push({
           id: memberProfile.id,

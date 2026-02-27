@@ -70,6 +70,9 @@ async function fetchBirthdays(supabase: Awaited<ReturnType<typeof createClient>>
     return []
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const typedMembers = members as any[]
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -77,7 +80,7 @@ async function fetchBirthdays(supabase: Awaited<ReturnType<typeof createClient>>
   in14Days.setDate(in14Days.getDate() + 14)
 
   // Filter and calculate upcoming birthdays
-  const upcomingBirthdays = members
+  const upcomingBirthdays = typedMembers
     .map(member => {
       const dob = new Date(member.date_of_birth!)
       const thisYearBirthday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate())
@@ -142,7 +145,9 @@ async function fetchHints(supabase: Awaited<ReturnType<typeof createClient>>) {
     .select('amount_due, amount_paid')
     .eq('year', currentYear)
 
-  const actualOpenFees = fees?.filter(f =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const typedFees = fees as any[]
+  const actualOpenFees = typedFees?.filter(f =>
     Number(f.amount_paid) < Number(f.amount_due)
   ).length || 0
 

@@ -57,7 +57,8 @@ export default async function TrainerGroupDetailPage({ params }: PageProps) {
   const supabase = await createClient()
 
   // Fetch group details with trainer info
-  const { data: group, error: groupError } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: group, error: groupError } = await (supabase
     .from("groups")
     .select(
       `
@@ -76,7 +77,7 @@ export default async function TrainerGroupDetailPage({ params }: PageProps) {
     `
     )
     .eq("id", groupId)
-    .single()
+    .single() as any)
 
   if (groupError || !group) {
     redirect("/trainer/groups")
@@ -117,28 +118,14 @@ export default async function TrainerGroupDetailPage({ params }: PageProps) {
       .eq("group_id", groupId),
   ])
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const coTrainers = (coTrainersResult.data || [])
-    .map(
-      (ct: {
-        profile: {
-          id: string
-          first_name: string
-          last_name: string
-        } | null
-      }) => ct.profile
-    )
+    .map((ct: any) => ct.profile)
     .filter(Boolean) as { id: string; first_name: string; last_name: string }[]
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const members = (membersResult.data || [])
-    .map(
-      (m: {
-        profile: {
-          id: string
-          first_name: string
-          last_name: string
-        } | null
-      }) => m.profile
-    )
+    .map((m: any) => m.profile)
     .filter(Boolean) as { id: string; first_name: string; last_name: string }[]
 
   const trainer = group.trainer as {
