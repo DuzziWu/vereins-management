@@ -124,6 +124,7 @@ export const itemSchema = z.object({
 export type ItemFormData = z.infer<typeof itemSchema>
 
 // Item Patch Schema (for API updates)
+// Note: purchase_price accepts string from forms - API converts to number
 export const itemPatchSchema = z.object({
   name: z
     .string()
@@ -149,7 +150,13 @@ export const itemPatchSchema = z.object({
     .nullable()
     .optional(),
   purchase_date: z.string().nullable().optional(),
-  purchase_price: z.number().min(0, "Preis muss positiv sein").nullable().optional(),
+  purchase_price: z
+    .union([
+      z.number().min(0, "Preis muss positiv sein"),
+      z.string().refine((val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0), "Preis muss positiv sein"),
+    ])
+    .nullable()
+    .optional(),
   notes: z.string().nullable().optional(),
   is_archived: z.boolean().optional(),
   location_id: z.string().uuid().nullable().optional(),

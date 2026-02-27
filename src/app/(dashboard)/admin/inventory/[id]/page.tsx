@@ -34,6 +34,7 @@ const QRCodeDisplay = dynamic(
 import {
   Category,
   InventoryItem,
+  InventoryLocation,
   ItemFormData,
   ItemStatus,
   CONDITION_CONFIG,
@@ -66,6 +67,7 @@ export default function ItemDetailPage() {
 
   const [item, setItem] = React.useState<InventoryItem | null>(null)
   const [categories, setCategories] = React.useState<Category[]>([])
+  const [locations, setLocations] = React.useState<InventoryLocation[]>([])
   const [statusLog, setStatusLog] = React.useState<StatusLogEntry[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [isEditing, setIsEditing] = React.useState(false)
@@ -108,6 +110,18 @@ export default function ItemDetailPage() {
     }
   }, [])
 
+  // Fetch locations
+  const fetchLocations = React.useCallback(async () => {
+    try {
+      const response = await fetch("/api/inventory/locations?flat=true")
+      if (!response.ok) throw new Error("Failed to fetch locations")
+      const data = await response.json()
+      setLocations(data.locations || [])
+    } catch (error) {
+      console.error("Error fetching locations:", error)
+    }
+  }, [])
+
   // Fetch status log
   const fetchStatusLog = React.useCallback(async () => {
     try {
@@ -123,11 +137,11 @@ export default function ItemDetailPage() {
   React.useEffect(() => {
     async function loadData() {
       setIsLoading(true)
-      await Promise.all([fetchItem(), fetchCategories()])
+      await Promise.all([fetchItem(), fetchCategories(), fetchLocations()])
       setIsLoading(false)
     }
     loadData()
-  }, [fetchItem, fetchCategories])
+  }, [fetchItem, fetchCategories, fetchLocations])
 
   React.useEffect(() => {
     if (showHistory) {
@@ -137,13 +151,11 @@ export default function ItemDetailPage() {
 
   async function handleUpdate(data: ItemFormData, images: File[]) {
     try {
+      // Send form data as-is - API handles conversion
       const response = await fetch(`/api/inventory/items/${itemId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          purchase_price: data.purchase_price ? parseFloat(String(data.purchase_price)) : null,
-        }),
+        body: JSON.stringify(data),
       })
 
       if (!response.ok) {
@@ -245,6 +257,7 @@ export default function ItemDetailPage() {
         <ItemForm
           item={item}
           categories={categories}
+          locations={locations}
           onSubmit={handleUpdate}
           onCancel={() => setIsEditing(false)}
         />

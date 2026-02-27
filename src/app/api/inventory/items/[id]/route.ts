@@ -131,10 +131,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
   }
 
+  // Convert purchase_price from string to number if needed
+  const updateData = { ...data }
+  if (typeof updateData.purchase_price === 'string') {
+    updateData.purchase_price = updateData.purchase_price ? parseFloat(updateData.purchase_price) : null
+  }
+
   // Update item
   const { data: item, error: updateError } = await supabase
     .from('inventory_items')
-    .update(data)
+    .update(updateData)
     .eq('id', id)
     .select(`
       *,

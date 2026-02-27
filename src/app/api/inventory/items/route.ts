@@ -145,9 +145,14 @@ export async function POST(request: NextRequest) {
 
   const validation = itemSchema.safeParse(body)
   if (!validation.success) {
+    console.error('Validation failed for item creation:', {
+      body,
+      errors: validation.error.flatten()
+    })
     return NextResponse.json({
       error: 'Validation failed',
-      details: validation.error.flatten()
+      details: validation.error.flatten(),
+      fieldErrors: validation.error.flatten().fieldErrors
     }, { status: 400 })
   }
 

@@ -9,7 +9,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ItemForm } from "@/components/inventory/item-form"
-import { Category, ItemFormData } from "@/lib/validations/inventory"
+import { Category, InventoryLocation, ItemFormData } from "@/lib/validations/inventory"
 
 function FormSkeleton() {
   return (
@@ -27,35 +27,43 @@ function FormSkeleton() {
 export default function NewItemPage() {
   const router = useRouter()
   const [categories, setCategories] = React.useState<Category[]>([])
+  const [locations, setLocations] = React.useState<InventoryLocation[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
-    async function loadCategories() {
+    async function loadData() {
       try {
-        const response = await fetch("/api/inventory/categories")
-        if (!response.ok) throw new Error("Failed to fetch categories")
-        const data = await response.json()
-        setCategories(data.categories || [])
+        const [categoriesRes, locationsRes] = await Promise.all([
+          fetch("/api/inventory/categories"),
+          fetch("/api/inventory/locations?flat=true"),
+        ])
+
+        if (!categoriesRes.ok) throw new Error("Failed to fetch categories")
+        const categoriesData = await categoriesRes.json()
+        setCategories(categoriesData.categories || [])
+
+        if (locationsRes.ok) {
+          const locationsData = await locationsRes.json()
+          setLocations(locationsData.locations || [])
+        }
       } catch (error) {
-        console.error("Error loading categories:", error)
-        toast.error("Fehler beim Laden der Kategorien")
+        console.error("Error loading data:", error)
+        toast.error("Fehler beim Laden der Daten")
       } finally {
         setIsLoading(false)
       }
     }
-    loadCategories()
+    loadData()
   }, [])
 
   async function handleSubmit(data: ItemFormData, images: File[]) {
     try {
       // First create the item
+      // Send form data as-is - API handles conversion
       const response = await fetch("/api/inventory/items", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          purchase_price: data.purchase_price ? parseFloat(String(data.purchase_price)) : null,
-        }),
+        body: JSON.stringify(data),
       })
 
       if (!response.ok) {
@@ -127,6 +135,7 @@ export default function NewItemPage() {
       ) : (
         <ItemForm
           categories={categories}
+          locations={locations}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />
