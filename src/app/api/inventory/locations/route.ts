@@ -17,14 +17,10 @@ export async function GET(request: NextRequest) {
   const flat = searchParams.get('flat') === 'true' // Return flat list instead of tree
   const parent_id = searchParams.get('parent_id') // Filter by parent
 
-  // Build query
+  // Build query - simplified to avoid PostgREST issues
   let query = supabase
     .from('inventory_locations')
-    .select(`
-      *,
-      parent:inventory_locations!inventory_locations_parent_id_fkey(id, name),
-      created_by_profile:profiles!inventory_locations_created_by_fkey(id, first_name, last_name)
-    `)
+    .select('*')
     .order('name')
 
   if (parent_id) {
