@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import {
   ArrowLeft,
@@ -21,7 +22,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { QRCodeScanner } from "@/components/inventory/qr-code-scanner"
 import { StatusBadge } from "@/components/inventory/status-badge"
 import { LoanDialog } from "@/components/inventory/loan-dialog"
 import { ReturnDialog } from "@/components/inventory/return-dialog"
@@ -31,6 +31,24 @@ import type {
   InventoryLocation,
   InventoryLoan,
 } from "@/lib/validations/inventory"
+
+// Dynamic import for QR scanner (not SSR compatible)
+const QRCodeScanner = dynamic(
+  () => import("@/components/inventory/qr-code-scanner").then(mod => mod.QRCodeScanner),
+  {
+    ssr: false,
+    loading: () => (
+      <Card className="w-full max-w-md mx-auto">
+        <CardContent className="p-8">
+          <div className="flex flex-col items-center gap-4">
+            <Skeleton className="aspect-square w-full max-w-[300px]" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+)
 
 type ScanResult = {
   type: "item" | "location"

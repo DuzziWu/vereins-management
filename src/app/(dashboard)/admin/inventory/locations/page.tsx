@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { Plus, MapPin, Package, Filter, LayoutGrid, QrCode, Printer } from "lucide-react"
 import { toast } from "sonner"
 
@@ -31,13 +32,18 @@ import {
 import { LocationTree } from "@/components/inventory/location-tree"
 import { LocationForm } from "@/components/inventory/location-form"
 import { LocationSelect } from "@/components/inventory/location-select"
-import { QRCodeDisplay } from "@/components/inventory/qr-code-display"
 import { StatusBadge } from "@/components/inventory/status-badge"
 import {
   InventoryLocation,
   InventoryItem,
   LocationFormData,
 } from "@/lib/validations/inventory"
+
+// Dynamic import for QR code display (not SSR compatible due to qrcode lib)
+const QRCodeDisplay = dynamic(
+  () => import("@/components/inventory/qr-code-display").then(mod => mod.QRCodeDisplay),
+  { ssr: false }
+)
 
 interface LocationWithChildren extends InventoryLocation {
   children: LocationWithChildren[]

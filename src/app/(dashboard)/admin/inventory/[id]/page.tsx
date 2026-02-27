@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { ArrowLeft, Pencil, Trash2, History, QrCode } from "lucide-react"
 import { toast } from "sonner"
 
@@ -24,7 +25,12 @@ import {
 import { ItemForm } from "@/components/inventory/item-form"
 import { StatusBadge } from "@/components/inventory/status-badge"
 import { ItemStatusDialog } from "@/components/inventory/item-status-dialog"
-import { QRCodeDisplay } from "@/components/inventory/qr-code-display"
+
+// Dynamic import for QR code display (not SSR compatible due to qrcode lib)
+const QRCodeDisplay = dynamic(
+  () => import("@/components/inventory/qr-code-display").then(mod => mod.QRCodeDisplay),
+  { ssr: false }
+)
 import {
   Category,
   InventoryItem,
