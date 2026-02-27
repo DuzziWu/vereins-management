@@ -17,14 +17,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Fetch location
+  // Fetch location (simplified query to avoid PostgREST self-join issues)
   const { data: location, error } = await supabase
     .from('inventory_locations')
-    .select(`
-      *,
-      parent:inventory_locations!inventory_locations_parent_id_fkey(id, name, path),
-      created_by_profile:profiles!inventory_locations_created_by_fkey(id, first_name, last_name)
-    `)
+    .select('*')
     .eq('id', id)
     .single()
 
@@ -188,15 +184,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
   }
 
-  // Update location
+  // Update location (simplified query to avoid PostgREST self-join issues)
   const { data: location, error: updateError } = await supabase
     .from('inventory_locations')
     .update(updateData)
     .eq('id', id)
-    .select(`
-      *,
-      parent:inventory_locations!inventory_locations_parent_id_fkey(id, name)
-    `)
+    .select('*')
     .single()
 
   if (updateError) {

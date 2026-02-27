@@ -148,10 +148,7 @@ export async function POST(request: NextRequest) {
       parent_id: data.parent_id || null,
       created_by: profile.id,
     })
-    .select(`
-      *,
-      parent:inventory_locations!inventory_locations_parent_id_fkey(id, name)
-    `)
+    .select('*')
     .single()
 
   if (insertError) {
