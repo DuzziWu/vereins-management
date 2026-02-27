@@ -117,11 +117,8 @@ export const itemSchema = z.object({
     .optional()
     .or(z.literal("")),
   location_id: z
-    .string()
-    .uuid()
-    .optional()
-    .nullable()
-    .or(z.literal("")),
+    .union([z.string().uuid(), z.literal(""), z.null()])
+    .optional(),
 })
 
 export type ItemFormData = z.infer<typeof itemSchema>
