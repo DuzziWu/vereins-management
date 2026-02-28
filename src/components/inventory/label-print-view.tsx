@@ -50,14 +50,17 @@ export function LabelPrintView({
   const [barcodes, setBarcodes] = React.useState<Map<string, string>>(new Map())
   const [isGenerating, setIsGenerating] = React.useState(false)
 
-  // Combine items, locations and sets into label items
+  // Combine items (with barcode enabled), locations and sets into label items
   const allItems: LabelItem[] = React.useMemo(() => {
-    const itemLabels: LabelItem[] = items.map((item) => ({
-      id: item.id,
-      type: "item" as const,
-      name: item.name,
-      code: item.inventory_number || item.id.slice(0, 8),
-    }))
+    // Only include items that have barcode enabled
+    const itemLabels: LabelItem[] = items
+      .filter((item) => item.has_barcode !== false)
+      .map((item) => ({
+        id: item.id,
+        type: "item" as const,
+        name: item.name,
+        code: item.inventory_number || item.id.slice(0, 8),
+      }))
 
     const locationLabels: LabelItem[] = locations.map((loc) => ({
       id: loc.id,

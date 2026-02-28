@@ -41,6 +41,12 @@ export const categorySchema = z.object({
     .max(10, "Maximal 10 Zeichen (Emoji)")
     .optional()
     .or(z.literal("")),
+  prefix: z
+    .string()
+    .max(10, "Maximal 10 Zeichen")
+    .regex(/^[A-Z0-9]*$/, "Nur Großbuchstaben und Zahlen erlaubt")
+    .optional()
+    .or(z.literal("")),
   sort_order: z.number().int().optional(),
 })
 
@@ -61,6 +67,12 @@ export const categoryPatchSchema = z.object({
   icon: z
     .string()
     .max(10, "Maximal 10 Zeichen (Emoji)")
+    .nullable()
+    .optional(),
+  prefix: z
+    .string()
+    .max(10, "Maximal 10 Zeichen")
+    .regex(/^[A-Z0-9]*$/, "Nur Großbuchstaben und Zahlen erlaubt")
     .nullable()
     .optional(),
   sort_order: z.number().int().optional(),
@@ -119,6 +131,7 @@ export const itemSchema = z.object({
   location_id: z
     .union([z.string().uuid(), z.literal(""), z.null()])
     .optional(),
+  has_barcode: z.boolean().optional(),
 })
 
 export type ItemFormData = z.infer<typeof itemSchema>
@@ -160,6 +173,7 @@ export const itemPatchSchema = z.object({
   notes: z.string().nullable().optional(),
   is_archived: z.boolean().optional(),
   location_id: z.string().uuid().nullable().optional(),
+  has_barcode: z.boolean().optional(),
 }).strict()
 
 export type ItemPatchData = z.infer<typeof itemPatchSchema>
@@ -239,6 +253,7 @@ export interface Category {
   name: string
   description: string | null
   icon: string | null
+  prefix: string | null
   sort_order: number
   created_at: string
   updated_at: string
@@ -260,6 +275,7 @@ export interface InventoryItem {
   current_holder_id: string | null
   loaned_at: string | null
   location_id: string | null
+  has_barcode: boolean
   is_archived: boolean
   created_by: string
   created_at: string

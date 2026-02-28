@@ -99,6 +99,7 @@ export async function POST(request: NextRequest) {
       name: data.name,
       description: data.description || null,
       icon: data.icon || null,
+      prefix: data.prefix || null,
       sort_order: data.sort_order ?? newSortOrder,
     })
     .select()

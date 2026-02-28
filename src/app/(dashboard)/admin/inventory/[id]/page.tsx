@@ -295,10 +295,12 @@ export default function ItemDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setQrDialogOpen(true)}>
-            <Barcode className="mr-2 h-4 w-4" />
-            Barcode
-          </Button>
+          {item.has_barcode && (
+            <Button variant="outline" onClick={() => setQrDialogOpen(true)}>
+              <Barcode className="mr-2 h-4 w-4" />
+              Barcode
+            </Button>
+          )}
           <Button variant="outline" onClick={() => setIsEditing(true)}>
             <Pencil className="mr-2 h-4 w-4" />
             Bearbeiten

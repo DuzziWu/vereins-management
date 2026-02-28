@@ -45,6 +45,7 @@ export function CategoryForm({ open, onOpenChange, category, onSubmit }: Categor
       name: "",
       description: "",
       icon: "",
+      prefix: "",
     },
   })
 
@@ -54,15 +55,32 @@ export function CategoryForm({ open, onOpenChange, category, onSubmit }: Categor
         name: category.name,
         description: category.description || "",
         icon: category.icon || "",
+        prefix: category.prefix || "",
       })
     } else {
       form.reset({
         name: "",
         description: "",
         icon: "",
+        prefix: "",
       })
     }
   }, [category, form])
+
+  // Auto-generate prefix suggestion from name
+  const suggestPrefix = (name: string): string => {
+    if (!name) return ""
+    // Take first 3 letters, uppercase
+    const cleaned = name.replace(/[^a-zA-ZäöüÄÖÜß]/g, "")
+    const prefix = cleaned.substring(0, 3).toUpperCase()
+    // Replace German umlauts
+    return prefix
+      .replace(/Ä/g, "AE")
+      .replace(/Ö/g, "OE")
+      .replace(/Ü/g, "UE")
+      .replace(/ß/g, "SS")
+      .substring(0, 3)
+  }
 
   async function handleSubmit(data: CategoryFormData) {
     setIsSubmitting(true)
@@ -156,6 +174,44 @@ export function CategoryForm({ open, onOpenChange, category, onSubmit }: Categor
                   </FormControl>
                   <FormDescription>
                     Wählen Sie ein Emoji für schnelle Erkennung
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="prefix"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Inventarnummer-Präfix</FormLabel>
+                  <FormControl>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="z.B. KOS"
+                        {...field}
+                        className="uppercase font-mono"
+                        maxLength={10}
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const suggestion = suggestPrefix(form.getValues("name"))
+                          if (suggestion) {
+                            form.setValue("prefix", suggestion)
+                          }
+                        }}
+                      >
+                        Vorschlag
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormDescription>
+                    Wird für automatische Inventarnummern verwendet (z.B. KOS-0001)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

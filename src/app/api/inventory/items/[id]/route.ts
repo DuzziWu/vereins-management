@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     .from('inventory_items')
     .select(`
       *,
-      category:inventory_categories(id, name, icon),
+      category:inventory_categories(id, name, icon, prefix),
       current_holder:profiles!inventory_items_current_holder_id_fkey(id, first_name, last_name),
       created_by_profile:profiles!inventory_items_created_by_fkey(id, first_name, last_name),
       images:inventory_item_images(id, storage_path, sort_order),
@@ -144,7 +144,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     .eq('id', id)
     .select(`
       *,
-      category:inventory_categories(id, name, icon),
+      category:inventory_categories(id, name, icon, prefix),
       current_holder:profiles!inventory_items_current_holder_id_fkey(id, first_name, last_name),
       location:inventory_locations!inventory_items_location_id_fkey(id, name, path)
     `)

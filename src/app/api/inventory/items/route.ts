@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     .from('inventory_items')
     .select(`
       *,
-      category:inventory_categories(id, name, icon),
+      category:inventory_categories(id, name, icon, prefix),
       current_holder:profiles!inventory_items_current_holder_id_fkey(id, first_name, last_name),
       images:inventory_item_images(id, storage_path, sort_order),
       location:inventory_locations!inventory_items_location_id_fkey(id, name, path)
@@ -158,10 +158,10 @@ export async function POST(request: NextRequest) {
 
   const data = validation.data
 
-  // Check if category exists
+  // Check if category exists and get prefix for auto-numbering
   const { data: category, error: categoryError } = await supabase
     .from('inventory_categories')
-    .select('id')
+    .select('id, prefix')
     .eq('id', data.category_id)
     .single()
 
@@ -169,12 +169,37 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Kategorie nicht gefunden' }, { status: 400 })
   }
 
+  // Generate inventory number if not provided and category has prefix
+  let inventoryNumber = data.inventory_number || null
+  if (!inventoryNumber && category.prefix) {
+    // Find the highest existing number for this prefix
+    const { data: lastItem } = await supabase
+      .from('inventory_items')
+      .select('inventory_number')
+      .like('inventory_number', `${category.prefix}-%`)
+      .order('inventory_number', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    let nextNumber = 1
+    if (lastItem?.inventory_number) {
+      // Extract the number part (e.g., "KOS-0042" -> 42)
+      const match = lastItem.inventory_number.match(/-(\d+)$/)
+      if (match) {
+        nextNumber = parseInt(match[1], 10) + 1
+      }
+    }
+
+    // Format with leading zeros (e.g., "KOS-0001")
+    inventoryNumber = `${category.prefix}-${String(nextNumber).padStart(4, '0')}`
+  }
+
   // Check for duplicate inventory_number if provided
-  if (data.inventory_number) {
+  if (inventoryNumber) {
     const { data: existingItem } = await supabase
       .from('inventory_items')
       .select('id')
-      .eq('inventory_number', data.inventory_number)
+      .eq('inventory_number', inventoryNumber)
       .maybeSingle()
 
     if (existingItem) {
@@ -188,6 +213,9 @@ export async function POST(request: NextRequest) {
   // Convert location_id empty string to null
   const locationId = data.location_id && data.location_id !== '' ? data.location_id : null
 
+  // Determine has_barcode (default true for new items)
+  const hasBarcode = data.has_barcode !== undefined ? data.has_barcode : true
+
   // Insert item
   const { data: item, error: insertError } = await supabase
     .from('inventory_items')
@@ -195,7 +223,7 @@ export async function POST(request: NextRequest) {
       name: data.name,
       description: data.description || null,
       category_id: data.category_id,
-      inventory_number: data.inventory_number || null,
+      inventory_number: inventoryNumber,
       status: data.status || 'available',
       condition: data.condition || 'good',
       size_info: data.size_info || null,
@@ -203,11 +231,12 @@ export async function POST(request: NextRequest) {
       purchase_price: purchasePrice,
       notes: data.notes || null,
       location_id: locationId,
+      has_barcode: hasBarcode,
       created_by: profile.id,
     })
     .select(`
       *,
-      category:inventory_categories(id, name, icon)
+      category:inventory_categories(id, name, icon, prefix)
     `)
     .single()
 
