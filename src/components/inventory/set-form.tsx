@@ -173,6 +173,7 @@ export function SetForm({ open, onOpenChange, set, items, onSubmit }: SetFormPro
                             >
                               <Checkbox
                                 checked={isSelected}
+                                onClick={(e) => e.stopPropagation()}
                                 onCheckedChange={() => toggleItem(item.id)}
                               />
                               <div className="h-8 w-8 rounded bg-muted-foreground/10 flex items-center justify-center overflow-hidden flex-shrink-0">
