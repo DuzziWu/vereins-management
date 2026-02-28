@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { Plus, MapPin, Package, Filter, LayoutGrid, QrCode, Printer } from "lucide-react"
+import { Plus, MapPin, Package, Filter, LayoutGrid, Barcode, Printer } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -39,9 +39,9 @@ import {
   LocationFormData,
 } from "@/lib/validations/inventory"
 
-// Dynamic import for QR code display (not SSR compatible due to qrcode lib)
-const QRCodeDisplay = dynamic(
-  () => import("@/components/inventory/qr-code-display").then(mod => mod.QRCodeDisplay),
+// Dynamic import for barcode display (not SSR compatible due to jsbarcode lib)
+const BarcodeDisplay = dynamic(
+  () => import("@/components/inventory/barcode-display").then(mod => mod.BarcodeDisplay),
   { ssr: false }
 )
 
@@ -286,7 +286,7 @@ export default function LocationsPage() {
           <div className="flex gap-2">
             <Button asChild variant="outline">
               <Link href="/admin/inventory/scanner">
-                <QrCode className="mr-2 h-4 w-4" />
+                <Barcode className="mr-2 h-4 w-4" />
                 Scanner
               </Link>
             </Button>
@@ -393,8 +393,8 @@ export default function LocationsPage() {
                             size="sm"
                             onClick={() => handleQRCode(selectedLocation.id)}
                           >
-                            <QrCode className="mr-2 h-4 w-4" />
-                            QR-Code
+                            <Barcode className="mr-2 h-4 w-4" />
+                            Barcode
                           </Button>
                         </div>
                       )}
@@ -494,9 +494,9 @@ export default function LocationsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* QR Code Dialog */}
+      {/* Barcode Dialog */}
       {qrLocation && (
-        <QRCodeDisplay
+        <BarcodeDisplay
           open={qrDialogOpen}
           onOpenChange={setQrDialogOpen}
           type="location"

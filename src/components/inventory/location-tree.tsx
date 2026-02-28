@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronRight, MapPin, MoreHorizontal, QrCode, Pencil, Trash2, Plus } from "lucide-react"
+import { ChevronRight, MapPin, MoreHorizontal, Barcode, Pencil, Trash2, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -233,8 +233,8 @@ function LocationTreeNode({
               )}
               {onLocationQRCode && (
                 <DropdownMenuItem onClick={() => onLocationQRCode(location.id)}>
-                  <QrCode className="mr-2 h-4 w-4" />
-                  QR-Code
+                  <Barcode className="mr-2 h-4 w-4" />
+                  Barcode
                 </DropdownMenuItem>
               )}
               {onLocationEdit && (

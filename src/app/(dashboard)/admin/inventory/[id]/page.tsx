@@ -4,7 +4,7 @@ import * as React from "react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { ArrowLeft, Pencil, Trash2, History, QrCode } from "lucide-react"
+import { ArrowLeft, Pencil, Trash2, History, Barcode } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -26,9 +26,9 @@ import { ItemForm } from "@/components/inventory/item-form"
 import { StatusBadge } from "@/components/inventory/status-badge"
 import { ItemStatusDialog } from "@/components/inventory/item-status-dialog"
 
-// Dynamic import for QR code display (not SSR compatible due to qrcode lib)
-const QRCodeDisplay = dynamic(
-  () => import("@/components/inventory/qr-code-display").then(mod => mod.QRCodeDisplay),
+// Dynamic import for barcode display (not SSR compatible due to jsbarcode lib)
+const BarcodeDisplay = dynamic(
+  () => import("@/components/inventory/barcode-display").then(mod => mod.BarcodeDisplay),
   { ssr: false }
 )
 import {
@@ -296,8 +296,8 @@ export default function ItemDetailPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setQrDialogOpen(true)}>
-            <QrCode className="mr-2 h-4 w-4" />
-            QR-Code
+            <Barcode className="mr-2 h-4 w-4" />
+            Barcode
           </Button>
           <Button variant="outline" onClick={() => setIsEditing(true)}>
             <Pencil className="mr-2 h-4 w-4" />
@@ -518,7 +518,7 @@ export default function ItemDetailPage() {
       </AlertDialog>
 
       {/* QR Code Dialog */}
-      <QRCodeDisplay
+      <BarcodeDisplay
         open={qrDialogOpen}
         onOpenChange={setQrDialogOpen}
         type="item"

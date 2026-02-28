@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Download, Printer, QrCode, X } from "lucide-react"
+import { Download, Printer, Barcode, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -14,19 +14,25 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { generateQRCodeDataUrl, generateQRCodeData, LABEL_SIZES, type LabelSize } from "@/lib/qr-code"
-import type { InventoryItem, InventoryLocation } from "@/lib/validations/inventory"
+import {
+  generateBarcodeValue,
+  generateBarcodeDataUrl,
+  BARCODE_LABEL_SIZES,
+  type BarcodeLabelSize,
+} from "@/lib/barcode"
+import type { InventoryItem, InventoryLocation, InventorySet } from "@/lib/validations/inventory"
 
 interface LabelItem {
   id: string
-  type: "item" | "location"
+  type: "item" | "location" | "set"
   name: string
-  code: string // inventory_number or location path
+  code: string // inventory_number or location name
 }
 
 interface LabelPrintViewProps {
   items?: InventoryItem[]
   locations?: InventoryLocation[]
+  sets?: InventorySet[]
   selectedIds: string[]
   onSelectionChange: (ids: string[]) => void
   onClose?: () => void
@@ -35,15 +41,16 @@ interface LabelPrintViewProps {
 export function LabelPrintView({
   items = [],
   locations = [],
+  sets = [],
   selectedIds,
   onSelectionChange,
   onClose,
 }: LabelPrintViewProps) {
-  const [labelSize, setLabelSize] = React.useState<LabelSize>("medium")
-  const [qrCodes, setQrCodes] = React.useState<Map<string, string>>(new Map())
+  const [labelSize, setLabelSize] = React.useState<BarcodeLabelSize>("medium")
+  const [barcodes, setBarcodes] = React.useState<Map<string, string>>(new Map())
   const [isGenerating, setIsGenerating] = React.useState(false)
 
-  // Combine items and locations into label items
+  // Combine items, locations and sets into label items
   const allItems: LabelItem[] = React.useMemo(() => {
     const itemLabels: LabelItem[] = items.map((item) => ({
       id: item.id,
@@ -59,34 +66,45 @@ export function LabelPrintView({
       code: loc.name,
     }))
 
-    return [...itemLabels, ...locationLabels]
-  }, [items, locations])
+    const setLabels: LabelItem[] = sets.map((set) => ({
+      id: set.id,
+      type: "set" as const,
+      name: set.name,
+      code: set.name,
+    }))
+
+    return [...itemLabels, ...locationLabels, ...setLabels]
+  }, [items, locations, sets])
 
   // Selected items for printing
   const selectedItems = allItems.filter((item) => selectedIds.includes(item.id))
 
-  // Generate QR codes for selected items
+  // Generate barcodes for selected items
   React.useEffect(() => {
     async function generateCodes() {
       if (selectedIds.length === 0) return
 
       setIsGenerating(true)
-      const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
       const newCodes = new Map<string, string>()
 
       for (const item of selectedItems) {
-        if (!qrCodes.has(item.id)) {
+        if (!barcodes.has(item.id)) {
           try {
-            const data = generateQRCodeData(item.type, item.id)
-            const url = await generateQRCodeDataUrl(data, baseUrl, { width: 200 })
+            const barcodeValue = generateBarcodeValue(item.type, item.code)
+            const url = await generateBarcodeDataUrl(barcodeValue, {
+              width: 2,
+              height: 60,
+              displayValue: true,
+              fontSize: 12,
+            })
             newCodes.set(item.id, url)
           } catch (err) {
-            console.error(`Error generating QR code for ${item.id}:`, err)
+            console.error(`Error generating barcode for ${item.id}:`, err)
           }
         }
       }
 
-      setQrCodes((prev) => new Map([...prev, ...newCodes]))
+      setBarcodes((prev) => new Map([...prev, ...newCodes]))
       setIsGenerating(false)
     }
 
@@ -117,22 +135,20 @@ export function LabelPrintView({
   function handlePrint() {
     if (selectedItems.length === 0) return
 
-    const size = LABEL_SIZES[labelSize]
-    const labelsPerRow = Math.floor(210 / size.width) // A4 width = 210mm
-    const labelsPerPage = labelsPerRow * Math.floor(297 / size.height) // A4 height = 297mm
+    const size = BARCODE_LABEL_SIZES[labelSize]
 
     const printWindow = window.open("", "_blank")
     if (!printWindow) return
 
     const labelHtml = selectedItems
       .map((item) => {
-        const qrUrl = qrCodes.get(item.id)
-        if (!qrUrl) return ""
+        const barcodeUrl = barcodes.get(item.id)
+        if (!barcodeUrl) return ""
 
         return `
           <div class="label">
-            <img src="${qrUrl}" alt="QR Code" />
-            <div class="text">${item.code}</div>
+            <div class="name">${item.name}</div>
+            <img src="${barcodeUrl}" alt="Barcode" />
           </div>
         `
       })
@@ -142,7 +158,7 @@ export function LabelPrintView({
       <!DOCTYPE html>
       <html>
         <head>
-          <title>QR-Code Labels</title>
+          <title>Barcode Labels</title>
           <style>
             @page {
               size: A4;
@@ -167,17 +183,17 @@ export function LabelPrintView({
               justify-content: center;
               border: 0.5mm dotted #ccc;
               box-sizing: border-box;
-              padding: 1mm;
+              padding: 1mm 2mm;
             }
             .label img {
-              width: ${size.qrSize}mm;
-              height: ${size.qrSize}mm;
+              max-width: ${size.width - 4}mm;
+              height: auto;
             }
-            .label .text {
-              font-size: ${size.fontSize}pt;
-              margin-top: 1mm;
+            .label .name {
+              font-size: ${size.fontSize - 2}pt;
+              margin-bottom: 1mm;
               text-align: center;
-              max-width: ${size.width - 2}mm;
+              max-width: ${size.width - 4}mm;
               overflow: hidden;
               text-overflow: ellipsis;
               white-space: nowrap;
@@ -201,14 +217,20 @@ export function LabelPrintView({
     printWindow.print()
   }
 
+  const typeLabels = {
+    item: "Item",
+    location: "Lagerort",
+    set: "Set",
+  }
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <QrCode className="h-5 w-5" />
-              QR-Code Labels drucken
+              <Barcode className="h-5 w-5" />
+              Barcode Labels drucken
             </CardTitle>
             <CardDescription>
               {selectedIds.length} von {allItems.length} ausgewählt
@@ -226,14 +248,14 @@ export function LabelPrintView({
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-sm">Label-Größe:</span>
-            <Select value={labelSize} onValueChange={(v) => setLabelSize(v as LabelSize)}>
+            <Select value={labelSize} onValueChange={(v) => setLabelSize(v as BarcodeLabelSize)}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="small">Klein (30x20mm)</SelectItem>
-                <SelectItem value="medium">Mittel (50x30mm)</SelectItem>
-                <SelectItem value="large">Groß (70x50mm)</SelectItem>
+                <SelectItem value="small">Klein (40x20mm)</SelectItem>
+                <SelectItem value="medium">Mittel (60x25mm)</SelectItem>
+                <SelectItem value="large">Groß (80x35mm)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -251,7 +273,7 @@ export function LabelPrintView({
         <div className="border rounded-lg max-h-[300px] overflow-y-auto">
           {allItems.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground">
-              Keine Items oder Lagerorte vorhanden
+              Keine Items, Lagerorte oder Sets vorhanden
             </div>
           ) : (
             <div className="divide-y">
@@ -267,7 +289,7 @@ export function LabelPrintView({
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{item.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {item.type === "item" ? "Item" : "Lagerort"} - {item.code}
+                      {typeLabels[item.type]} - {item.code}
                     </p>
                   </div>
                 </label>
@@ -282,45 +304,45 @@ export function LabelPrintView({
             <p className="text-sm font-medium mb-2">Vorschau:</p>
             <div className="border rounded-lg p-4 bg-muted/20">
               <div className="flex flex-wrap gap-2">
-                {selectedItems.slice(0, 8).map((item) => {
-                  const qrUrl = qrCodes.get(item.id)
+                {selectedItems.slice(0, 6).map((item) => {
+                  const barcodeUrl = barcodes.get(item.id)
                   return (
                     <div
                       key={item.id}
                       className="flex flex-col items-center p-2 bg-white rounded border"
                       style={{
-                        width: `${LABEL_SIZES[labelSize].width * 2}px`,
+                        width: `${BARCODE_LABEL_SIZES[labelSize].width * 2}px`,
                       }}
                     >
-                      {isGenerating || !qrUrl ? (
+                      <span
+                        className="text-center truncate w-full mb-1"
+                        style={{ fontSize: `${BARCODE_LABEL_SIZES[labelSize].fontSize}px` }}
+                      >
+                        {item.name}
+                      </span>
+                      {isGenerating || !barcodeUrl ? (
                         <Skeleton
-                          className="aspect-square"
                           style={{
-                            width: `${LABEL_SIZES[labelSize].qrSize * 2}px`,
+                            width: `${BARCODE_LABEL_SIZES[labelSize].width * 1.8}px`,
+                            height: `${BARCODE_LABEL_SIZES[labelSize].barcodeHeight}px`,
                           }}
                         />
                       ) : (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={qrUrl}
-                          alt={`QR ${item.code}`}
+                          src={barcodeUrl}
+                          alt={`Barcode ${item.code}`}
                           style={{
-                            width: `${LABEL_SIZES[labelSize].qrSize * 2}px`,
+                            maxWidth: `${BARCODE_LABEL_SIZES[labelSize].width * 1.8}px`,
                           }}
                         />
                       )}
-                      <span
-                        className="text-center truncate w-full mt-1"
-                        style={{ fontSize: `${LABEL_SIZES[labelSize].fontSize * 1.5}px` }}
-                      >
-                        {item.code}
-                      </span>
                     </div>
                   )
                 })}
-                {selectedItems.length > 8 && (
+                {selectedItems.length > 6 && (
                   <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
-                    +{selectedItems.length - 8} weitere
+                    +{selectedItems.length - 6} weitere
                   </div>
                 )}
               </div>
