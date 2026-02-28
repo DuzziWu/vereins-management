@@ -10,6 +10,9 @@ import {
   RefreshCw,
   Search,
   X,
+  ZoomIn,
+  ZoomOut,
+  Info,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -29,6 +32,8 @@ interface BarcodeScannerProps {
   onClose?: () => void
 }
 
+type ScanHint = "none" | "closer" | "further" | "steady" | "light"
+
 export function BarcodeScanner({
   onScan,
   onManualSearch,
@@ -42,9 +47,52 @@ export function BarcodeScanner({
   const [cameras, setCameras] = React.useState<{ id: string; label: string }[]>([])
   const [currentCameraIndex, setCurrentCameraIndex] = React.useState(0)
   const [lastScanned, setLastScanned] = React.useState<string | null>(null)
+  const [scanAttempts, setScanAttempts] = React.useState(0)
+  const [scanHint, setScanHint] = React.useState<ScanHint>("none")
+  const [showTips, setShowTips] = React.useState(false)
 
   const scannerRef = React.useRef<Html5Qrcode | null>(null)
   const containerRef = React.useRef<HTMLDivElement>(null)
+  const scanAttemptsRef = React.useRef(0)
+  const lastHintTimeRef = React.useRef(0)
+
+  // Calculate optimal scan box size based on screen
+  const getScanBoxSize = React.useCallback(() => {
+    if (typeof window === "undefined") return { width: 280, height: 100 }
+
+    const screenWidth = window.innerWidth
+    // For mobile, use larger scanning area relative to screen
+    const width = Math.min(screenWidth - 40, 350)
+    const height = Math.floor(width * 0.35) // Barcode aspect ratio
+
+    return { width, height }
+  }, [])
+
+  // Show hint based on scan attempts
+  React.useEffect(() => {
+    if (!isScanning) {
+      setScanAttempts(0)
+      setScanHint("none")
+      return
+    }
+
+    const interval = setInterval(() => {
+      scanAttemptsRef.current += 1
+      setScanAttempts(scanAttemptsRef.current)
+
+      // Show hints after several failed attempts
+      const now = Date.now()
+      if (scanAttemptsRef.current > 30 && now - lastHintTimeRef.current > 5000) {
+        // Cycle through hints
+        const hints: ScanHint[] = ["closer", "further", "steady", "light"]
+        const hintIndex = Math.floor((scanAttemptsRef.current - 30) / 50) % hints.length
+        setScanHint(hints[hintIndex])
+        lastHintTimeRef.current = now
+      }
+    }, 100)
+
+    return () => clearInterval(interval)
+  }, [isScanning])
 
   // Initialize scanner
   React.useEffect(() => {
@@ -57,9 +105,13 @@ export function BarcodeScanner({
         if (devices && devices.length > 0) {
           setCameras(devices)
 
-          // Prefer back camera
+          // Prefer back/rear camera for mobile
           const backCameraIndex = devices.findIndex(
-            (d) => d.label.toLowerCase().includes("back") || d.label.toLowerCase().includes("rear")
+            (d) =>
+              d.label.toLowerCase().includes("back") ||
+              d.label.toLowerCase().includes("rear") ||
+              d.label.toLowerCase().includes("rück") ||
+              d.label.toLowerCase().includes("environment")
           )
           const startIndex = backCameraIndex >= 0 ? backCameraIndex : 0
           setCurrentCameraIndex(startIndex)
@@ -71,7 +123,9 @@ export function BarcodeScanner({
               Html5QrcodeSupportedFormats.CODE_39,
               Html5QrcodeSupportedFormats.EAN_13,
               Html5QrcodeSupportedFormats.EAN_8,
-              Html5QrcodeSupportedFormats.QR_CODE, // Still support QR for backwards compatibility
+              Html5QrcodeSupportedFormats.UPC_A,
+              Html5QrcodeSupportedFormats.UPC_E,
+              Html5QrcodeSupportedFormats.QR_CODE,
             ],
             verbose: false,
           })
@@ -108,28 +162,42 @@ export function BarcodeScanner({
     try {
       setIsScanning(true)
       setError(null)
+      scanAttemptsRef.current = 0
+      setScanAttempts(0)
+      setScanHint("none")
+
+      const scanBox = getScanBoxSize()
 
       await scannerRef.current.start(
         cameraId,
         {
-          fps: 10,
-          // Wider scanning area for barcodes (rectangular)
-          qrbox: { width: 300, height: 150 },
+          fps: 15, // Higher FPS for faster detection
+          qrbox: scanBox,
           aspectRatio: 16 / 9,
+          // Disable mirror for back camera
+          videoConstraints: {
+            facingMode: "environment", // Prefer back camera
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
         },
         onBarcodeSuccess,
-        () => {} // Ignore scan failures (normal during scanning)
+        onBarcodeError
       )
 
       // Check if torch is available
-      const capabilities = scannerRef.current.getRunningTrackCameraCapabilities()
-      if (capabilities.torchFeature) {
-        setHasTorch(capabilities.torchFeature().isSupported())
+      try {
+        const capabilities = scannerRef.current.getRunningTrackCameraCapabilities()
+        if (capabilities.torchFeature) {
+          setHasTorch(capabilities.torchFeature().isSupported())
+        }
+      } catch {
+        // Torch not available
       }
     } catch (err) {
       console.error("Start scanning error:", err)
       setIsScanning(false)
-      setError("Konnte Scanner nicht starten.")
+      setError("Konnte Scanner nicht starten. Bitte Seite neu laden.")
     }
   }
 
@@ -149,28 +217,45 @@ export function BarcodeScanner({
     if (decodedText === lastScanned) return
     setLastScanned(decodedText)
 
+    // Reset scan attempts on successful scan
+    scanAttemptsRef.current = 0
+    setScanAttempts(0)
+    setScanHint("none")
+
     // Try to parse as our barcode format
     const data = parseBarcodeValue(decodedText)
 
     if (data) {
       // Vibrate on successful scan (if supported)
       if (navigator.vibrate) {
-        navigator.vibrate(100)
+        navigator.vibrate([100, 50, 100]) // Double vibrate for success
       }
 
       // Stop scanning and notify parent
       stopScanning()
       onScan(data)
     } else {
-      // Not our barcode format, try using it as a search term
-      setError(`Unbekanntes Barcode-Format: ${decodedText}`)
-
-      // Clear error after 3 seconds and allow scanning again
-      setTimeout(() => {
-        setError(null)
-        setLastScanned(null)
-      }, 3000)
+      // Not our barcode format - might be a raw inventory number
+      // Try using it directly as item search
+      if (onManualSearch && decodedText.length > 2) {
+        if (navigator.vibrate) {
+          navigator.vibrate(100)
+        }
+        stopScanning()
+        onManualSearch(decodedText)
+      } else {
+        setError(`Unbekanntes Format: ${decodedText}`)
+        setTimeout(() => {
+          setError(null)
+          setLastScanned(null)
+        }, 3000)
+      }
     }
+  }
+
+  function onBarcodeError() {
+    // This is called on every frame without a barcode - normal behavior
+    // We use this to track scan attempts for hints
   }
 
   async function toggleTorch() {
@@ -205,6 +290,24 @@ export function BarcodeScanner({
     }
   }
 
+  // Get hint message
+  function getHintMessage(): string | null {
+    switch (scanHint) {
+      case "closer":
+        return "📱 Näher an den Barcode herangehen (15-20 cm)"
+      case "further":
+        return "📱 Etwas weiter weg vom Barcode (20-30 cm)"
+      case "steady":
+        return "✋ Handy ruhig halten, Barcode mittig ausrichten"
+      case "light":
+        return "💡 Für bessere Erkennung Blitz aktivieren"
+      default:
+        return null
+    }
+  }
+
+  const hintMessage = getHintMessage()
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="pb-2">
@@ -215,23 +318,50 @@ export function BarcodeScanner({
               Barcode-Scanner
             </CardTitle>
             <CardDescription>
-              Scannen Sie einen Barcode oder geben Sie die Inventarnummer ein
+              Barcode im Rahmen zentrieren
             </CardDescription>
           </div>
-          {onClose && (
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-5 w-5" />
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowTips(!showTips)}
+              className="text-muted-foreground"
+            >
+              <Info className="h-5 w-5" />
             </Button>
-          )}
+            {onClose && (
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Tips Panel */}
+        {showTips && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              <strong>Tipps für besseres Scannen:</strong>
+              <ul className="mt-2 space-y-1 list-disc list-inside">
+                <li>Abstand: <strong>15-25 cm</strong> zum Barcode</li>
+                <li>Barcode <strong>mittig</strong> im Rahmen platzieren</li>
+                <li>Handy <strong>ruhig</strong> halten</li>
+                <li>Bei schlechtem Licht <strong>Blitz</strong> aktivieren</li>
+                <li>Barcode muss <strong>scharf</strong> und vollständig sichtbar sein</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Scanner Container */}
         <div className="relative">
           <div
             id="barcode-scanner-container"
             ref={containerRef}
-            className="aspect-video w-full overflow-hidden rounded-lg bg-black"
+            className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-black"
           />
 
           {/* Scanner Overlay */}
@@ -241,45 +371,80 @@ export function BarcodeScanner({
             </div>
           )}
 
-          {/* Scan Line Animation */}
+          {/* Scan Frame with animated corners */}
           {isScanning && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className="w-[300px] h-[150px] border-2 border-primary/50 rounded relative overflow-hidden">
-                <div className="absolute w-full h-0.5 bg-primary animate-scan-line" />
+              <div
+                className="relative border-2 border-primary/70 rounded-lg"
+                style={{
+                  width: `${getScanBoxSize().width}px`,
+                  height: `${getScanBoxSize().height}px`
+                }}
+              >
+                {/* Animated scan line */}
+                <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent animate-scan-line" />
+
+                {/* Corner markers */}
+                <div className="absolute -top-0.5 -left-0.5 w-5 h-5 border-t-4 border-l-4 border-primary rounded-tl" />
+                <div className="absolute -top-0.5 -right-0.5 w-5 h-5 border-t-4 border-r-4 border-primary rounded-tr" />
+                <div className="absolute -bottom-0.5 -left-0.5 w-5 h-5 border-b-4 border-l-4 border-primary rounded-bl" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 border-b-4 border-r-4 border-primary rounded-br" />
               </div>
             </div>
           )}
 
           {/* Scanner Controls */}
           {isScanning && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
               {hasTorch && (
                 <Button
                   variant="secondary"
-                  size="icon"
+                  size="sm"
                   onClick={toggleTorch}
-                  className="bg-black/50 hover:bg-black/70"
+                  className={`bg-black/60 hover:bg-black/80 ${torchOn ? 'text-yellow-400' : 'text-white'}`}
                 >
                   {torchOn ? (
-                    <FlashlightOff className="h-5 w-5 text-white" />
+                    <FlashlightOff className="h-4 w-4 mr-1" />
                   ) : (
-                    <Flashlight className="h-5 w-5 text-white" />
+                    <Flashlight className="h-4 w-4 mr-1" />
                   )}
+                  {torchOn ? 'Aus' : 'Blitz'}
                 </Button>
               )}
               {cameras.length > 1 && (
                 <Button
                   variant="secondary"
-                  size="icon"
+                  size="sm"
                   onClick={switchCamera}
-                  className="bg-black/50 hover:bg-black/70"
+                  className="bg-black/60 hover:bg-black/80 text-white"
                 >
-                  <RefreshCw className="h-5 w-5 text-white" />
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Kamera
                 </Button>
               )}
             </div>
           )}
+
+          {/* Distance/Hint indicator at top */}
+          {isScanning && (
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-2">
+              <div className="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-2">
+                <ZoomIn className="h-3 w-3" />
+                <span>15-25 cm Abstand</span>
+                <ZoomOut className="h-3 w-3" />
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Dynamic Hint Message */}
+        {hintMessage && (
+          <Alert className="border-primary/50 bg-primary/5">
+            <AlertDescription className="text-sm font-medium">
+              {hintMessage}
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Error Message */}
         {error && (
@@ -292,7 +457,7 @@ export function BarcodeScanner({
         {onManualSearch && (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              Oder Inventarnummer manuell eingeben:
+              Barcode nicht erkannt? Manuell eingeben:
             </p>
             <div className="flex gap-2">
               <Input
