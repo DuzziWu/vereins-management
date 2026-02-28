@@ -32,3 +32,20 @@ export const markReadSchema = z.object({
 })
 
 export type MarkReadData = z.infer<typeof markReadSchema>
+
+/**
+ * Schema for sending a workgroup chat message.
+ * - content: 1-2000 characters (workgroups allow longer messages than groups)
+ */
+export const workgroupSendMessageSchema = z.object({
+  content: z
+    .string()
+    .min(1, "Nachricht darf nicht leer sein")
+    .max(2000, "Maximal 2000 Zeichen")
+    .transform((val) => val.trim())
+    .refine((val) => val.length >= 1, {
+      message: "Nachricht darf nicht leer sein",
+    }),
+})
+
+export type WorkgroupSendMessageData = z.infer<typeof workgroupSendMessageSchema>

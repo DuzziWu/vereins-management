@@ -59,3 +59,23 @@ export interface ChatMember {
  * Realtime connection status.
  */
 export type ConnectionStatus = "connected" | "reconnecting" | "disconnected"
+
+/**
+ * A single workgroup chat message as returned by the API.
+ */
+export interface WorkgroupChatMessage {
+  id: string
+  workgroup_id: string
+  sender_id: string
+  sender_display_name: string
+  content: string
+  created_at: string
+}
+
+/**
+ * API response for loading workgroup messages.
+ */
+export interface WorkgroupMessagesResponse {
+  messages: WorkgroupChatMessage[]
+  has_more: boolean
+}

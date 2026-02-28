@@ -6,10 +6,11 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { ChevronRight, Users, FolderKanban, MessageSquare } from "lucide-react"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button"
 import { KanbanBoard } from "@/components/kanban"
+import { WorkgroupChatTab } from "./workgroup-chat-tab"
 import { WorkgroupListItem, WorkgroupCategory } from "./workgroup-form"
 
 interface WorkgroupMember {
@@ -90,6 +92,8 @@ export function WorkgroupDetailContent({
   const [isVorstand, setIsVorstand] = React.useState(false)
   const [currentUserId, setCurrentUserId] = React.useState<string>("")
   const [isMembersOpen, setIsMembersOpen] = React.useState(false)
+  const [activeTab, setActiveTab] = React.useState<"board" | "chat">("board")
+  const [unreadCount, setUnreadCount] = React.useState(0)
 
   React.useEffect(() => {
     async function fetchWorkgroup() {
@@ -125,6 +129,17 @@ export function WorkgroupDetailContent({
 
     fetchWorkgroup()
   }, [workgroupId, router, basePath])
+
+  const handleTabChange = React.useCallback((value: string) => {
+    setActiveTab(value as "board" | "chat")
+    if (value === "chat") {
+      setUnreadCount(0)
+    }
+  }, [])
+
+  const handleNewMessage = React.useCallback(() => {
+    setUnreadCount((prev) => prev + 1)
+  }, [])
 
   if (isLoading) {
     return <DetailSkeleton />
@@ -219,43 +234,44 @@ export function WorkgroupDetailContent({
         </Card>
       </Collapsible>
 
-      {/* Kanban Board */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FolderKanban className="h-5 w-5" />
-            Kanban-Board
-          </CardTitle>
-          <CardDescription>
-            Verwalte die Aufgaben dieser Workgroup
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Board + Chat Tabs */}
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="board" className="flex items-center gap-2">
+            <FolderKanban className="h-4 w-4" />
+            Board
+          </TabsTrigger>
+          <TabsTrigger value="chat" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Chat
+            {unreadCount > 0 && (
+              <Badge
+                variant="default"
+                className="h-5 min-w-5 px-1 text-[10px] leading-none"
+              >
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="board" forceMount hidden={activeTab !== "board"}>
           <KanbanBoard
             workgroupId={workgroupId}
             isVorstand={isVorstand}
             currentUserId={currentUserId}
           />
-        </CardContent>
-      </Card>
+        </TabsContent>
 
-      {/* Chat Placeholder */}
-      <Card className="border-dashed">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-muted-foreground">
-            <MessageSquare className="h-5 w-5" />
-            Workgroup-Chat
-          </CardTitle>
-          <CardDescription>
-            Chat-Funktion kommt in einem zukünftigen Update
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8 text-muted-foreground">
-            <p className="text-sm">Bald verfügbar...</p>
-          </div>
-        </CardContent>
-      </Card>
+        <TabsContent value="chat" forceMount hidden={activeTab !== "chat"}>
+          <WorkgroupChatTab
+            workgroupId={workgroupId}
+            currentUserId={currentUserId}
+            isActive={activeTab === "chat"}
+            onNewMessage={handleNewMessage}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

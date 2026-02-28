@@ -337,7 +337,8 @@ export function WorkgroupsTable({
               {archiveTarget?.action === "archive" ? (
                 <>
                   Die Workgroup <strong>{archiveTarget?.name}</strong> wird archiviert.
-                  Mitglieder können nicht mehr darauf zugreifen.
+                  Mitglieder können nicht mehr darauf zugreifen.{" "}
+                  <strong>Der Chat-Verlauf wird permanent gelöscht und kann nicht wiederhergestellt werden.</strong>
                 </>
               ) : (
                 <>

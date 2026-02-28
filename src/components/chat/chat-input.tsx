@@ -14,24 +14,26 @@ import { cn } from "@/lib/utils"
 // - Respects mobile keyboard (safe-area-inset-bottom)
 // ============================================================
 
-const MAX_CHARS = 1000
-const SHOW_COUNTER_AT = 800
+const DEFAULT_MAX_CHARS = 1000
+const DEFAULT_SHOW_COUNTER_AT = 800
 
 interface ChatInputProps {
   onSend: (content: string) => Promise<void>
   disabled?: boolean
+  maxChars?: number
+  showCounterAt?: number
 }
 
-export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
+export function ChatInput({ onSend, disabled = false, maxChars = DEFAULT_MAX_CHARS, showCounterAt = DEFAULT_SHOW_COUNTER_AT }: ChatInputProps) {
   const [value, setValue] = useState("")
   const [isSending, setIsSending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const trimmedValue = value.trim()
-  const canSend = trimmedValue.length > 0 && trimmedValue.length <= MAX_CHARS && !disabled && !isSending
+  const canSend = trimmedValue.length > 0 && trimmedValue.length <= maxChars && !disabled && !isSending
   const charCount = value.length
-  const showCounter = charCount >= SHOW_COUNTER_AT
-  const isOverLimit = charCount > MAX_CHARS
+  const showCounter = charCount >= showCounterAt
+  const isOverLimit = charCount > maxChars
 
   const handleSend = useCallback(async () => {
     if (!canSend) return
@@ -93,7 +95,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
             onKeyDown={handleKeyDown}
             placeholder="Nachricht schreiben..."
             disabled={disabled || isSending}
-            maxLength={MAX_CHARS + 50} // Allow slight overflow for UX, validated before send
+            maxLength={maxChars + 50} // Allow slight overflow for UX, validated before send
             rows={1}
             className={cn(
               "flex w-full rounded-xl border border-input bg-background px-3 py-2 text-sm",
@@ -115,7 +117,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
                   : "text-muted-foreground"
               )}
             >
-              {charCount}/{MAX_CHARS}
+              {charCount}/{maxChars}
             </span>
           )}
         </div>
