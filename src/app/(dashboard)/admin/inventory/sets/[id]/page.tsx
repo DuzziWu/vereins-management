@@ -3,8 +3,15 @@
 import * as React from "react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Pencil, Trash2, Package } from "lucide-react"
+import dynamic from "next/dynamic"
+import { ArrowLeft, Pencil, Trash2, Package, Barcode } from "lucide-react"
 import { toast } from "sonner"
+
+// Dynamic import for barcode display (not SSR compatible due to jsbarcode lib)
+const BarcodeDisplay = dynamic(
+  () => import("@/components/inventory/barcode-display").then(mod => mod.BarcodeDisplay),
+  { ssr: false }
+)
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -79,6 +86,7 @@ export default function SetDetailPage() {
   // Dialogs
   const [formOpen, setFormOpen] = React.useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+  const [barcodeDialogOpen, setBarcodeDialogOpen] = React.useState(false)
 
   // Fetch set
   const fetchSet = React.useCallback(async () => {
@@ -194,6 +202,10 @@ export default function SetDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setBarcodeDialogOpen(true)}>
+            <Barcode className="mr-2 h-4 w-4" />
+            Barcode
+          </Button>
           <Button variant="outline" onClick={() => setFormOpen(true)}>
             <Pencil className="mr-2 h-4 w-4" />
             Bearbeiten
@@ -319,6 +331,15 @@ export default function SetDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Barcode Display */}
+      <BarcodeDisplay
+        open={barcodeDialogOpen}
+        onOpenChange={setBarcodeDialogOpen}
+        type="set"
+        id={set.id}
+        name={set.name}
+      />
     </div>
   )
 }

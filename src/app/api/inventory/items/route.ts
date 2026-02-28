@@ -216,6 +216,9 @@ export async function POST(request: NextRequest) {
   // Determine has_barcode (default true for new items)
   const hasBarcode = data.has_barcode !== undefined ? data.has_barcode : true
 
+  // Determine quantity (default 1 for new items)
+  const quantity = data.quantity !== undefined ? data.quantity : 1
+
   // Insert item
   const { data: item, error: insertError } = await supabase
     .from('inventory_items')
@@ -232,6 +235,7 @@ export async function POST(request: NextRequest) {
       notes: data.notes || null,
       location_id: locationId,
       has_barcode: hasBarcode,
+      quantity: quantity,
       created_by: profile.id,
     })
     .select(`

@@ -70,6 +70,7 @@ export function ItemForm({ item, categories, locations = [], onSubmit, onCancel 
       notes: item?.notes || "",
       location_id: item?.location_id || null,
       has_barcode: item?.has_barcode !== undefined ? item.has_barcode : true,
+      quantity: item?.quantity ?? 1,
     },
   })
 
@@ -203,28 +204,53 @@ export function ItemForm({ item, categories, locations = [], onSubmit, onCancel 
                 />
               </div>
 
-              {locations.length > 0 && (
+              <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="location_id"
+                  name="quantity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Lagerort</FormLabel>
+                      <FormLabel>Menge</FormLabel>
                       <FormControl>
-                        <LocationSelect
-                          locations={locations}
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder="Kein Lagerort"
-                          allowClear
+                        <Input
+                          type="number"
+                          min={0}
+                          step={1}
+                          placeholder="1"
+                          {...field}
+                          value={field.value ?? 1}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                         />
                       </FormControl>
-                      <FormDescription>Optional</FormDescription>
+                      <FormDescription>Anzahl vorhandener Stücke</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              )}
+
+                {locations.length > 0 && (
+                  <FormField
+                    control={form.control}
+                    name="location_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Lagerort</FormLabel>
+                        <FormControl>
+                          <LocationSelect
+                            locations={locations}
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Kein Lagerort"
+                            allowClear
+                          />
+                        </FormControl>
+                        <FormDescription>Optional</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
 
               <FormField
                 control={form.control}

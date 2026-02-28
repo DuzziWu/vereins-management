@@ -413,6 +413,9 @@ export default function ItemDetailPage() {
                 <span className="text-muted-foreground">Zustand</span>
                 <span>{CONDITION_CONFIG[item.condition].label}</span>
 
+                <span className="text-muted-foreground">Menge</span>
+                <span>{item.quantity ?? 1}</span>
+
                 {item.size_info && (
                   <>
                     <span className="text-muted-foreground">Größe/Maße</span>

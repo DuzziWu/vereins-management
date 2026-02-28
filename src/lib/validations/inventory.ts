@@ -132,6 +132,11 @@ export const itemSchema = z.object({
     .union([z.string().uuid(), z.literal(""), z.null()])
     .optional(),
   has_barcode: z.boolean().optional(),
+  quantity: z
+    .number()
+    .int("Menge muss eine ganze Zahl sein")
+    .min(0, "Menge darf nicht negativ sein")
+    .optional(),
 })
 
 export type ItemFormData = z.infer<typeof itemSchema>
@@ -174,6 +179,7 @@ export const itemPatchSchema = z.object({
   is_archived: z.boolean().optional(),
   location_id: z.string().uuid().nullable().optional(),
   has_barcode: z.boolean().optional(),
+  quantity: z.number().int().min(0).optional(),
 }).strict()
 
 export type ItemPatchData = z.infer<typeof itemPatchSchema>
@@ -276,6 +282,7 @@ export interface InventoryItem {
   loaned_at: string | null
   location_id: string | null
   has_barcode: boolean
+  quantity: number
   is_archived: boolean
   created_by: string
   created_at: string
