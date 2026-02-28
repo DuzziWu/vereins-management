@@ -286,29 +286,45 @@ export function BarcodeScanner({
     }
   }, [hasTorch, torchOn])
 
-  // Initialize scanner on mount
+  // Determine scanner mode on mount
   React.useEffect(() => {
-    async function init() {
+    async function detectMode() {
       const hasNativeSupport = await checkBarcodeDetectorSupport()
-
-      if (hasNativeSupport) {
-        setScannerMode("native")
-        const cameraReady = await initCamera()
-        if (cameraReady) {
-          await startNativeScanning()
-        }
-      } else {
-        setScannerMode("fallback")
-        await startFallbackScanning()
-      }
+      setScannerMode(hasNativeSupport ? "native" : "fallback")
     }
 
-    init()
+    detectMode()
 
     return () => {
       stopScanning()
     }
-  }, [checkBarcodeDetectorSupport, initCamera, startNativeScanning, startFallbackScanning, stopScanning])
+  }, [checkBarcodeDetectorSupport, stopScanning])
+
+  // Start native scanner when mode is set to native
+  React.useEffect(() => {
+    if (scannerMode !== "native") return
+
+    async function startNative() {
+      const cameraReady = await initCamera()
+      if (cameraReady) {
+        await startNativeScanning()
+      }
+    }
+
+    startNative()
+  }, [scannerMode, initCamera, startNativeScanning])
+
+  // Start fallback scanner when mode is set to fallback (after DOM renders)
+  React.useEffect(() => {
+    if (scannerMode !== "fallback") return
+
+    // Small delay to ensure DOM element exists
+    const timeoutId = setTimeout(() => {
+      startFallbackScanning()
+    }, 50)
+
+    return () => clearTimeout(timeoutId)
+  }, [scannerMode, startFallbackScanning])
 
   // Manual search handler
   const handleManualSearch = React.useCallback(() => {
