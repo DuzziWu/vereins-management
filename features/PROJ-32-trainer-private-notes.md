@@ -1,6 +1,6 @@
 # PROJ-32: Trainer Private Notes
 
-## Status: Ready for Testing (Bugs Fixed 2026-03-04)
+## Status: ✅ Deployed (2026-03-04)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für eingeloggte User-Checks
