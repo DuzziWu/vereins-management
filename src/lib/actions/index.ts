@@ -23,14 +23,25 @@ export { getMyProfile, getAuthUserEmail } from './profile'
 export { getAllGroups, getMyGroups, getGroup } from './groups'
 export type { Group, GroupWithTrainer } from './groups'
 
-// Trainer notes actions (PROJ-3 BUG-2)
+// Trainer notes actions (PROJ-3 BUG-2, PROJ-32)
 export {
   getMyTrainerNotes,
-  getTrainerNoteForGroup,
+  getTrainerNotesForGroup,
+  getTrainerNoteById,
+  getTrainingSessionsForGroup,
+  createTrainerNote,
+  updateTrainerNote,
   saveTrainerNote,
   deleteTrainerNote,
 } from './trainer-notes'
-export type { TrainerNote, TrainerNoteWithGroup } from './trainer-notes'
+export type {
+  TrainerNote,
+  TrainerNoteWithGroup,
+  TrainerNoteWithSession,
+  TrainingSessionOption,
+  CreateTrainerNoteInput,
+  UpdateTrainerNoteInput,
+} from './trainer-notes'
 
 // Notification actions (PROJ-3 BUG-3)
 export {

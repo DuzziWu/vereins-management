@@ -52,6 +52,7 @@ import type {
   ActualStatus,
 } from "@/lib/validations/training"
 import { WEEKDAY_MAP } from "@/lib/validations/training"
+import { QuickAddNoteButton } from "@/components/trainer/quick-add-note-button"
 
 // === Helper Functions ===
 
@@ -798,6 +799,14 @@ export default function TrainerSchedulePage() {
                                     Korrigieren
                                   </Button>
                                 )}
+                              {/* Quick-Add Note Button for past sessions */}
+                              {!isCancelled && isPast && (
+                                <QuickAddNoteButton
+                                  groupId={session.group_id}
+                                  sessionId={session.id}
+                                  sessionDate={session.date}
+                                />
+                              )}
                             </div>
                           </div>
                         </div>

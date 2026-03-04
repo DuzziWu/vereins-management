@@ -12,22 +12,9 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { GroupDetailTabs } from "@/components/trainer/group-detail-tabs"
 
 interface PageProps {
   params: Promise<{ groupId: string }>
@@ -241,61 +228,13 @@ export default async function TrainerGroupDetailPage({ params }: PageProps) {
         </Card>
       </div>
 
-      {/* Co-Trainers */}
-      {coTrainers.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Co-Trainer</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {coTrainers.map((ct) => (
-                <Badge key={ct.id} variant="secondary">
-                  {ct.first_name} {ct.last_name}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Members Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">
-            Mitglieder ({members.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {members.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Users className="h-10 w-10 text-muted-foreground/50 mb-2" />
-              <p className="text-sm text-muted-foreground">
-                Keine Mitglieder in dieser Gruppe.
-              </p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {members
-                  .sort((a, b) => a.last_name.localeCompare(b.last_name))
-                  .map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell>
-                        {member.first_name} {member.last_name}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* Tabs with Members, Training, and Notes */}
+      <GroupDetailTabs
+        groupId={groupId}
+        members={members}
+        coTrainers={coTrainers}
+        isTrainer={isMainTrainer || isCoTrainer}
+      />
     </div>
   )
 }

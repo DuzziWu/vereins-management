@@ -1,6 +1,6 @@
 # PROJ-32: Trainer Private Notes
 
-## Status: Planned
+## Status: Ready for Testing (Bugs Fixed 2026-03-04)
 
 ## Abhängigkeiten
 - Benötigt: PROJ-1 (User Authentication) - für eingeloggte User-Checks
@@ -468,3 +468,51 @@ Keine neuen Packages nötig:
 - Erinnerungen/Reminder basierend auf Notizen
 - Export als PDF
 - Statistiken über Notizen
+
+---
+
+## QA Test Results
+
+**Tested:** 2026-03-04
+**Status:** BUGS FIXED - Ready for Manual Testing
+**Full Report:** `/test-reports/PROJ-32-qa-report.md`
+
+### Acceptance Criteria Status
+
+#### Zugang zu Notizen
+- [x] "Notizen" Tab in der Trainer-Gruppen-Detail-Ansicht
+- [x] Nur für zugewiesene Trainer sichtbar (RLS!) - **FIXED**
+- [x] Vorstand hat KEINEN Zugriff - **FIXED**
+- [x] Andere Trainer haben KEINEN Zugriff
+- [x] Mitglieder sehen den Tab nicht
+
+#### Notiz CRUD
+- [x] "Neue Notiz" Button öffnet Editor
+- [x] Validierung (10-5000 Zeichen, Titel max 100)
+- [x] Training-Verknüpfung funktioniert
+- [x] Bearbeiten und Löschen funktioniert
+- [x] Toast-Bestätigungen vorhanden
+
+#### Suche & Liste
+- [x] Chronologische Sortierung (neueste zuerst)
+- [x] Vorschau mit Titel und Content-Auszug
+- [x] Client-side Volltextsuche
+- [x] Quick-Add nach Training in Schedule-Ansicht
+
+### Bugs Fixed (2026-03-04)
+
+| Bug | Severity | Status | Fix |
+|-----|----------|--------|-----|
+| BUG-1 | Critical | **FIXED** | `is_trainer_of_group()` Helper prüft beide Tabellen |
+| BUG-2 | High | **FIXED** | UPDATE/DELETE Policies prüfen Gruppen-Zuweisung |
+| BUG-3 | Medium | **FIXED** | INSERT-Policy verwendet nur Gruppen-Zuweisung |
+| BUG-4 | Low | Open | Legacy-Funktion (nicht kritisch) |
+
+### Applied Migrations
+- `proj_32_fix_trainer_notes_rls_policies`
+- `proj_32_fix_insert_policy_allow_vorstand_trainers`
+
+### Summary
+- 32/32 Acceptance Criteria passed
+- 3/4 Bugs fixed (1 Low remaining)
+- **Ready for manual testing**
